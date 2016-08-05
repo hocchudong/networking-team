@@ -8,7 +8,7 @@
 	- [2.1 NAT (NetworkAddress Translation)](#nat)
 		- [2.1.1 Các kỹ thuật NAT](#kythuatnat)
 		- [2.1.2 Cách NAT làm việc](#natlamviec)
-		- [2.1.3 Kỹ thuật đóng giả địa chỉ IP] (#masquerade)
+		- [2.1.3 Kỹ thuật masquerade] (#masquerade)
 	- [2.2 Cấu trúc gói tin IP DATAGRAM](#ipdatagram)
 		- [2.2.1 Ý nghĩa các tham số trong IP header:](#ipheader)
 		- [2.2.2 Quá trình phân mảnh IP datagram](#phanmanhipdatagram)
@@ -75,7 +75,7 @@ Ban đầu, NAT được đưa ra nhằm giải quyết vấn đề thiếu hụ
 - Liên lạc giữa 192.168.0.200 và 203.162.2.200 là hoàn toàn trong suốt (transparent) qua NAT router. NAT router tiến hành chuyển tiếp (forward) gói dữ liệu từ 192.168.0.200 đến 203.162.2.200 và ngược lại.
 
 <a name="masquerade"></a>
-###2.3 Cách đóng giả địa chỉ IP (masquerade)
+###2.3 Kỹ thuật masquerade
 - NAT Router chuyển dãy IP nội bộ 192.168.0.x sang một IP duy nhất là 203.162.2.4 bằng cách dùng các số hiệu cổng (port-number) khác nhau.
 - Chẳng hạn khi có gói dữ liệu IP với nguồn 192.168.0.168:1204, đích 211.200.51.15:80 đến router, router sẽ đổi nguồn thành 203.162.2.4:26314 và lưu dữ liệu này vào một bảng gọi là bảng masquerade động.
 - Khi có một gói dữ liệu từ ngoài vào với nguồn là 221.200.51.15:80, đích 203.162.2.4:26314 đến router, router sẽ căn cứ vào bảng masquerade động hiện tại để đổi đích từ 203.162.2.4:26314 thành 192.168.0.164:1204.
@@ -161,10 +161,12 @@ Tuy nhiên , nếu những mạng khác không phải là mạng Ethernet , chú
 
 Ví dụ hình trên, Frame ban đầu dùng MTU có kích thước 1500 Byte . Khi tới mạng khác với MTU có kích thước 620 Byte thì mỗi Frame ban đầu được phân chia thành 03 Frame ( hai có kích thước 620 Byte và một có kích thước 300 Byte ) . Sau đó Router mà là đầu ra của mạng này ( Router 2 ) sẽ lắp ráp lại thành Datagram ban đầu .
 
-
-
-
 #3. Khái niệm - Kiến trúc.
+![](http://static.thegeekstuff.com/wp-content/uploads/2011/01/iptables-filter-nat-mangle-tables.png)
+
+![](https://www.frozentux.net/iptables-tutorial/images/table_subtraverse.jpg)
+
+
 ##3.1 Tables
 ##3.2 Chain
 ##3.3 Targets
