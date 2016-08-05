@@ -2,6 +2,21 @@
 
 Để hiểu rõ về cách hoạt động và từ đó, áp dụng để viết các rule, thì các bạn phải nắm chắc các phần kiến thức dưới đây.
 #Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1. NAT (NetworkAddress Translation)](#nat)
+	- [1.1 Các khái niệm](#khainiemnat)
+	- [1.2 Các kỹ thuật NAT](#kythuatnat)
+		- [1.2.1 NAT tĩnh (Static NAT)](#nattinh)
+		- [1.2.2 Nat động (Dynamic NAT):](#natdong)
+		- [1.2.3 NAT Overload – PAT:](#pat)
+	- [1.3 Cách thức hoạt động của NAT](#natlamviec)
+	- [1.4 Kỹ thuật masquerade](#masquerade)
+- [2. Cấu trúc gói tin IP DATAGRAM](#ipdatagram)
+	- [2.1 Ý nghĩa các tham số trong IP header:](#ipheader)
+	- [2.2 Quá trình phân mảnh IP datagram](#phanmanhipdatagram)
+- [3. Tài liệu tham khảo](#thamkhao)
+
 
 <a name="nat"></a>
 #1. NAT (NetworkAddress Translation)
@@ -27,6 +42,7 @@ Ban đầu, NAT được đưa ra nhằm giải quyết vấn đề thiếu hụ
 
 <a name="kythuatnat"></a>
 ##1.2 Các kỹ thuật NAT
+<a name="nattinh"></a>
 ###1.2.1 NAT tĩnh (Static NAT)
 Là phương thức NAT một đổi một. Nghĩa là một địa chỉ IP cố định trong LAN sẽ được ánh xạ ra một địa chỉ IP Public cố định trước khi gói tin đi ra Internet.
 
@@ -42,20 +58,24 @@ Nhìn vào hình trên ta thấy, mỗi địa chỉ ip private sẽ được NA
 - Đường đi của gói tin khi dùng NAT tĩnh
 
   - Mô hình
-  ![](http://www.firewall.cx/images/stories/nat-static-part2-1.gif)
+
+    ![](http://www.firewall.cx/images/stories/nat-static-part2-1.gif)
 
     Máy tính Workstation1 (192.168.0.3) gửi một request đến 1 địa chỉ trên mạng Internet.
 
   - Gói tin đi ra ngoài
-  ![](http://www.firewall.cx/images/stories/nat-static-part2-2.gif)
+
+    ![](http://www.firewall.cx/images/stories/nat-static-part2-2.gif)
 
     Khi đến router, gói tin sẽ được thay đổi địa chỉ nguồn, từ `192.168.0.3 ->203.31.220.135` theo thông tin có trong bảng NAT table của router. Sau đó, gói tin sẽ được gửi đi trên internet.
   - Gói tin từ ngoài đi vào trong
-  ![](http://www.firewall.cx/images/stories/nat-static-part2-3.gif)
+
+    ![](http://www.firewall.cx/images/stories/nat-static-part2-3.gif)
 
     Tương tự như thế, khi gói tin từ mạng internet vào đến router, router sẽ thay đổi địa chỉ đích, từ `203.31.220.135 ->192.168.0.3` rồi đi vào máy tính Workstation1.
 
 
+<a name="natdong"></a>
 ###1.2.2 Nat động (Dynamic NAT):
 
 Là một giải pháp tiết kiệm IP Public cho NAT tĩnh. Thay vì ánh xạ từng IP cố định trong LAN ra từng IP Public cố định. LAN động cho phép NAT cả dải IP trong LAN ra một dải IP Public cố định ra bên ngoài. Lúc này, địa chỉ IP public sẽ không gán cố định vào bất kỳ IP private nào cả.
@@ -79,7 +99,7 @@ Tuy nhiên, vào thời điểm khác
 =>**ip public không gán cố định vào một ip private nào cả**
 
 
-
+<a name="pat"></a>
 ###1.2.3 NAT Overload – PAT:
 
 Lúc này mỗi IP trong LAN khi đi ra Internet sẽ được ánh xạ ra một IP Public kết hợp với số hiệu cổng.
@@ -194,6 +214,7 @@ Tuy nhiên , nếu những mạng khác không phải là mạng Ethernet , chú
 
 Ví dụ hình trên, Frame ban đầu dùng MTU có kích thước 1500 Byte . Khi tới mạng khác với MTU có kích thước 620 Byte thì mỗi Frame ban đầu được phân chia thành 03 Frame ( hai có kích thước 620 Byte và một có kích thước 300 Byte ) . Sau đó Router mà là đầu ra của mạng này ( Router 2 ) sẽ lắp ráp lại thành Datagram ban đầu .
 
+<a name="thamkhao"></a>
 #3. Tài liệu tham khảo
 - http://www.hocmangcoban.com/2014/05/nat-la-gi-static-nat-dynamic-nat-nat.html
 - http://soaptek.blogspot.com/2012/12/thiet-lap-tuong-lua-iptables-cho-linux.html
