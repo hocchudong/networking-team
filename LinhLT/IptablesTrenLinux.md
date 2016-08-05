@@ -1,23 +1,43 @@
 #Tìm hiểu IPtables trong Linux
 #Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+- [1. Giới thiệu - Chức năng](#gioithieuchucnang)
+	- [1.1 Giới thiệu](#gioithieu)
+	- [1.2 Sự khác biệt trên các distro khác nhau.](#khacbietdistro)
+- [2. Các kiến thức cần có](#kienthuc)
+	- [2.1 NAT (NetworkAddress Translation)](#nat)
+		- [2.1.1 Các kỹ thuật NAT](#kythuatnat)
+	- [2.2 Cấu trúc gói tin IP DATAGRAM](#ipdatagram)
+		- [2.2.1 Ý nghĩa các tham số trong IP header:](#ipheader)
+		- [2.2.2 Quá trình phân mảnh IP datagram](#phanmanhipdatagram)
+- [3. Khái niệm - Kiến trúc.](#)
+	- [3.1 Tables](#)
+	- [3.2 Chain](#)
+	- [3.3 Targets](#)
+- [4. Packet Flow](#)
+- [5. Commands](#)
+- [6. Case trong thực tế.](#)
+- [Tài liệu tham khảo](#thamkhao)
 
-
+<a name="gioithieuchucnang"></a>
 #1. Giới thiệu - Chức năng
-
-##1.1 Giới thiệu - Chức năng
+<a name="gioithieu"></a>
+##1.1 Giới thiệu
 - Iptables là một tường lửa ứng dụng lọc gói dữ liệu, miễn phí và có sẵn trên Linux.
 - Netfilter/Iptables gồm 2 phần là Netfilter ở trong nhân Linux và Iptables nằm ngoài nhân.
 - Iptables chịu trách nhiệm giao tiếp giữa người dùng và Netfilter, sau đó đẩy các luật của người dùng vào cho Netfiler xử lí.
 - Netfilter tiến hành  lọc các gói dữ liệu ở mức IP.
 
+<a name="khacbiet_distro"></a>
 ##1.2 Sự khác biệt trên các distro khác nhau.
 - Trên CentOS, iptables được mặc định cài đặt với hệ điều hành.
 - Trên ubuntu, ufw được mặc định cài đặt với hệ điều hành. Về bản chất, `ufw is a frontend for iptables`. Tức có nghĩa là thay vì gõ lệnh iptables, thì các bạn gõ lệnh ufw. Sau đó, ufw sẽ chuyển các lệnh của ufw sang tập lệnh của iptables. Tất nhiên, iptables sẽ xử lý các quy tắc, chính sách đó. Lệnh ufw là dễ dàng hơn cho những người mới bắt đầu tìm hiểu về firewall. ufw cung cấp framework để quản lý netfilter, và giao diện command-line thân thiện để quản lý firewall.
 
 - Trong bài tìm hiểu này, tôi sẽ trình bày cách sử dụng `iptables` trên môi trường ubuntu14.04. Các bạn chú ý là mình sử dụng trực tiếp `iptables` chứ không phải thông qua `ufw` nữa.
 
+<a name="kienthuc"></a>
 #2. Các kiến thức cần có
-
+<a name="nat"></a>
 ##2.1 NAT (NetworkAddress Translation)
 Kỹ thuật NAT dùng để chuyển tiếp các gói tin giữa những lớp mạng khác nhau trên một mạng lớn. NAT dịch hay thay đổi một hoặc cả hai địa chỉ bên trong một gói tin khi gói đó đi qua router, hay một số thiết bị khác.
 
@@ -29,11 +49,13 @@ Ban đầu, NAT được đưa ra nhằm giải quyết vấn đề thiếu hụ
 - NAT che giấu IP bên trong LAN.
 - NAT giúp quản trị mạng lọc các gói tin được gửi đến hay gửi từ một địa chỉ IP và cho phép hay cấm truy cập đến một port cụ thể.
 
+<a name="kythuatnat"></a>
 ###2.1.1 Các kỹ thuật NAT
 - **Nat tĩnh (Static NAT)**: là phương thức NAT một đổi một. Nghĩa là một địa chỉ IP cố định trong LAN sẽ được ánh xạ ra một địa chỉ IP Public cố định trước khi gói tin đi ra Internet.
 - **Nat động (Dynamic NAT)**: là một giải pháp tiết kiệm IP Public cho NAT tĩnh. Thay vì ánh xạ từng IP cố định trong LAN ra từng IP Public cố định. LAN động cho phép NAT cả dải IP trong LAN ra một dải IP Public cố định ra bên ngoài.
 - **NAT Overload – PAT**:  Lúc này mỗi IP trong LAN khi đi ra Internet sẽ được ánh xạ ra một IP Public kết hợp với số hiệu cổng.
 
+<a name="ipdatagram"></a>
 ##2.2 Cấu trúc gói tin IP DATAGRAM
 
 Giao thức liên mạng IP là cung cấp khả năng kết nối các mạng con thành liên mạng để truyền dữ liệu.
@@ -44,6 +66,7 @@ và không duy trì bất kỳ thông tin nào về những datagram đã gửi 
 
 ![hình ảnh các thành phần](https://4yatfw.bn1.livefilestore.com/y2pj3_VXtcreN016i6uoHEFSeMQAc6rANxHt3Dkw0cThQkIz15HRRIa3-oyTVkYxkjWWps7EHp3mR-xBoggGUd6XSnt2u-wFruAeBu8_LA0skM/01-%20IP%20header.png)
 
+<a name="ipheader"></a>
 ###2.2.1 Ý nghĩa các tham số trong IP header:
 -	**Version (4 bit):** chỉ phiên bản (version) hiện hành của IP được cài đặt.
 
@@ -98,7 +121,8 @@ và không duy trì bất kỳ thông tin nào về những datagram đã gửi 
 
 - **Data:** Chứa thông tin lớp trên, chiều dài thay đổi đến 64Kb . Là TCP hay UDP Segment của tầng Transport gửi xuống cho tần Network , tầng  Network sẽ thêm header vào à Gói tin IP datagram .
 
-###2.2.2	Quá trình phân mảnh IP datagram
+<a name="phanmanhipdatagram"></a>
+###2.2.2 Quá trình phân mảnh IP datagram
 
 ![](http://i.imgur.com/Gjdivyl.gif)
 
@@ -122,8 +146,7 @@ Ví dụ hình trên, Frame ban đầu dùng MTU có kích thước 1500 Byte . 
 
 #6. Case trong thực tế.
 
+<a name="thamkhao"></a>
 #Tài liệu tham khảo
-
-- Các giao thức tầng IP - Khoa CNTT, Đại học Sư phạm Kỹ thuật Hưng Yên. http://voer.edu.vn/pdf/7f6dc2bd/1
-
 - http://www.hocmangcoban.com/2014/05/nat-la-gi-static-nat-dynamic-nat-nat.html
+- Các giao thức tầng IP - Khoa CNTT, Đại học Sư phạm Kỹ thuật Hưng Yên. http://voer.edu.vn/pdf/7f6dc2bd/1
