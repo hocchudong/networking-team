@@ -7,6 +7,8 @@
 - [2. Các kiến thức cần có](#kienthuc)
 	- [2.1 NAT (NetworkAddress Translation)](#nat)
 		- [2.1.1 Các kỹ thuật NAT](#kythuatnat)
+		- [2.1.2 Cách NAT làm việc](#natlamviec)
+		- [2.1.3 Kỹ thuật đóng giả địa chỉ IP] (#masquerade)
 	- [2.2 Cấu trúc gói tin IP DATAGRAM](#ipdatagram)
 		- [2.2.1 Ý nghĩa các tham số trong IP header:](#ipheader)
 		- [2.2.2 Quá trình phân mảnh IP datagram](#phanmanhipdatagram)
@@ -54,6 +56,33 @@ Ban đầu, NAT được đưa ra nhằm giải quyết vấn đề thiếu hụ
 - **Nat tĩnh (Static NAT)**: là phương thức NAT một đổi một. Nghĩa là một địa chỉ IP cố định trong LAN sẽ được ánh xạ ra một địa chỉ IP Public cố định trước khi gói tin đi ra Internet.
 - **Nat động (Dynamic NAT)**: là một giải pháp tiết kiệm IP Public cho NAT tĩnh. Thay vì ánh xạ từng IP cố định trong LAN ra từng IP Public cố định. LAN động cho phép NAT cả dải IP trong LAN ra một dải IP Public cố định ra bên ngoài.
 - **NAT Overload – PAT**:  Lúc này mỗi IP trong LAN khi đi ra Internet sẽ được ánh xạ ra một IP Public kết hợp với số hiệu cổng.
+
+<a name="natlamviec"></a>
+###2.2.2 Cách NAT làm việc
+
+![](http://i274.photobucket.com/albums/jj269/luongkhiem/ipta1.gif)
+
+- NAT Router đảm nhận việc chuyển dãy IP nội bộ 169.168.0.x sang dãy IP mới 203.162.2.x.
+- Khi có gói liệu với IP nguồn là 192.168.0.200 đến router, router sẽ đổi IP nguồn thành 203.162.2.200 sau đó mới gửi ra ngoài. Quá trình này gọi là **SNAT** (Source-NAT, NAT nguồn).
+
+![](http://kenhgiaiphap.vn/UserFiles/Image/vyatta2/kenhgiaiphap_vn_10(1).jpg)
+
+- Router lưu dữ liệu trong một bảng gọi là bảng NAT động.
+- Ngược lại, khi có một gói từ liệu từ gởi từ ngoài vào với IP đích là 203.162.2.200, router sẽ căn cứ vào bảng NAT động hiện tại để đổi địa chỉ đích 203.162.2.200 thành địa chỉ đích mới là 192.168.0.200. Quá trình này gọi là **DNAT** (Destination-NAT, NAT đích).
+
+![](http://kenhgiaiphap.vn/UserFiles/Image/vyatta2/kenhgiaiphap_vn_11(1).jpg)
+
+- Liên lạc giữa 192.168.0.200 và 203.162.2.200 là hoàn toàn trong suốt (transparent) qua NAT router. NAT router tiến hành chuyển tiếp (forward) gói dữ liệu từ 192.168.0.200 đến 203.162.2.200 và ngược lại.
+
+<a name="masquerade"></a>
+###2.3 Cách đóng giả địa chỉ IP (masquerade)
+- NAT Router chuyển dãy IP nội bộ 192.168.0.x sang một IP duy nhất là 203.162.2.4 bằng cách dùng các số hiệu cổng (port-number) khác nhau.
+- Chẳng hạn khi có gói dữ liệu IP với nguồn 192.168.0.168:1204, đích 211.200.51.15:80 đến router, router sẽ đổi nguồn thành 203.162.2.4:26314 và lưu dữ liệu này vào một bảng gọi là bảng masquerade động.
+- Khi có một gói dữ liệu từ ngoài vào với nguồn là 221.200.51.15:80, đích 203.162.2.4:26314 đến router, router sẽ căn cứ vào bảng masquerade động hiện tại để đổi đích từ 203.162.2.4:26314 thành 192.168.0.164:1204.
+- Liên lạc giữa các máy trong mạng LAN với máy khác bên ngoài hoàn toàn trong suốt qua router.
+- **Masquerade thường được dùng trong trường hợp IP thật thay đổi liên tục (ip public).**
+
+![](http://i274.photobucket.com/albums/jj269/luongkhiem/ipta2.gif)
 
 <a name="ipdatagram"></a>
 ##2.2 Cấu trúc gói tin IP DATAGRAM
@@ -149,4 +178,5 @@ Ví dụ hình trên, Frame ban đầu dùng MTU có kích thước 1500 Byte . 
 <a name="thamkhao"></a>
 #Tài liệu tham khảo
 - http://www.hocmangcoban.com/2014/05/nat-la-gi-static-nat-dynamic-nat-nat.html
+- http://soaptek.blogspot.com/2012/12/thiet-lap-tuong-lua-iptables-cho-linux.html
 - Các giao thức tầng IP - Khoa CNTT, Đại học Sư phạm Kỹ thuật Hưng Yên. http://voer.edu.vn/pdf/7f6dc2bd/1
