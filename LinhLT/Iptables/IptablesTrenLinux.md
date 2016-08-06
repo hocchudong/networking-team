@@ -5,13 +5,6 @@
 	- [1.1 Giới thiệu](#gioithieu)
 	- [1.2 Sự khác biệt trên các distro khác nhau.](#khacbietdistro)
 - [2. Các kiến thức cần có](#kienthuc)
-	- [2.1 NAT (NetworkAddress Translation)](#nat)
-		- [2.1.1 Các kỹ thuật NAT](#kythuatnat)
-		- [2.1.2 Cách thức hoạt động của NAT](#natlamviec)
-		- [2.1.3 Kỹ thuật masquerade] (#masquerade)
-	- [2.2 Cấu trúc gói tin IP DATAGRAM](#ipdatagram)
-		- [2.2.1 Ý nghĩa các tham số trong IP header:](#ipheader)
-		- [2.2.2 Quá trình phân mảnh IP datagram](#phanmanhipdatagram)
 - [3. Khái niệm - Kiến trúc.](#)
 	- [3.1 Tables](#)
 	- [3.2 Chain](#)
@@ -37,9 +30,16 @@
 
 - Trong bài tìm hiểu này, tôi sẽ trình bày cách sử dụng `iptables` trên môi trường ubuntu14.04. Các bạn chú ý là mình sử dụng trực tiếp `iptables` chứ không phải thông qua `ufw` nữa.
 
+###1.2.1 So sánh iptables trên ubuntu và centos
+
+| Đặc điểm |CentOS|ubuntu|
+|:----:|:---:|:----:|
+|Thư mục cấu hình|/etc/sysconfig/iptables-config|/etc/iptables/|
+
+
 <a name="kienthuc"></a>
 #2. Các kiến thức cần có
-Để tránh không làm loãng nội dung, các bạn hãy xem nội dung của phần này trong file `kienthuccanco.md` nằm cùng thư mục với tệp này. :D
+Để tránh không làm loãng nội dung, các bạn hãy xem nội dung của phần này trong file `kienthuccanco.md` nằm cùng thư mục với file này. :D
 
 #3. Khái niệm - Kiến trúc.
 
@@ -81,11 +81,6 @@ Bảng raw chủ yếu chỉ được sử dụng cho một điều, và đó l�
 Bảng này có 2 Chain, đó là
 - PREROUTING
 - OUTPUT
-
-
-
-
-
 
 ##3.2 Targets
 

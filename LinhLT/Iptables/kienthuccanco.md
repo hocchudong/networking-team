@@ -1,6 +1,6 @@
 #Kiến thức cần có.
 
-Để hiểu rõ về cách hoạt động và từ đó, áp dụng để viết các rule, thì các bạn phải nắm chắc các phần kiến thức dưới đây.
+Để hiểu rõ về cách hoạt động iptables và từ đó, áp dụng để viết các rule, thì các bạn phải nắm chắc các phần kiến thức dưới đây.
 #Mục lục
 **Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
