@@ -5,23 +5,34 @@
 	- [1.1 Giới thiệu](#gioithieu)
 	- [1.2 Sự khác biệt trên các distro khác nhau.](#khacbietdistro)
 - [2. Các kiến thức cần có](#kienthuc)
-- [3. Khái niệm - Kiến trúc.](#)
-	- [3.1 Tables](#)
-	- [3.2 Chain](#)
-	- [3.3 Targets](#)
-- [4. Packet Flow](#)
-- [5. Commands](#)
-- [6. Case trong thực tế.](#)
+- [3. Khái niệm - Kiến trúc.](#kientruc)
+	- [3.1 Tables](#tables)
+		- [3.1.1 Mangle table](#mangle)
+		- [3.1.2 NAT](#nat)
+		- [3.1.3 Filter](#filter)
+		- [3.1.4 RAW](#raw)
+	- [3.2 Chain](#chain)
+	- [3.3 Targets](#targets)
+- [4. Packet Flow](#packetflow)
+- [5. Commands](#commands)
+	- [5.1 COMMANDS](#commands)
+	- [5.2 PARAMETERS](#parameters)
+	- [5.3 OTHER OPTIONS](#options)
+	- [5.4 Match Extensions](#match)
+- [6. Case trong thực tế.](#case)
 - [Tài liệu tham khảo](#thamkhao)
 
 <a name="gioithieuchucnang"></a>
 #1. Giới thiệu - Chức năng
 <a name="gioithieu"></a>
 ##1.1 Giới thiệu
-- Iptables là một tường lửa ứng dụng lọc gói dữ liệu, miễn phí và có sẵn trên Linux.
+- Iptables là một tường lửa ứng dụng lọc gói dữ liệu, miễn phí và có sẵn trên Linux, là dạng tường lửa **Stateful**.
 - Netfilter/Iptables gồm 2 phần là Netfilter ở trong nhân Linux và Iptables nằm ngoài nhân.
 - Iptables chịu trách nhiệm giao tiếp giữa người dùng và Netfilter, sau đó đẩy các luật của người dùng vào cho Netfiler xử lí.
 - Netfilter tiến hành  lọc các gói dữ liệu ở mức IP.
+- **Stateless Packet Filtering:** Dạng bộ lọc không biết được quan hệ của những packet vào với packet đi trước nó hoặc đi sau nó, gọi là cơ chế lọc không phân biệt được trạng thái của các packet hoặc nôm na là lọc thụ động (stateless packet filtering), trong kernel 2.0 hoặc 2.2 thì Ipfwadm hoặc Ipchains chỉ thực hiện được đến mức độ này. Với các firewall không phân biệt được quan hệ của các packet với nhau, chúng ta gọi là firewall chặn thụ động (stateless firewalling). Loại firewall này khó có thể bảo vệ được mạng bên trong trước các kiểu tấn công phá hoại như DoS, SYN flooding, SYN cookie, ping of death, packet fragmentation... hay  các hacker chỉ cần dùng công cụ dò mạng như nmap chẳng hạn là có thể biết được các trạng thái của các hosts nằm sau firewall. Điều này không xảy ra với firewall tích cực (stateful firewall).
+
+- **Stateful Packet Filtering:** Với mọi packet đi vào mà bộ lọc có thể biết được quan hệ của chúng như thế nào đối với packet đi trước hoặc đi sau nó, ví dụ như các trạng thái bắt tay ba lần trước khi thực hiện một kết nối trong giao thức TCP/IP (SYN, SYN/ACK, ACK), gọi là firewall có thể phân biệt được trạng thái của các packet hay nôm na là firewall tích cực (stateful firewalling). Với loại firewall này, chúng ta có thể xây dựng các quy tắc lọc để có thể ngăn chặn được ngay cả các kiểu tấn công phá hoại như SYN flooding hay Xmas tree... Hơn thế nữa Iptables còn hỗ trợ khả năng giới hạn tốc độ kết nối đối với các kiểu kết nối khác nhau từ bên ngoài, cực kỳ hữu hiệu để ngăn chặn các kiểu tấn công từ chối phục vụ (DoS) mà hiện nay vẫn là mối đe doạ hàng đầu đối vói các website trên thế giới. Một đặc điểm nổi bật nữa của Iptables là nó hỗ trợ chức năng dò tìm chuỗi tương ứng (string pattern matching), chức năng cho phép phát triển firewall lên một mức cao hơn, có thể đưa ra quyết định loại bỏ hay chấp nhận packet dựa trên việc giám sát nội dung của nó. Chức năng này có thể được xem như là can thiệp được đến mức ứng dụng như HTTP, TELNET, FTP... mặc dù thực sự Netfilter Iptables vẫn chỉ hoạt động ở mức mạng (lớp 3 theo mô hình OSI 7 lớp).
 
 <a name="khacbiet_distro"></a>
 ##1.2 Sự khác biệt trên các distro khác nhau.
@@ -41,13 +52,17 @@
 #2. Các kiến thức cần có
 Để tránh không làm loãng nội dung, các bạn hãy xem nội dung của phần này trong file `kienthuccanco.md` nằm cùng thư mục với file này. :D
 
+<a name="kientruc"></a>
 #3. Khái niệm - Kiến trúc.
 
 ![](http://static.thegeekstuff.com/wp-content/uploads/2011/01/iptables-filter-nat-mangle-tables.png)
 
 Iptables tổ chức phân loại theo cách xử lý gói tin. Các gói tin được xử lý qua các Bảng. Trong mỗi bảng có phân biệt các gói tin đi vào **(INPUT)**, đi ra **(OUTPUT)**, chuyển tiếp **(FORWARD)**, hay cách thức biển đổi địa chỉ đích **(PreRouting)**, biến đổi địa chỉ nguồn **(PostRouting)**, đó chính là các **Chain**. Trong các chain, lại chia thành các **rule**, là danh sách các luật, quy định. **Target/jumps** nói cho rule biết phải làm gì với gói dữ liệu đó (ACCEPT, DROP,...).
 
+<a name="tables"></a>
 ##3.1 Tables
+
+<a name="mangle"></a>
 ###3.1.1 Mangle table
 Bảng này được sử dụng cho modifying packet. Bạn có thể thay đổi trường TOS (Type Of Service) trong gói tin ipdatagram.
 
@@ -65,7 +80,7 @@ Các chain có trong bảng này:
 - OUTPUT
 - POSTROUTING
 
-
+<a name="nat"></a>
 ###3.1.2 NAT
 
 - Bảng này được sử dụng cho chức năng NAT trên các gói tin khác nhau. Trong một số trường hợp, nó được sử dụng để dịch các trường địa chỉ nguồn và địa chỉ đích của gói tin.
@@ -84,6 +99,7 @@ Các chain có trong bảng này:
 	- OUTPUT
 	- POSTROUTING
 
+<a name="filter"></a>
 ###3.1.3 Filter
 
 Bảng này được sử dụng để lọc gói tin. Chúng ta có thể kết hợp các gói tin và lọc chúng trong bất cứ cách nào chúng ta muốn.
@@ -93,6 +109,7 @@ Các Chain có trong bảng này:
 - FORWARD
 - OUTPUT
 
+<a name="raw"></a>
 ###3.1.4 RAW
 
 Bảng raw chủ yếu chỉ được sử dụng cho một điều, và đó là để thiết lập một đánh dấu trên gói tin rằng họ không nên được xử lý bởi các hệ thống theo dõi kết nối. Điều này được thực hiện bằng target `NOTRACK`.
@@ -101,7 +118,7 @@ Bảng này có 2 Chain, đó là
 - PREROUTING
 - OUTPUT
 
-
+<a name="chain"></a>
 ##3.2 Chain
 
 Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào đấy. Nếu bạn không xác định tables nào thì iptables coi mặc định là cho bảng FILTER.
@@ -114,6 +131,7 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 |PREROUTING| sửa địa chỉ đích của gói tin trước khi nó được routing bởi bảng routing của hệ thống (destination NAT hay DNAT).|
 |POSTROUTING|ngược lại với Pre-routing, nó sửa địa chỉ nguồn của gói tin sau khi gói tin đã được routing bởi hệ thống (SNAT).|
 
+<a name="targets"></a>
 ##3.3 Targets
 
 | Targets |Mean|Ý nghĩa|
@@ -137,7 +155,7 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 |CLASSIFY|This option adds a ’CLASSIFY’ target, which enables the user to set the priority of a packet. Some qdiscs can use this value for classification, among these are: atm, cbq, dsmark, pfifo fast, htb, prio| Cho phép người dùng đặt ưu tiên của các gói tin.
 |TCPMSS|CPMSS This option adds a ’TCPMSS’ target, which allows you to alter the MSS value of TCP SYN packets, to control the maximum size for that connection (usually limiting it to your outgoing interface’s MTU minus 40).This is used to overcome criminally braindead ISPs or servers which block ICMP Fragmentation Needed packets. The symptoms of this problem are that everything works fine from your Linux firewall/router, but machines behind it can never exchange large packets: 1) Web browsers connect, then hang with no data received. 2) Small mail works fine, but large emails hang. 3) ssh works fine, but scp hangs after initial handshaking.| Cho phép bạn thay đổi giá trị MSS của gói tin SYN TCP, để điều khiển kích thước tối đa của kết nối.|
 
-
+<a name="packetflow"></a>
 #4. Packet Flow
 ![](http://www.linuxhomenetworking.com/wiki/images/f/f0/Iptables.gif)
 
@@ -147,8 +165,9 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 
 - **TH2: gói tin không phải của firewall** sẽ được đưa đến bảng mangle với chain FORWARD đến bảng filter với chain FORWARD. Đây là chain được sử dụng rất nhiều để bảo vệ người sử dụng mang trong lan với người sử dụng internet các gói tin thoải mãn các rule đặt ra mới có thể được chuyển qua giữa các card mạng với nhau, qua đó có nhiệm vụ thực hiện chính sách với người sử dụng nội bộ nhưng không cho vào internet, giới hạn thời gian,...và bảo vệ hệ thống máy chủ đối với người dung internet bên ngoài chống các kiểu tấn công. sau khi đi qua card mạng với nhau gói tin phải đi lần lượt qua bảng mangle và NAT với chain POSTROUTING để thực hiên việc chuyển đổi địa chỉ nguồn với target SNAT & MASQUERADE.
 
-
+<a name="commands"></a>
 #5. Commands
+
 ##5.1 COMMANDS
 
 |Commands|Meaning|Ý nghĩa|
@@ -160,16 +179,15 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 |**-R, --replace** *chain rulenum rule-specification*|Replace a rule in the selected chain. If the source and/or destination names resolve to multiple addresses, the command will fail. Rules are numbered starting at 1.| Thay thế một rule trên chain được chọn|
 | **-L, --list** *[chain]*| List all rules in the selected chain. If no chain is selected, all chains are listed. As every other iptables command, it applies to the specified table (filter is the default), so NAT rules get listed by| Liệt kê tất cả các rule trong chain được chọn. Ví dụ: `iptables -t nat -n -L`;       `iptables -L -v`.|
 |**-F, --flush** *[chain]*|Flush the selected chain (all the chains in the table if none is given). This is equivalent to deleting all the rules one by one.| Flush một chain được chọn|
-|**-Z, --zero** *[chain]*| Zero the packet and byte counters in all chains. It is legal to specify the -L, --list (list) option as well, to see the counters immediately before they are cleared. (See above.)||
+|**-Z, --zero** *[chain]*| Zero the packet and byte counters in all chains. It is legal to specify the -L, --list (list) option as well, to see the counters immediately before they are cleared. (See above.)|Thiết lập bộ đếm bằng 0 trên tất cả chain|
 |**-N, --new-chain** *chain*| Create a new user-defined chain by the given name. There must be no target of that name already.|Tạo một chain mới|
-|**-X, --delete-chain** *[chain]*|Delete the optional user-defined chain specified. There must be no references to the chain. If there are, you must delete or replace the referring rules before the chain can be deleted. The chain must be empty, i.e. not contain any rules. If no argument is given, it will attempt to delete every non-builtin chain in the table.|Xóa một chain|
-|**-P, --policy** *chain target*| Set the policy for the chain to the given target. See the section TARGETS for the legal targets. Only built-in (non-user-defined) chains can have policies, and neither built-in nor user-defined chains can be policy targets.| |
+|**-X, --delete-chain** *[chain]*|Delete the optional user-defined chain specified. There must be no references to the chain. If there are, you must delete or replace the referring rules before the chain can be deleted. The chain must be empty, i.e. not contain any rules. If no argument is given, it will attempt to delete every non-builtin chain in the table.|Xóa một chain trống|
+|**-P, --policy** *chain target*| Set the policy for the chain to the given target. See the section TARGETS for the legal targets. Only built-in (non-user-defined) chains can have policies, and neither built-in nor user-defined chains can be policy targets.| Thay đổi policy cho built-in chain|
 |**-E, --rename-chain** *old-chain new-chain*|Rename the user specified chain to the user supplied name. This is cosmetic, and has no effect on the structure of the table.| Đổi tên chain.|
 |-h| Help. Give a (currently very brief) description of the command syntax.| Liệt kê cú pháp các lệnh|
 
+<a name="parameters"></a>
 ##5.2 PARAMETERS
-
-Để xây dựng các rules bạn còn phải sử dụng các tuỳ chọn để tạo điều kiện so sánh.Sau đây là một số tuỳ chọn thường dùng.
 
 The following parameters make up a rule specification (as used in the add, delete, insert, replace and append commands).
 
@@ -183,9 +201,9 @@ The following parameters make up a rule specification (as used in the add, delet
 |**-i, --in-interface [!]** *name*|Name of an interface via which a packet was received (only for packets entering the INPUT, FORWARD and PREROUTING chains). When the "!" argument is used before the interface name, the sense is inverted. If the interface name ends in a "+", then any interface which begins with this name will match. If this option is omitted, any interface name will match.| so sánh tên card mạng mà gói tin đi vào hệ thống qua đó|
 |**-o, --out-interface [!]** *name*|Name of an interface via which a packet is going to be sent (for packets entering the FORWARD, OUTPUT and POSTROUTING chains). When the "!" argument is used before the interface name, the sense is inverted. If the interface name ends in a "+", then any interface which begins with this name will match. If this option is omitted, any interface name will match.|so sánh tên card mạng mà gói tin từ hệ thống đi ra qua đó.|
 |**[!] -f, --fragment**|This means that the rule only refers to second and further fragments of fragmented packets. Since there is no way to tell the source or destination ports of such a packet (or ICMP type), such a packet will not match any rules which specify them. When the "!" argument precedes the "-f" flag, the rule will only match head fragments, or unfragmented packets.|
-|**-c, --set-counters** *PKTS BYTES*|This enables the administrator to initialize the packet and byte counters of a rule (during INSERT, APPEND, REPLACE operations).|
+|**-c, --set-counters** *PKTS BYTES*|This enables the administrator to initialize the packet and byte counters of a rule (during INSERT, APPEND, REPLACE operations).|Thiết lập bộ đếm các gói tin trên rule|
 
-
+<a name="options"></a>
 ##5.3 OTHER OPTIONS
 
 The following additional options can be specified:
@@ -198,18 +216,42 @@ The following additional options can be specified:
 |**--line-numbers**|When listing rules, add line numbers to the beginning of each rule, corresponding to that rule's position in the chain.|
 |**--modprobe=command**|When adding or inserting rules into a chain, use command to load any necessary modules (targets, match extensions, etc).
 
+<a name="match"></a>
 ##5.4 Match Extensions
 
+- để xây dựng các rules bạn còn phải sử dụng các tuỳ chọn để tạo điều kiện so sánh.
+- Khi bạn sử dụng, phải đi kèm với tùy chọn **-m tenmodule** hoặc **-p tengiaothuc**
+
+- Một số câu lệnh thông dụng
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**-p tcp** *--sport*| xác định port nguồn của gói tin TCP.|
+|**-p tcp** *--dport*| xác định port đích của gói tin TCP|
+|**-p udp** *--sport*| xác định port nguồn của gói tin UDP|
+|**-p udp** *--dport*| xác định port đích của gói tin UDP|
+|**-p tcp** *--syn*| xác định gói tin có phải là một yêu cầu tạo một kết nối TCP mới không.
+|**-p icmp --icmp-type** *typename*| xác định loại gói icmp (echo-reply hay echo-request).
+|**-m limit --limit** *rate*|Maximum average matching rate: specified as a number, with an optional '/second', '/minute', '/hour', or '/day' suffix; the default is 3/hour.|
+|**-m limit --limit-burst** *number*|Maximum initial number of packets to match: this number gets recharged by one every time the limit specified above is not reached, up to this number; the default is 5.|
+|**-m mac --mac-source** *address*|Match source MAC address. It must be of the form XX:XX:XX:XX:XX:XX. Note that this only makes sense for packets coming from an Ethernet device and entering the PREROUTING, FORWARD or INPUT chains.|
+|**-m multiport --sport** *< port, port >*| xác định một loạt các giá trị port nguồn|
+|**-m multiport --dport** *< port, port >*| xác định một loạt các giá trị port đích.|
+|**-m multiport --port** *< port, port >*| xác định một loạt các giá trị port (không phân biệt nguồn hay đích).|
+|**-m --state** *<state>*| xác định trạng thái kết nối mà gói tin thể hiện: **ESTABLISHED:** gói tin thuộc một kết nối đã được thiết lập. **NEW:** gói tin thể hiện một yêu cầu kết nối. **RELATED:** gói tin thể hiện một yêu cầu kết nối thứ hai (có liên quan đến kết nối thứ nhất, thường xuất hiện ở những giao thức FPT hay ICMP). **INVALID:** thể hiện một gói tin không hợp lệ|
 
 
+
+<a name="case"></a>
 #6. Case trong thực tế.
 
 <a name="thamkhao"></a>
 #Tài liệu tham khảo
-- Michal Rash, Linux firewall: Attack Detection and response with iptables, psad and fwsnort.
-- Paul Cobbaut, Linux Networking.
-- LeRoy D. Cressy, Iptables.
+- *Michal Rash*, Linux firewall: Attack Detection and response with iptables, psad and fwsnort.
+- *Paul Cobbaut*, Linux Networking.
+- *LeRoy D. Cressy*, Iptables.
 - http://www.faqs.org/docs/iptables/
 - http://linux.die.net/man/8/iptables
+- http://www.pcworld.com.vn/articles/cong-nghe/ung-dung/2004/01/1184843/he-thong-firewall-tren-linux-kernel-2-4-netfilter-iptables/
 - http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch14_:_Linux_Firewalls_Using_iptables#.V6ap8Zh97IU
 - https://github.com/NguyenHoaiNam/Iptables-trong-Linux
