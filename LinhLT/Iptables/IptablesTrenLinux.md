@@ -139,10 +139,77 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 
 
 #4. Packet Flow
+![](http://www.linuxhomenetworking.com/wiki/images/f/f0/Iptables.gif)
+
+Đầu tiên gói tin từ mạng A đi vào hệ thống firewall sẽ phải đi qua bảng Mangle với chain là PREROUTING (với mục đích để thay đôi một số thông tin của gói tin trước khi đưa qua quyết định dẫn đường) sau đó gói tin đến bảng NAT với với chain PREROUTING tại đây địa chỉ đích của gói tin có thể bị thay đổi hoặc không, qua bộ routing và sẽ quyết định xem gói tin đó thuộc firewall hay không:
+
+- **TH1: gói tin đó là của firewall:** gói tin sẽ đi qua bảng mangle và đến bản filter với chai là INPUT. Tại đây gói tin sẽ được áp dụng chính sách (rule) và ứng với mỗi rule cụ thể sẽ được áp dụng với target, sau quá trình xử lý gói tin sẽ đi đến bảng mangle tiếp đến là bảng NAT với chain OUTPUT được áp dụng một số chính sách và sau đó đi lần lượt qua các bảng magle với chain POSTROUTING cuối cùng đi đến bảng NAT với chain POSTROUTING để thay đổi địa chỉ nguồn nếu cần thiết.
+
+- **TH2: gói tin không phải của firewall** sẽ được đưa đến bảng mangle với chain FORWARD đến bảng filter với chain FORWARD. Đây là chain được sử dụng rất nhiều để bảo vệ người sử dụng mang trong lan với người sử dụng internet các gói tin thoải mãn các rule đặt ra mới có thể được chuyển qua giữa các card mạng với nhau, qua đó có nhiệm vụ thực hiện chính sách với người sử dụng nội bộ nhưng không cho vào internet, giới hạn thời gian,...và bảo vệ hệ thống máy chủ đối với người dung internet bên ngoài chống các kiểu tấn công. sau khi đi qua card mạng với nhau gói tin phải đi lần lượt qua bảng mangle và NAT với chain POSTROUTING để thực hiên việc chuyển đổi địa chỉ nguồn với target SNAT & MASQUERADE.
+
 
 #5. Commands
+##5.1 COMMANDS
+
+|Commands|Meaning|Ý nghĩa|
+|:---:|:---:|:---:|
+|**-t, --table** *table*| This option specifies the packet matching table which the command should operate on.| Chỉ ra tên của bảng mà rule của bạn sẽ dược ghi vào (mặc định là FILTER ).|
+|**-A, --append** *chain rule-specification*| Append one or more rules to the end of the selected chain. When the source and/or destination names resolve to more than one address, a rule will be added for each possible address combination.| ghi nối tiếp rule vào một chain|
+|**-D, --delete** *chain rule-specification*, *chain rulenum*| Delete one or more rules from the selected chain. There are two versions of this command: the rule can be specified as a number in the chain (starting at 1 for the first rule) or a rule to match.| Xóa một hoặc một vài rule trong chain|
+|**-I, --insert** *chain [rulenum] rule-specification*| Insert one or more rules in the selected chain as the given rule number. So, if the rule number is 1, the rule or rules are inserted at the head of the chain. This is also the default if no rule number is specified.| Chèn rule vào chain được chọn.|
+|**-R, --replace** *chain rulenum rule-specification*|Replace a rule in the selected chain. If the source and/or destination names resolve to multiple addresses, the command will fail. Rules are numbered starting at 1.| Thay thế một rule trên chain được chọn|
+| **-L, --list** *[chain]*| List all rules in the selected chain. If no chain is selected, all chains are listed. As every other iptables command, it applies to the specified table (filter is the default), so NAT rules get listed by| Liệt kê tất cả các rule trong chain được chọn. Ví dụ: `iptables -t nat -n -L`;       `iptables -L -v`.|
+|**-F, --flush** *[chain]*|Flush the selected chain (all the chains in the table if none is given). This is equivalent to deleting all the rules one by one.| Flush một chain được chọn|
+|**-Z, --zero** *[chain]*| Zero the packet and byte counters in all chains. It is legal to specify the -L, --list (list) option as well, to see the counters immediately before they are cleared. (See above.)||
+|**-N, --new-chain** *chain*| Create a new user-defined chain by the given name. There must be no target of that name already.|Tạo một chain mới|
+|**-X, --delete-chain** *[chain]*|Delete the optional user-defined chain specified. There must be no references to the chain. If there are, you must delete or replace the referring rules before the chain can be deleted. The chain must be empty, i.e. not contain any rules. If no argument is given, it will attempt to delete every non-builtin chain in the table.|Xóa một chain|
+|**-P, --policy** *chain target*| Set the policy for the chain to the given target. See the section TARGETS for the legal targets. Only built-in (non-user-defined) chains can have policies, and neither built-in nor user-defined chains can be policy targets.| |
+|**-E, --rename-chain** *old-chain new-chain*|Rename the user specified chain to the user supplied name. This is cosmetic, and has no effect on the structure of the table.| Đổi tên chain.|
+|-h| Help. Give a (currently very brief) description of the command syntax.| Liệt kê cú pháp các lệnh|
+
+##5.2 PARAMETERS
+
+Để xây dựng các rules bạn còn phải sử dụng các tuỳ chọn để tạo điều kiện so sánh.Sau đây là một số tuỳ chọn thường dùng.
+
+The following parameters make up a rule specification (as used in the add, delete, insert, replace and append commands).
+
+|PARAMETERS|Meaning|Ý nghĩa|
+|:---:|:---:|:---:|
+|**-p, --protocol [!]** *protocol*| The protocol of the rule or of the packet to check. The specified protocol can be one of tcp, udp, icmp, or all, or it can be a numeric value, representing one of these protocols or a different one. A protocol name from /etc/protocols is also allowed. A "!" argument before the protocol inverts the test. The number zero is equivalent to all. Protocol all will match with all protocols and is taken as default when this option is omitted.| so sánh protocol gói tin|
+|**-s, --source [!]** *address[/mask]*|Source specification. Address can be either a network name, a hostname (please note that specifying any name to be resolved with a remote query such as DNS is a really bad idea), a network IP address (with /mask), or a plain IP address. The mask can be either a network mask or a plain number, specifying the number of 1's at the left side of the network mask. Thus, a mask of 24 is equivalent to 255.255.255.0. A "!" argument before the address specification inverts the sense of the address. The flag --src is an alias for this option.|so sánh địa chỉ nguồn của gói tin.|
+|**-d, --destination [!]** *address[/mask]*|Destination specification. See the description of the -s (source) flag for a detailed description of the syntax. The flag --dst is an alias for this option.| so sánh địa chỉ đích của gói tin|
+|**-j, --jump** *target* |This specifies the target of the rule; i.e., what to do if the packet matches it. The target can be a user-defined chain (other than the one this rule is in), one of the special builtin targets which decide the fate of the packet immediately, or an extension (see EXTENSIONS below). If this option is omitted in a rule (and -g is not used), then matching the rule will have no effect on the packet's fate, but the counters on the rule will be incremented.|Nhẩy đến một kiểu xử lý (target) tương ứng như đã định nghĩa ở trên nếu điều kiện so sánh thoả mãn.|
+|**-g, --goto** *chain*|This specifies that the processing should continue in a user specified chain. Unlike the --jump option return will not continue processing in this chain but instead in the chain that called us via --jump.||
+|**-i, --in-interface [!]** *name*|Name of an interface via which a packet was received (only for packets entering the INPUT, FORWARD and PREROUTING chains). When the "!" argument is used before the interface name, the sense is inverted. If the interface name ends in a "+", then any interface which begins with this name will match. If this option is omitted, any interface name will match.| so sánh tên card mạng mà gói tin đi vào hệ thống qua đó|
+|**-o, --out-interface [!]** *name*|Name of an interface via which a packet is going to be sent (for packets entering the FORWARD, OUTPUT and POSTROUTING chains). When the "!" argument is used before the interface name, the sense is inverted. If the interface name ends in a "+", then any interface which begins with this name will match. If this option is omitted, any interface name will match.|so sánh tên card mạng mà gói tin từ hệ thống đi ra qua đó.|
+|**[!] -f, --fragment**|This means that the rule only refers to second and further fragments of fragmented packets. Since there is no way to tell the source or destination ports of such a packet (or ICMP type), such a packet will not match any rules which specify them. When the "!" argument precedes the "-f" flag, the rule will only match head fragments, or unfragmented packets.|
+|**-c, --set-counters** *PKTS BYTES*|This enables the administrator to initialize the packet and byte counters of a rule (during INSERT, APPEND, REPLACE operations).|
+
+
+##5.3 OTHER OPTIONS
+
+The following additional options can be specified:
+
+|OPTIONS|Meaning|Ý nghĩa|
+|:---:|:---:|:---:|
+|**-v, --verbose**|Verbose output. This option makes the list command show the interface name, the rule options (if any), and the TOS masks. The packet and byte counters are also listed, with the suffix 'K', 'M' or 'G' for 1000, 1,000,000 and 1,000,000,000 multipliers respectively (but see the -x flag to change this). For appending, insertion, deletion and replacement, this causes detailed information on the rule or rules to be printed.|
+|**-n, --numeric**|Numeric output. IP addresses and port numbers will be printed in numeric format. By default, the program will try to display them as host names, network names, or services (whenever applicable).|
+|**-x, --exact**|Expand numbers. Display the exact value of the packet and byte counters, instead of only the rounded number in K's (multiples of 1000) M's (multiples of 1000K) or G's (multiples of 1000M). This option is only relevant for the -L command.|
+|**--line-numbers**|When listing rules, add line numbers to the beginning of each rule, corresponding to that rule's position in the chain.|
+|**--modprobe=command**|When adding or inserting rules into a chain, use command to load any necessary modules (targets, match extensions, etc).
+
+##5.4 Match Extensions
+
+
 
 #6. Case trong thực tế.
 
 <a name="thamkhao"></a>
 #Tài liệu tham khảo
+- Michal Rash, Linux firewall: Attack Detection and response with iptables, psad and fwsnort.
+- Paul Cobbaut, Linux Networking.
+- LeRoy D. Cressy, Iptables.
+- http://www.faqs.org/docs/iptables/
+- http://linux.die.net/man/8/iptables
+- http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch14_:_Linux_Firewalls_Using_iptables#.V6ap8Zh97IU
+- https://github.com/NguyenHoaiNam/Iptables-trong-Linux
