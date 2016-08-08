@@ -46,6 +46,7 @@
 | Đặc điểm |CentOS|ubuntu|
 |:----:|:---:|:----:|
 |Thư mục cấu hình|/etc/sysconfig/iptables-config|/etc/iptables/|
+|default policy|DENY|ACCEPT|
 
 
 <a name="kienthuc"></a>
@@ -182,7 +183,7 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 |**-Z, --zero** *[chain]*| Zero the packet and byte counters in all chains. It is legal to specify the -L, --list (list) option as well, to see the counters immediately before they are cleared. (See above.)|Thiết lập bộ đếm bằng 0 trên tất cả chain|
 |**-N, --new-chain** *chain*| Create a new user-defined chain by the given name. There must be no target of that name already.|Tạo một chain mới|
 |**-X, --delete-chain** *[chain]*|Delete the optional user-defined chain specified. There must be no references to the chain. If there are, you must delete or replace the referring rules before the chain can be deleted. The chain must be empty, i.e. not contain any rules. If no argument is given, it will attempt to delete every non-builtin chain in the table.|Xóa một chain trống|
-|**-P, --policy** *chain target*| Set the policy for the chain to the given target. See the section TARGETS for the legal targets. Only built-in (non-user-defined) chains can have policies, and neither built-in nor user-defined chains can be policy targets.| Thay đổi policy cho built-in chain|
+|**-P, --policy** *chain target*| Set the policy for the chain to the given target. See the section TARGETS for the legal targets. Only built-in (non-user-defined) chains can have policies, and neither built-in nor user-defined chains can be policy targets.| Thay đổi policy cho built-in chain. policy target là target mặc định của chain khi có gói tin. Chain INPUT (Policy ACCEPT)," "Chain FORWARD (Policy ACCEPT)" and "Chain OUTPUT (Policy ACCEPT)." This means if something is not covered by any of the rules, Iptables will accept it.|
 |**-E, --rename-chain** *old-chain new-chain*|Rename the user specified chain to the user supplied name. This is cosmetic, and has no effect on the structure of the table.| Đổi tên chain.|
 |-h| Help. Give a (currently very brief) description of the command syntax.| Liệt kê cú pháp các lệnh|
 
@@ -240,8 +241,6 @@ The following additional options can be specified:
 |**-m multiport --port** *< port, port >*| xác định một loạt các giá trị port (không phân biệt nguồn hay đích).|
 |**-m --state** *<state>*| xác định trạng thái kết nối mà gói tin thể hiện: **ESTABLISHED:** gói tin thuộc một kết nối đã được thiết lập. **NEW:** gói tin thể hiện một yêu cầu kết nối. **RELATED:** gói tin thể hiện một yêu cầu kết nối thứ hai (có liên quan đến kết nối thứ nhất, thường xuất hiện ở những giao thức FPT hay ICMP). **INVALID:** thể hiện một gói tin không hợp lệ|
 
-
-
 <a name="case"></a>
 #6. Case trong thực tế.
 
@@ -255,3 +254,4 @@ The following additional options can be specified:
 - http://www.pcworld.com.vn/articles/cong-nghe/ung-dung/2004/01/1184843/he-thong-firewall-tren-linux-kernel-2-4-netfilter-iptables/
 - http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch14_:_Linux_Firewalls_Using_iptables#.V6ap8Zh97IU
 - https://github.com/NguyenHoaiNam/Iptables-trong-Linux
+- http://fideloper.com/iptables-tutorial
