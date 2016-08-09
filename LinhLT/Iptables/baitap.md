@@ -1,16 +1,28 @@
-#1. Yêu cầu: 
+#MỤC LỤC
+- [1. Yêu cầu:](#yeucau)
+- [2. Mô hình](#mohinh)
+- [3. Thực hiện](#thuchien)
+  - [3.1 Bật tính năng ip forward:](#ipforward)
+  - [3.2 Cấu hình iptables](#cauhinh)
+- [4. Kết quả](#ketqua)
+
+
+<a name="yeucau"></a>
+#1. Yêu cầu:
 
 Sử dụng IPTables làm Firewall cho hệ thống mạng. Yêu cầu:
-1. Dựng một máy chủ Linux, cài đặt IPTables làm FW cho hệ thống bao gồm: 
+
+1. Dựng một máy chủ Linux, cài đặt IPTables làm FW cho hệ thống bao gồm:
   - Một zone DMZ: gồm 1 máy chủ Web
   - Một zone Private: gồm các máy trạm
+
 2. Trên FW cấu hình như sau:
   - NAT port 80 cho phép truy cập vào WebServer, mọi truy cập khác vào webserver từ Internet đều bị chặn
   - Chặn mọi kết nối từ ngoài vào zone Private
   - Cho phép một máy trong dải Private quản trị được WebServer
-  - CHo phép các kết nối từ Private ra 
+  - CHo phép các kết nối từ Private ra
 
-
+<a name="mohinh"></a>
 #2. Mô hình
 ![](http://image.prntscr.com/image/9fe6f0f152644db48cc7fded8c32edd9.png)
 
@@ -26,13 +38,15 @@ card eth2 có địa chỉ ip private là 10.10.20.128, kết nối với vùng 
 card eth0 có địa chỉ ip private là 10.10.10.150, kết nối với cổng eth1 của firewall
 ```
 - Các máy client chạy hề điều hành Ubuntu14.04sv, trong đó
-  - Máy tính**PC0**:
+  - Máy tính **PC0**:
   ```sh
   card eth0 có địa chỉ ip 10.10.20.130 nối với cổng eth2 của firewall, PC0 có quyền truy cập ssh đến webserver
   ```
   - Các máy tính **CopyPC0**, **CopyCopyPC0** có card eth0 kết nối với cổng eth2 của firewall
 
+<a name="thuchien"></a>
 #3. Thực hiện
+<a name="ipforward"></a>
 ##3.1 Bật tính năng ip forward:
 - Tính năng ip fordward cần kích hoạt để iptables có thể chuyển tiếp được gói tin sang các máy khác.
 
@@ -43,7 +57,7 @@ net.ipv4.ip_forward = 1
 ```
 - Chạy lệnh `sysctl -p /etc/sysctl.conf` để kiểm tra cài đặt.
 
-
+<a name="cauhinh"></a>
 ##3.2 Cấu hình iptables
 
 ```sh
@@ -58,7 +72,7 @@ net.ipv4.ip_forward = 1
 ```
 
 - Giải thích các dòng lệnh:
-- Dòng 1: 
+- Dòng 1:
 ```sh
 iptables -t nat -I PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination 10.10.10.150
 ```
@@ -66,7 +80,7 @@ Có tác dụng ở bảng **NAT**, chain **PREROUTING**, dùng để thay đổ
 
 **=> Giải thích: Bởi vì webserver nằm trong vùng mạng DMZ, có địa chỉ private là 10.10.10.150, nên máy trên internet, muốn truy cập vào webserver thì phải thay đổi từ địa chỉ public của firewall (172.16.69.128) sang địa chỉ 10.10.10.150**
 
-- Dòng 2: 
+- Dòng 2:
 ```sh
 iptables -t nat -I POSTROUTING -o eth1 -p tcp --dport 80 -j SNAT --to-source 10.10.10.128
 ```
@@ -105,7 +119,7 @@ Có tác dụng ở bảng **FILTER**, chain **FORWARD**, dùng để ngăn ch�
 
 **=> Giải thích: Dùng để ngăn chặn các truy cập trái phép (ngoại trừ truy cập dịch vụ http)từ mạng INTERNET vào webserver**
 
-- Dòng 7: 
+- Dòng 7:
 ```sh
 iptables -t nat -A POSTROUTING -s 10.10.20.0/24 -o eth0 -j SNAT --to-source 172.16.69.128
 ```
@@ -117,10 +131,12 @@ Có tác dụng ở bảng **NAT**, chain **POSTROUTING**, dùng để thay đ�
 ```sh
 iptables -A INPUT -i eth0 -j DROP
 ```
-Có tác dụng ở bảng **FILTER**, chain **INPUT**, dùng để chặn mọi kết nối từ bên ngoài vào máy firewall.
+**=> Giải thích: Có tác dụng ở bảng **FILTER**, chain **INPUT**, dùng để chặn mọi kết nối từ bên ngoài vào máy firewall.**
+
+<a name="ketqua"></a>
 #4. Kết quả
 
-- Một client trên internet có địa chỉ là 172.16.69.150, tiến hành truy cập webserver
+- Một client trên internet có địa chỉ ip public là 172.16.69.150, tiến hành truy cập webserver
 
 ![](http://image.prntscr.com/image/507cd7073c914bc6bef403acb7f75d32.png)
 
