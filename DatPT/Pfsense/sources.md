@@ -9,3 +9,5 @@
 - https://documentation.meraki.com/MR/Firewall_and_Traffic_Shaping/Using_Layer_3_Firewall_Rules
 - https://doc.pfsense.org/index.php/Aliases
 - http://www.oktot.com/cac-tinh-nang-cua-firewall-pfsense/
+- https://luonghoanghuong.wordpress.com/tag/pfsense/
+- http://data.biitbook.com/Pf-Sense.pdf
