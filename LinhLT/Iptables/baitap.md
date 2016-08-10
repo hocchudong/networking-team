@@ -71,7 +71,10 @@ net.ipv4.ip_forward = 1
   iptables -A INPUT -i eth0 -j DROP
 ```
 
-- Giải thích các dòng lệnh:
+##3.3 Giải thích các dòng lệnh:
+###3.3.1 Cho phép truy cập vào WebServer, mọi truy cập khác vào webserver từ Internet đều bị chặn
+
+Để thực hiện chức năng này, ta cần các lệnh cấu hình sau.
 - Dòng 1:
 ```sh
 iptables -t nat -I PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination 10.10.10.150
@@ -95,6 +98,17 @@ Có tác dụng ở bảng **FILTER**, chain **FORWARD**, cho phép chuyển cá
 
 **=> Giải thích: IPTables ở đây có nhiệm vụ forward các gói tin sang webserver, chứ nó không xử lý trực tiếp các yêu cầu truy cập http của người dùng trên internet**
 
+- Dòng 6:
+```sh
+iptables -A FORWARD -i eth0 -o eth1 -d 10.10.10.150 -j DROP
+```
+Có tác dụng ở bảng **FILTER**, chain **FORWARD**, dùng để ngăn chặn các gói tin đi vào từ eth0, đi ra eth1 và có địa chỉ đích là 10.10.10.150 (web server).
+
+**=> Giải thích: Dùng để ngăn chặn các truy cập trái phép (ngoại trừ truy cập dịch vụ http)từ mạng INTERNET vào webserver**
+
+###3.3.2 Cho phép một máy trong dải Private quản trị được WebServer
+Để thực hiện chức năng này, ta cần các lệnh cấu hình sau.
+
 - Dòng 4:
 ```sh
 iptables -t nat -I POSTROUTING -s 10.10.20.130 -p tcp -d 10.10.10.150 --dport 22 -j SNAT --to-source 10.10.10.128
@@ -111,13 +125,9 @@ Có tác dụng ở bảng **FILTER**, chain **FORWARD**, dùng để cho phép 
 
 **=> Giải thích: IPtables có nhiệm vụ fordward các gói tin ssh sang webserver.**
 
-- Dòng 6:
-```sh
-iptables -A FORWARD -i eth0 -o eth1 -d 10.10.10.150 -j DROP
-```
-Có tác dụng ở bảng **FILTER**, chain **FORWARD**, dùng để ngăn chặn các gói tin đi vào từ eth0, đi ra eth1 và có địa chỉ đích là 10.10.10.150 (web server).
 
-**=> Giải thích: Dùng để ngăn chặn các truy cập trái phép (ngoại trừ truy cập dịch vụ http)từ mạng INTERNET vào webserver**
+###3.3.3 Cho phép các kết nối từ Private ra
+Để thực hiện chức năng này, ta cần các lệnh cấu hình sau.
 
 - Dòng 7:
 ```sh
@@ -127,11 +137,15 @@ Có tác dụng ở bảng **NAT**, chain **POSTROUTING**, dùng để thay đ�
 
 **=> Giải thích: Máy trong mạng LAN private muốn truy cập được internet thì cần phải thay đổi địa chỉ nguồn của các máy này sang địa chỉ ip public của firewall**
 
+
+###3.3.4 Chặn mọi kết nối từ ngoài vào zone Private
 - Dòng 8:
 ```sh
 iptables -A INPUT -i eth0 -j DROP
 ```
-**=> Giải thích: Có tác dụng ở bảng **FILTER**, chain **INPUT**, dùng để chặn mọi kết nối từ bên ngoài vào máy firewall.**
+Có tác dụng ở bảng **FILTER**, chain **INPUT**, dùng để chặn mọi kết nối từ bên ngoài vào máy firewall.
+
+**=> Giải thích: Bởi vì zone private sử dụng ip public của firewall, cho nên ở đây, tôi đã chặn mọi kết nối từ internet vào firewall, ngoại trừ các ngoại lệ ở trên.**
 
 <a name="ketqua"></a>
 #4. Kết quả
