@@ -58,34 +58,3 @@ sudo ip6tables-save | sudo tee /etc/iptables/rules.v6
 ```sh
 $ sudo service iptables-persistent restart
 ```
-
-###############
-fail2ban: http://www.fail2ban.org/wiki/index.php/Main_Page
-
-fwsnort: Application Layer IDS/IPS with iptables
-
-http://cipherdyne.org/fwsnort/
-
- Or you can use the iptables recent module 
-
- http://ossec.github.io/downloads.html
-
- you can use something like fail2ban, which IIRC, has an Apache log checker built in.
-
- 
-
-To control or block http traffic, you can use :
-
-apache module.
-iptable
-fail2ban as stated here by HopelessN0ob.
-
-iptables -I FORWARD -p tcp --dport 80 -i eth0 -m state --state NEW -m recent --set
-
-iptables -I FORWARD -p tcp --dport 80 -i eth0 -m state --state NEW -m recent --update --seconds 60 --hitcount 2 -j DROP
-
-http://pcserver.uk/iptrecent.htm
-
-
-
-

@@ -1,3 +1,4 @@
+#Mô hình iptables bảo vệ vùng DMZ và LAN private
 #MỤC LỤC
 - [1. Yêu cầu:](#yeucau)
 - [2. Mô hình](#mohinh)

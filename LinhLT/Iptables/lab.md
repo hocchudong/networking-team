@@ -1,4 +1,4 @@
-#LAB - Sử dụng iptables để ngăn chặn cuộc tấn công dos
+#LAB - Sử dụng iptables để ngăn chặn Webserver bị attacker gửi các request liên tục
 #Mô hình
 
 ![](http://i.imgur.com/tDAbv1U.jpg)
