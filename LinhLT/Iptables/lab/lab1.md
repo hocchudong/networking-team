@@ -65,6 +65,14 @@ tailf /var/log/apache2/access.log
 ```sh
 root@adk# iptables -I INPUT -s 10.10.10.128 -p tcp --dport 80 -j DROP
 ```
+Giải thích:
+	- **-I INPUT**: Có tác dụng trên chain INPUT
+	- **-s 10.10.10.128**: những gói tin nào có địa chỉ nguồn là 10.10.10.128
+	- **-p tcp**: giao thức tcp
+		- **--dport 80**: port đích là 80.
+	- **-j DROP**: hành động loại bỏ gói tin.
+
+=> Ý nghĩa: Những gói tin tcp nào có đỉa chỉ nguồn là 10.10.10.128 và địa chỉ đích là 80 thì sẽ bị bỏ.
 
 <a name="ketqua"></a>
 #3. Kết quả
@@ -84,11 +92,28 @@ root@adk# iptables -I INPUT -s 10.10.10.128 -p tcp --dport 80 -j DROP
 iptables -A INPUT -p tcp --dport 80 -i eth0 -m state --state NEW -m recent --name http --set 
 iptables -A INPUT -p tcp --dport 80 -i eth0 -m state --state NEW -m recent --name http --update --seconds 20 --hitcount 11 -j DROP
 ```
-- Giải thích: 
+- Các options trong các câu lệnh trên: 
+	- **-A INPUT**: chỉ ra chain mà rule sẽ làm việc.
+	- **-p tcp**: chỉ ra giao thức của gói tin.
+		- **--dport**: chỉ ra cổng đích của gói tin.
+	- **-i eth0**: chỉ ra interface mà gói tin đi vào.
+	- **-m state**: Sử dụng module state, xác định trạng thái kết nối mà gói tin thể hiện. 
+		- **--state NEW**: Chỉ ra những gói tin nào ở trạng thái NEW (yêu cầu một kết nối mới).
+	- **-m recent**: Sử dụng module recent, module này cho phép ta tạo ra một danh sách động chứa địa chỉ ip, rồi thực thi các hành động với danh sách này.
+		- **--name http**: Đặt tên cho danh sách là http. Nếu không có tùy chọn này, mặc định tên sẽ là DEFAULT.
+		- **--set**: Sẽ thêm các địa chỉ nguồn của gói tin vào danh sách.
+		- **--update**: Kiểm tra xem địa chỉ nguồn của gói tin đã có trong danh sách không và sẽ cập nhật thêm phần `last_seen` của gói tin.
+		- **--seconds 20**, **--hitcount 11**: Số kết nối trong khoảng thời gian cụ thể. Ở đây là 10 kết nối trong 20s. 
+	- **-j DROP**: Loại bỏ gói tin.
+
+- Ý nghĩa: 
 - Dòng 1: iptables sẽ tạo ra một danh sách có tên là http để chứa các địa chỉ ip. Các địa chỉ ip nào bắt đầu khởi tạo kết nối đến webserver sẽ bị liệt kê vào danh sách đó.
-- Dòng 2: Cứ mỗi 20s mà có hơn 11 kết nối thì sẽ chặn kết nối. Cụ thể là chặn ip của máy tạo ra kết nối này.
+
+- Dòng 2: Cứ mỗi 20s mà có hơn 10 kết nối thì sẽ chặn kết nối. Cụ thể là chặn ip của máy tạo ra kết nối này, dựa vào danh sách trên.
+
 
 - Danh sách các địa chỉ ip nằm ở đường dẫn: `/proc/net/xt_recent/`
+
 
 
 
