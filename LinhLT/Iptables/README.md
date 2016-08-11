@@ -254,13 +254,13 @@ The following additional options can be specified:
 
 - Mô tả: Webserver bị attacker liên tục gửi các request khiến cho apache không thể xử lý kịp các request ấy. Dẫn đến tình trạng web server bị down. Chúng ta sử dụng iptables để ngăn chặn các request này.
 - Để xem chi tiết, các bạn xem tại đây
-https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab.md
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
 
 <a href="case2"></a>
 ##6.2 Mô hình iptables bảo vệ vùng DMZ và LAN private
 - Sử dụng iptables để bảo vệ vùng DMZ có web server và LAN private khi truy cập internet.
 - Để xem chi tiết, các bạn xem tại đây
-https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/baitap.md
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab2.md
 
 <a name="note"></a>
 #7. Một số lưu ý.

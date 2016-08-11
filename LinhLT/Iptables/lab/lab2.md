@@ -25,7 +25,7 @@ Sử dụng IPTables làm Firewall cho hệ thống mạng. Yêu cầu:
 
 <a name="mohinh"></a>
 #2. Mô hình
-![](http://image.prntscr.com/image/9fe6f0f152644db48cc7fded8c32edd9.png)
+![](http://i.imgur.com/QbYReEz.jpg)
 
 - Các thông số: Chú ý, các máy trong vùng mạng LAN private đặt gateway là địa chỉ firewall.
 - Firewall: Chạy hệ điều hành Ubuntu14.04sv, sử dụng iptables phiên bản, có 3 card mạng nối với 3 vùng mạng khác nhau:
