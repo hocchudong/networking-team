@@ -65,7 +65,7 @@ tailf /var/log/apache2/access.log
 ```sh
 root@adk# iptables -I INPUT -s 10.10.10.128 -p tcp --dport 80 -j DROP
 ```
-Giải thích:
+- Giải thích:
 	- **-I INPUT**: Có tác dụng trên chain INPUT
 	- **-s 10.10.10.128**: những gói tin nào có địa chỉ nguồn là 10.10.10.128
 	- **-p tcp**: giao thức tcp
