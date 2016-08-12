@@ -4,11 +4,11 @@
 - Các chức năng: 
  <ul>
   <li>Aliass</li>
-  <li>NAT ()</li>
+  <li>NAT (https://github.com/datkk06/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
  </ul>
 - Một số dịch vụ:
  <ul>
-  <li>[DHCP]()</li>
+  <li>[DHCP](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/service_lab_DHCP.md)</li>
  </ul>
 
 **Nguồn**
