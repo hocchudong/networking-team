@@ -83,6 +83,9 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
     </li>
     <li><h3><a name="bridge">3.2. Bridge</a></h3>
     Ở chế độ này, các endpoints có thể giao tiếp trực tiếp với nhau mà không phải gửi dữ liệu thông qua <b>lower device</b> (card vật lý để tạo các macvtap interface). Việc sử dụng chế độ này không yêu cầu switch vật lý phải hỗ trợ "Reflective Relay".
+    <br><br>
+    <img src="http://i.imgur.com/v87xdkz.png">
+    <br><br>    
     <h4>Demo</h4>
     <div>
     Ping thử hai máy thiết lập card mạng <code>macvtap</code> chế độ <code>bridge</code>. Kết quả ping thành công
@@ -104,6 +107,9 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
 
     <li><h3><a name="private">3.3. Private</a></h3>
     Trong chế độ này, các node trên cùng 1 <b>lower device</b> có thể không bao giờ "nói chuyện" được với nhau (trừ khi đi qua một external gateway hoặc external router), không liên quan tới việc switch vật lý có hỗ trợ "Reflective Relay" hay không. Chế độ này được sử dụng khi có yêu cầu cô lập các máy ảo kết nối tới các endpoints khác.
+            <br><br>
+            <img src="http://i.imgur.com/jmg1Dma.png">
+            <br><br>
     <h4>Demo</h4>
     <div>Hai máy thiết lập card mạng <code>macvtap</code> chế độ <code>private</code> không ping được với nhau: 
     <ul>
@@ -124,7 +130,9 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
     </li>
     <li><h3><a name="passthru">3.4. Passthrough</a></h3>
     Chế độ này sẽ gán trực tiếp một Virtual Function của card mạng hỗ trợ <b>SR-IOV</b> tới một VM mà không làm mất khả năng <b>migration</b>. Tất cả các gói tin được gửi tới VF/IF của thiết bị mạng đã được cấu hình. Chế độ này phụ thuộc vào các yêu cầu thêm hay hạn chế bớt của cả phần cứng lẫn phần mềm.
-    <br>
+    <br><br>
+    <img src="http://i.imgur.com/JHib0Dw.png">
+    <br><br>
     <i><b>SR-IOV - Single Root Input/Output Virtualization</b>
     <div>
         SR-IOV là công nghệ ảo hóa cho phép một thiết bị PCIe được chia thành nhiều thiết bị PCIe vật lý trên đó, phân tách việc truy cập tới tài nguyên trên thiết bị này. SR-IOV đưa ra các khái niệm:
@@ -135,6 +143,15 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
         </ul>
     </div>
         Ảo hóa SR-IOV trên các card mạng vật lý cho phép Virtual Machine Manager - VMM của hypervisor map các VFs tới không gian cấu hình của máy ảo, giúp các interfaces của máy ảo kết nối trực tiếp tới VFs, nâng cao hiệu năng của máy ảo, giảm overhead mà vẫn đảm bảo live migration(khi sử dụng ảo hóa Hypervisor-based thì việc giao tiếp giữa thiết bị vật lý tới máy ảo hay <b>guest os</b> phải thông qua <b>host os</b>, cụ thể hơn là phải thông qua các driver trên hypervisor của host os, còn nếu sử dụng ảo hóa kết hợp giải pháp <b>device passthrough</b> thì gặp vấn đề về <b>live-migration</b>).
+    <div>
+    Tham khảo thêm SR-IOV theo các links sau:
+    <ul>
+    <li><a href="http://blog.scottlowe.org/2009/12/02/what-is-sr-iov/">http://blog.scottlowe.org/2009/12/02/what-is-sr-iov/</a></li>
+    <li><a href="https://msdn.microsoft.com/en-us/library/windows/hardware/hh440148(v=vs.85).aspx">https://msdn.microsoft.com/en-us/library/windows/hardware/hh440148(v=vs.85).aspx</a></li>
+    <li><a href="https://msdn.microsoft.com/en-us/library/windows/hardware/hh440238(v=vs.85).aspx">https://msdn.microsoft.com/en-us/library/windows/hardware/hh440238(v=vs.85).aspx</a></li>
+    <li><a href="https://vietstack.wordpress.com/2015/06/01/486/">https://vietstack.wordpress.com/2015/06/01/486/</a></li>
+    </ul>
+    </div>
     </i>
     </li>    
 
