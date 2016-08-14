@@ -16,10 +16,16 @@
 
 <h2><a name="macvlan">1. Macvlan</a></h2>
 <div>
-    <b>Mavlan</b> driver là một Linux kernel driver tách biệt được Macvtap sử dụng. Mavlan cho phép tạo các card mạng ảo (VIF - virtual network interfaces) trực tiếp trên card mạng vật lý. Mỗi card mạng ảo có địa chỉ MAC riêng tách biệt với địa chỉ MAC của card mạng vật lý. Các frames được gửi tới hoặc được nhận từ card mạng ảo mà được map với card vật lý - hay lower interface.
+    <b>Macvlan</b> driver là một Linux kernel driver tách biệt được Macvtap sử dụng. Mavlan cho phép tạo các card mạng ảo (VIF - virtual network interfaces) trực tiếp trên card mạng vật lý. Mỗi card mạng ảo có địa chỉ MAC riêng tách biệt với địa chỉ MAC của card mạng vật lý. Các frames được gửi tới hoặc được nhận từ card mạng ảo mà được map với card vật lý - hay lower interface.
     <br><br>
     <img src="http://hicu.be/wp-content/uploads/2016/03/linux-macvlan.png">
     <br><br>
+    Các usecase sử dụng macvlan:
+    <ul>
+        <li>Macvlan được sử dụng chủ yếu trong công nghệ ảo hóa container (ví dụ như Linux Container - LXC hoặc Docker). Ví dụ như LXC guest có thể được cấu hình để sử dụng macvlan cho networking và macvlan interface sẽ được chuyển sang namespace của container (namespace cùng với cgroup là hai công nghệ sử dụng trong ảo hóa container hay ảo hóa cấp hệ điều hành để cô lập tài nguyên của hệ điều
+         hành sử dụng cho container và cô lập các tiến trình giữa các container với nhau cũng như giữa container với hệ điều hành chủ).</li>
+        <li>Macvlan cũng được sử dụng trong trường hợp cần sử dụng các địa chỉ MAC ảo ví dụ như VRRP (Virtual Router Redundancy Protocol - Giao thức kết hợp nhiều router để xây dựng một nhóm router ảo làm gateway cho các host, đảm bảo tính dự phòng khi có sự cố với router master trong nhóm) kết hợp với Macvlan</li>
+    </ul>
 </div>
 <h2><a name="tap">2. Tap</a></h2>
 <div>
@@ -28,6 +34,9 @@
     <br><br>
     <img src="http://imgur.com/1mvTJ8M.png">
     <br><br>
+    Tap interface sử dụng khi cần kết nối VPN giữa hai ethernet segment ở hai nơi xa nhau, khi đó các máy tính ở 2 LAN này sẽ chung một subnet, chúng có thể nói chuyện với nhau trực tiếp mà không thay đổi bảng định tuyến. Use case điển hình là cấu hình một OpenVPN server-side ethernet bridge (bằng công nghệ linux bridge), các client được cấu hình để kết nối tới bridge này và TAP interface của mỗi client sẽ được gán một địa chỉ IP là thành phần của LAN phía VPN server (dải địa chỉ cấp cho các client có thể cấu hình trên máy OpenVPN server hoặc cấu hình trên DHCP server).
+    <br> 
+    <i>Tham khảo tại link: <a href="https://openvpn.net/index.php/open-source/documentation/miscellaneous/76-ethernet-bridging.html">https://openvpn.net/index.php/open-source/documentation/miscellaneous/76-ethernet-bridging.html</a></i>
 </div>
 <h2><a name="mavtap">3. Macvtap</a></h2>
 <b>Macvtap</b> interfaces kết hợp thuộc tính của hai công nghệ <b>macvlan</b> và <b>tap</b>, nó là một card mạng ảo tương tự như <b>tap</b> và tạo trên một card mạng vật lý. 
@@ -77,12 +86,17 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
 <ul>
     <li><h3><a name="vepa">3.1. VEPA</a></h3>
     Trong chế độ này, dữ liệu giữa các endpoints (các VM trên máy vật lý) trên cùng một card mạng vật lý (card mạng mà các macvtap interface tạo trên đó) được gửi thông qua card này tới switch vật lý card đó gắn vào. Chế này yêu cầu switch ngoài phải hỗ trợ "Reflective Relay" hay "hairpin mode", nghĩa là switch có thể gửi trả lại một frame trên chính port mà nhận frame đó. Tuy nhiên, hầu hết các switch ngày nay đều không hỗ trợ chế độ này.
+    <div>
+    Điều gì khiến cho chế độ VEPA trở thành 1 ý tưởng tốt khi gửi frames ra ngoài host tới switch vật lý, rồi lại bị gửi trở lại card vật lý từ cùng một port trên switch nơi mà frame đó được nhận vào? VEPA mode thực ra đã đơn giản hóa tác vụ chuyển mạch cho máy host bằng việc để switch vật lý bên ngoài làm nhiệm vụ chuyển mạch - chức năng chủ đạo mà switch đảm nhận.  Hơn nữa, các quản trị viên của hệ thống mạng có thể giám sát được lưu lượng giữa các máy ảo bằng cách sử dụng các công cụ quen thuộc trên một switch làm nhiệm vụ quản lý, tận dụng được các tính năng bảo mật, sàng lọc và quản lý của switch (trong khi việc này không thể thực hiện nếu như dữ liệu không đi ra switch).
+    <br>
+    Switch truyền thống không hỗ trợ <b>Reflective Relay</b> vì giao thức STP (Spanning Tree Protocol) ngăn cản chế độ này và bởi vì trước khi có công nghệ ảo hóa thì việc gửi trả lại frame như vậy không hề có ý nghĩa.
+    </div>
     <br><br>
     <img src="https://seravo.fi/wp-content/uploads/2012/10/hairpin-290x300.png">
     <br><br>
     </li>
     <li><h3><a name="bridge">3.2. Bridge</a></h3>
-    Ở chế độ này, các endpoints có thể giao tiếp trực tiếp với nhau mà không phải gửi dữ liệu thông qua <b>lower device</b> (card vật lý để tạo các macvtap interface). Việc sử dụng chế độ này không yêu cầu switch vật lý phải hỗ trợ "Reflective Relay".
+    Ở chế độ này, các endpoints có thể giao tiếp trực tiếp với nhau mà không phải gửi dữ liệu thông qua <b>lower device</b> (card vật lý để tạo các macvtap interface). Việc sử dụng chế độ này không yêu cầu switch vật lý phải hỗ trợ "Reflective Relay". Chế độ này hữu ích khi muốn thiết lập một switch cơ bản và khi hiệu suất truyền thông nội bộ giữa các VM cần được đảm bảo.
     <br><br>
     <img src="http://i.imgur.com/v87xdkz.png">
     <br><br>    
@@ -146,6 +160,8 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
     <div>
     Tham khảo thêm SR-IOV theo các links sau:
     <ul>
+    <li><a href="http://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/sw/vm_fex/kvm/gui/config_guide/2-1/b_GUI_KVM_VM-FEX_UCSM_Configuration_Guide_2_1/b_GUI_KVM_VM-FEX_UCSM_Configuration_Guide_2_1_chapter_01.pdf">http://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/sw/vm_fex/kvm/gui/config_guide/2-1/b_GUI_KVM_VM-FEX_UCSM_Configuration_Guide_2_1/b_GUI_KVM_VM-FEX_UCSM_Configuration_Guide_2_1_chapter_01.pdf</a></li>
+    <li><a href="https://specs.openstack.org/openstack/nova-specs/specs/juno/implemented/pci-passthrough-sriov.html">https://specs.openstack.org/openstack/nova-specs/specs/juno/implemented/pci-passthrough-sriov.html</a></li>
     <li><a href="http://blog.scottlowe.org/2009/12/02/what-is-sr-iov/">http://blog.scottlowe.org/2009/12/02/what-is-sr-iov/</a></li>
     <li><a href="https://msdn.microsoft.com/en-us/library/windows/hardware/hh440148(v=vs.85).aspx">https://msdn.microsoft.com/en-us/library/windows/hardware/hh440148(v=vs.85).aspx</a></li>
     <li><a href="https://msdn.microsoft.com/en-us/library/windows/hardware/hh440238(v=vs.85).aspx">https://msdn.microsoft.com/en-us/library/windows/hardware/hh440238(v=vs.85).aspx</a></li>
@@ -156,11 +172,6 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
     </li>    
 
 </ul>
-<div>
-    Nhìn lại chế độ VEPA, điều gì khiến cho chế độ này trở thành 1 ý tưởng tốt khi gửi frames ra ngoài host tới switch vật lý, rồi lại bị gửi trở lại card vật lý từ cùng một port trên switch nơi mà frame đó được nhận vào? VEPA mode thực ra đã đơn giản hóa tác vụ chuyển mạch cho máy host bằng việc để switch vật lý bên ngoài làm nhiệm vụ chuyển mạch - chức năng chủ đạo mà switch đảm nhận.  Hơn nữa, các quản trị viên của hệ thống mạng có thể giám sát được lưu lượng giữa các máy ảo bằng cách sử dụng các công cụ quen thuộc trên một switch làm nhiệm vụ quản lý, tận dụng được các tính năng bảo mật, sàng lọc và quản lý của switch. (trong khi việc này không thể thực hiện nếu như dữ liệu không đi ra switch).
-    <br>
-    Switch truyền thống không hỗ trợ <b>Reflective Relay</b> vì giao thức STP (Spanning Tree Protocol) ngăn cản chế độ này và bởi vì trước khi có công nghệ ảo hóa thì việc gửi trả lại frame như vậy không hề có ý nghĩa.
-</div>
 
 <h2><a name="ref">4. Tham khảo</a></h2>
 [1] - <a href="http://hicu.be/bridge-vs-macvlan">http://hicu.be/bridge-vs-macvlan</a>
