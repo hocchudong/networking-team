@@ -4,7 +4,8 @@
 - Các chức năng: 
  <ul>
   <li>Aliass</li>
-  <li>[NAT](https://github.com/datkk06/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
+  <li>[NAT 1:1](https://github.com/datkk06/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
+  <li>[NAT port forward]()</li>
  </ul>
 - Một số dịch vụ:
  <ul>
