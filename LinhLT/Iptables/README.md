@@ -20,6 +20,9 @@
 	- [5.3 OTHER OPTIONS](#options)
 	- [5.4 Match Extensions](#match)
 - [6. Case trong thực tế.](#case)
+	- [6.1 Case1: Webserver bị attacker gửi các request liên tục](#case1)
+	- [6.2 Case2: Mô hình iptables bảo vệ vùng DMZ và LAN private](#case2)
+- [7. Một số chú ý](#note)
 - [Tài liệu tham khảo](#thamkhao)
 
 <a name="gioithieuchucnang"></a>
@@ -51,7 +54,9 @@
 
 <a name="kienthuc"></a>
 #2. Các kiến thức cần có
-Để tránh không làm loãng nội dung, các bạn hãy xem nội dung của phần này trong file `kienthuccanco.md` nằm cùng thư mục với file này. :D
+Để tránh không làm loãng nội dung, các bạn hãy xem nội dung của phần này tại đây :D
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/kienthuccanco.md
+
 
 <a name="kientruc"></a>
 #3. Khái niệm - Kiến trúc.
@@ -243,6 +248,27 @@ The following additional options can be specified:
 
 <a name="case"></a>
 #6. Case trong thực tế.
+
+<a href="case1"></a>
+##6.1 Webserver bị attacker gửi các request liên tục
+
+- Mô tả: Webserver bị attacker liên tục gửi các request khiến cho apache không thể xử lý kịp các request ấy. Dẫn đến tình trạng web server bị down. Chúng ta sử dụng iptables để ngăn chặn các request này.
+- Để xem chi tiết, các bạn xem tại đây
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
+
+<a href="case2"></a>
+##6.2 Mô hình iptables bảo vệ vùng DMZ và LAN private
+- Sử dụng iptables để bảo vệ vùng DMZ có web server và LAN private khi truy cập internet.
+- Để xem chi tiết, các bạn xem tại đây
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab2.md
+
+<a name="note"></a>
+#7. Một số lưu ý.
+Đây là một số lưu ý mà bản thân tác giả đã rút ra được trong quá tìm hiểu về iptables.
+
+Các bạn xem tại đây
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/note.md
+
 
 <a name="thamkhao"></a>
 #Tài liệu tham khảo
