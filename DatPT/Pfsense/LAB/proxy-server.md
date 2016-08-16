@@ -1,4 +1,4 @@
-#Bài lab Proxy server trên pfSense.
+#Proxy server và các bài lab Proxy server trên pfSense.
 
 ****
 

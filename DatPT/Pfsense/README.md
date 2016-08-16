@@ -10,6 +10,7 @@
 - Một số dịch vụ:
  <ul>
   <li>[DHCP](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/service_lab_DHCP.md)</li>
+  <li>[Proxy](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/proxy-server.md#chanurl)</li>
  </ul>
 
 **Nguồn**
