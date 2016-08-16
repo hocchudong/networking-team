@@ -16,7 +16,7 @@
 
 ##I. Mô hình thực hiện.
 
-![scr2](http://i.imgur.com/2vwHw7Nl.png)
+![scr2](http://i.imgur.com/DIiko5Z.png)
 
 - Thiết lập mô hình bao gồm :
  <ul>
@@ -41,13 +41,18 @@
 
 ![scr7](http://i.imgur.com/aPeMByDl.png)
 
+```sh
+Ở đây chọn Aliasses bởi vì Aliass có chức năng NAT. 
+Xem thêm các tính năng của các Vitual IP khác ở [đây](https://doc.pfsense.org/index.php/What_are_Virtual_IP_Addresses) 
+```
+
 - `Save` lại và `Apply change`
 
 - Tiếp theo chúng ta thực hiện thiết lập NAT 1:1
 
 ![scr8](http://i.imgur.com/9S1mRULl.png)
 
-- Chọn sang mục `NAT `1:1` rồi sau đó thêm mới.
+- Chọn sang mục `NAT 1:1` rồi sau đó thêm mới.
 
 ![scr9](http://i.imgur.com/SWPNUqRl.png)
 

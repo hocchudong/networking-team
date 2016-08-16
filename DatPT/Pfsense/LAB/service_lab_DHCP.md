@@ -2,7 +2,7 @@
 
 ##Mô hình :
 
-![scr8](http://i.imgur.com/333j4pp.png)
+![scr8](http://i.imgur.com/dp1bGV5.png)
 
 ##Thực hiện.
 

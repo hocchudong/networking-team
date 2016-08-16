@@ -70,6 +70,10 @@ khác trong cache vẫn còn khả năng truy cập thậm chí nguồn nguyên 
 <a name="chanurl"></a>
 ###1. Dùng proxy server chặn URL.
 
+**Mô hình**
+
+![scr](http://i.imgur.com/UOf5Cll.png)
+
 - Đầu tiên chúng ta phải tải package `squid` về để có service Proxy server.
 
 ![scr6](http://i.imgur.com/0h6BkHs.png)
@@ -84,13 +88,28 @@ khác trong cache vẫn còn khả năng truy cập thậm chí nguồn nguyên 
 
 - Tại đây chúng ta chọn phần `Local cache` , kéo xuống cuối và nhấn `SAVE` 
 
+```sh
+Ở bản pfSense 2.3.2 thì nó bắt buộc phải thiết lập Local cache trước khi thực hiện các thiết lập khác, ở đây chúng ta để các
+thiết lập mặc định rồi SAVE lại không cần phải chỉnh sửa thêm.
+```
+
 ![scr8](http://i.imgur.com/Gk2Ct55.png)
 
 - Tiếp theo chúng ta thiết lập tại phần `General`
 
 ![scr9](http://i.imgur.com/SxiC1XU.png)
 
+```sh
+Tại đây chúng ta chọn tích vào enable Squid Proxy để cho phép pfSense là Proxy server
+Proxy - interfaces : Đây là những Interface được gán vào proxy server.
+```
+
 ![scr10](http://i.imgur.com/YV5Adbe.png)
+
+```sh
+Mode Transparent : Khi kích hoạt chế độ này sẽ chuyển tiếp tất cả các yêu cầu các điểm cổng 80 đến Proxy server và không cần
+cấu hình thêm.
+```
 
 - Sau đó nhấn `SAVE` lại, rồi chọn sang phần `ACls`
 
