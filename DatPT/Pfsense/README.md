@@ -4,8 +4,8 @@
 - Các chức năng: 
  <ul>
   <li>Aliass</li>
-  <li>[NAT 1:1](https://github.com/datkk06/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
-  <li>[NAT port forward]()</li>
+  <li>[NAT 1:1](https://github.com/hocchudong/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
+  <li>[NAT port forward](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/lab-NAT-portforward.md)</li>
  </ul>
 - Một số dịch vụ:
  <ul>
@@ -27,3 +27,4 @@
 - http://www.oktot.com/cac-tinh-nang-cua-firewall-pfsense/
 - https://luonghoanghuong.wordpress.com/tag/pfsense/
 - http://data.biitbook.com/Pf-Sense.pdf
+- http://www.hvaonline.net/hvaonline/posts/list/39917.hva
