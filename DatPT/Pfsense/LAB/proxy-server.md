@@ -40,7 +40,7 @@ nếu như phản hồi đó là được phép.
 
  ###1. Tường lửa và filtering.
 
- - Proxy servers làm việc ở lớp Application, lớp 7 trong mộ hình tham chiếu OSI. Chúng không được phổ biến như các tường lửa thông 
+- Proxy servers làm việc ở lớp Application, lớp 7 trong mộ hình tham chiếu OSI. Chúng không được phổ biến như các tường lửa thông 
  thường mà làm việc ở mức thấp hơn và hỗ trợ lọc ứng dụng một cách độc lập. Proxy servers cũng khó khăn hơn trong việc cài đặt và duy 
  trì so với tường lửa. Mặc dù vậy, nếu proxy server được cấu hình đúng cách sẽ cải thiện được vấn đề bảo mật và hiệu suất cho mạng. 
  Các proxy đều có khả năng mà các tường lửa thông thường không thể cung cấp.
