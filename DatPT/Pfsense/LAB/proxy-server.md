@@ -11,6 +11,9 @@
 [III. Lab.] (#lab)
  <ul>
   <li>[1. Dùng proxy server chặn URL] (#chanurl)</li>
+  <li>[2. Loại bỏ một số host đặc biệt ra khỏi rule đã thiết lập trên Proxy.] (#loaibo)</li>
+  <li>[3. Chỉ cho phép vào một số trang cơ bản.] (#chophep)</li>
+  <li>[4. Thiết lập thời gian truy cập.] (#time)</li>
  </ul>
 ****
 
@@ -122,3 +125,102 @@ cấu hình thêm.
 ![scr4](http://i.imgur.com/v6nlzcH.png)
 
 ![scr5](http://i.imgur.com/tR092tx.png)
+
+<a name="loaibo"></a>
+###2. Loại bỏ một số host đặc biệt ra khỏi rule đã thiết lập trên Proxy
+
+- Trường hợp ở đây chúng ta muốn loại bỏ một số host đặc biệt được phép thông qua những rule của Proxy,
+ở đây ví dụ ta cho phép host có địa chỉ IP `10.10.10.129` được phép truy cập vào `Google.com.vn` và `Facebook.com`
+chúng ta thực hiện như sau:
+
+```sh
+Tại mục ACLs chúng ta thực hiện add IP của host vào bảng sau:
+```
+
+![scr1](http://i.imgur.com/KcYuWq6.png)
+
+- Khi chúng ta thực hiện thêm các địa chỉ IP vào ô này, thì các host có địa chỉ IP nằm trong ô đó sẽ được ưu tiên không phải thực 
+hiện các rule trên Proxy.
+
+- Test thử trên host có địa chỉ IP là `10.10.10.129`
+
+![scr2](http://i.imgur.com/J1KtmoQ.png)
+
+<a name="chophep"></a>
+###3. Chỉ cho phép vào một số trang cơ bản.
+
+- Để chặn tất cả các kết nối ra ngoài Internet ngoài một số trang có trong list mà chúng ta cho phép, cần phải tải thêm package
+`SquidGuard` (Gói này cung cấp chức năng Web filtering)
+
+- Điền tên package rồi tiến hành cài đặt.
+
+![scr3](http://i.imgur.com/yCLjXxl.png)
+
+- Sau khi cài đặt xong `SquidGuard` chúng ta tiến hành các thiết lập với dịch vụ này :
+
+![scr4](http://i.imgur.com/PNSVujP.png)
+
+- Tại đây chúng ta vào `Target categories` để tạo các list domain, list url trước khi chúng ta thiết lập rule cho chúng.
+
+![scr5](http://i.imgur.com/TwqWi4r.png)
+
+- Chọn `ADD` để thêm mới :
+
+- Sau đó thực hiện thiết lập :
+
+![scr6](http://i.imgur.com/JP91e7H.png)
+
+```sh
+Ở đây chúng ta thiết lập 3 domain là : dantri.com ; google.com ; facebook.com . Đây là những Domain mà chúng ta sẽ cần thiết lập
+rule cho chúng. Ví dụ ở đây sẽ là chặn tất cả các Domain khác ngoài 3 domain ở categories này.
+```
+
+- Để thiết lập rule chúng ta chọn vào mục `Common ACL` sau đó thiết lập các thông số như sau:
+
+![scr7](http://i.imgur.com/w5464cx.png)
+
+```sh
+- Ở đây đối với category `DatPT` thì các domain trong đó sẽ ở whitelist tức là được phép truy cập, còn tất cả các domain bên ngoài
+DatPT sẽ bị chặn và không được phép truy cập đến.
+- Tại dòng checkbox này nó sẽ không cho phép truy cập bằng địa chỉ IP 
+```
+
+- Nhấn `SAVE` để lưu lại thiết lập (Lưu ý nhớ enable để dịch vụ có thể khởi động).
+
+- Test thử trên máy PC win của chúng ta:
+
+![scr8](http://i.imgur.com/BmOs2Bn.png)
+
+![scr9](http://i.imgur.com/RGqXtm1.png)
+
+<a name="time"></a>
+###4. Thiết lập thời gian truy cập.
+
+- Để thiết lập thời gian truy cập vào Internet chúng ta có thể sử dụng mục `Times` của `SquidGuard` để thiết lập:
+
+![scr1](http://i.imgur.com/fkFk7wt.png)
+
+- Chọn `ADD` để thêm mới:
+
+- Sau đó chúng ta thực hiện thiết lập :
+
+![scr2](http://i.imgur.com/2vBi88Y.png)
+
+```sh
+- Ở đây : Name chính là tên của Target Categories
+- Values : là giá trị ngày, tháng , mà chúng ta muốn thiết lập thời gian, ở đây chọn là tất cả các ngày trong tuần.
+```
+
+- Sau đó `SAVE` lại và kiểm tra thiết lập:
+
+![scr3](http://i.imgur.com/SuZ825K.png)
+
+- Khi ta thiết lập khoảng thời gian từ `00:00-12:00` thì hiện tại trên máy tính đang là `15:15` quá thời gian cho phép
+do đó sẽ không được phép truy cập vào bất cứ một trang web nào.
+- Bây giờ ta vào chỉnh sửa lại thiết lập thành `00:00-17:00` để xem kết quả thế nào :
+
+![scr4](http://i.imgur.com/ZHLNybb.png)
+
+- Test trên PC win client:
+
+![scr5](http://i.imgur.com/S0KD9Rk.png)
