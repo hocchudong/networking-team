@@ -34,7 +34,7 @@ Dựa trên tính chất này, chúng ta thấy một máy con có thể đòi h
 
 Nói một cách công bằng, dịch vụ trên máy của cố gắng đáp ứng các yêu cầu theo đúng chức năng nhưng vì không đủ tài nguyên nên phải dẫn đến tình trạng trên. vậy, bao nhiêu tài nguyên thì đủ cho máy chủ? Con số này phải được hình thành từ quá trình theo dõi và đúc kết số lần truy cập, tầng số truy cập... trên máy chủ. Trên bình diện bảo mật, firewall có thể dùng để trợ giúp các dịch vụ bằng cách hạn chế các xuất truy cập "concurrent". 
 
-###1.1.2 Kết quả
+###1.1.2 Thử nghiệm
 ```sh
 iptables -A INPUT -i eth0 -d 10.10.10.200 -p tcp --dport 22 -m state --state NEW -m connnlimit ! --connlimit-above 2 -j ACCEPT
 ```
@@ -45,8 +45,33 @@ Khi kết nối ssh thứ 3 thì ngay lập tức bị lỗi
 
 
 ##1.2 conntrack
+
+
+
 ##1.3 hashlimit
+Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--hashlimit** rate| Giống với tùy chọn limit trong module limit|
+| **--hashlimit-burst** num| Giống với tùy chọn limit-burst trong module limit|
+| **--hashlimit-mode** destip / destip-destport| Limit dựa trên ip hoặc port|
+| **--hashlimit-name foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
+| **--hashlimit-htable-size** num| 
+The number of buckets of the hash table
+| **--hashlimit-htable-max** num| Số lượng tối đa các entry trong hash|
+| **--hashlimit-htable-expire** num| Khoảng thời gian sau bao lâu thì hash entry hết hạn|
+|**--hashlimit-htable-gcinterval** num|
+How many miliseconds between garbage collection intervals
+
+
 ##1.4 iprange
+Match một dãy các địa chỉ ip
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| [!] **--src-range** ip-ip| Match dãy địa chỉ ip nguồn|
+| [!] **--dst-range** ip-ip| Match dãy địa chỉ ip đích|
 
 
 ##1.5 length:
@@ -92,17 +117,22 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 Đây chỉ là một ví dụ minh hoạ ứng dụng -m limit. Bạn cần khảo sát số lượng truy cập đến dịch vụ nào đó trên máy chủ trước khi hình thành giá trị thích hợp cho -m limit. Nên cẩn thận trường hợp một proxy server chỉ có một IP và có thể có hàng ngàn người dùng phía sau proxy; ghi nhận yếu tố này để điều chỉnh limit rate cho hợp lý. 
 
 ##1.7 mport
+Tương tự multiport, match các port nguồn và đích. Được sử dụng với **-p tcp** hoặc **-p udp**.
 
-
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-ports** port[,port[,port...]]| Match các giá trị port nguồn|
+| **--destination-ports** port[,port[,port...]]|Match các giá trị port đích.
+| **--ports** port[,port[,port...]]| Match các giá trị port, Lưu ý là so sánh cả 2 giá trị port nguồn và port đích.|
 
 ##1.8 multiport
 Có thể Match số lượng lớn các cổng nguồn và đích. Có thể lên đến 15 cổng. port range (port:port) được tính như là 2 cổng. Được sử dụng với **-p tcp** hoặc **-p udp**.
 
 |Command|Ý nghĩa|
 |:---:|:---:|
-|**--sport** *< port, port >*| xác định một loạt các giá trị port nguồn|
-|**--dport** *< port, port >*| xác định một loạt các giá trị port đích.|
-|**--port** *< port, port >*| xác định một loạt các giá trị port (không phân biệt nguồn hay đích).|
+|**--sport** *< port, port >*| Match các giá trị port nguồn|
+|**--dport** *< port, port >*| Match các giá trị port đích.|
+|**--port** *< port, port >*| Mach các giá trị port (không phân biệt nguồn hay đích).|
 
 ##1.9 mac
 Match địa chỉ mac nguồn
@@ -127,7 +157,7 @@ Ví dụ cụ thể, các bạn có thể xem trong phần mở rộng của bà
 https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
 
 
-## 1.11set
+
 ##1.12 state
 Xác định trạng thái kết nối mà gói tin thể hiện
 
@@ -186,9 +216,49 @@ Một gói tin mang tcp flag FIN và RST cùng một lượt cũng có thể đ�
 
 
 ##1.14 tcpmss
+Match giá trị MSS (Maximum segment size) trong gói tin TCP header. Bạn chỉ có thể sử dụng với gói tin SYN hoặc SYN/ACT, kể từ lúc MSS đàm phán trong quá trình bắt tay 3 bước.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|[!] **--mss** value[:value]"|Match giá trị TCP MSS, có thể là một giá trị hoặc một khoảng giá trị|
+
+
 ##1.15 tos
+Match 8 bits trong trường Type of Service của gói tin IP datagra header.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|[!] **--tos** value[/mask ]| Match giá trị tos
+|[!] **--tos** symbol | Match TOS field (IPv4 only) by symbol|
+
+Accepted symbolic names for value are:
+- (0x10) 16 Minimize-Delay
+- (0x08)  8 Maximize-Throughput
+- (0x04)  4 Maximize-Reliability
+- (0x02)  2 Minimize-Cost
+- (0x00)  0 Normal-Service
+
+
 ##1.16 ttl
+Matches trường ttl trong gói tin ip datagram.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--ttl-eq** ttl| Match giá trị TTL|
+| **--ttl-gt** ttl| match TTL lớn hơn giá trị ttl mình cung cấp.|
+| **--ttl-lt** ttl| Match TTL nhỏ hơn giá trị ttl mình cung cấp|
+
+
 ##1.17 udp
+Sử dụng với giao thức udp
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-port** [!] port[:port]| Xác định một hoặc một dãy các port nguồn|
+| **--destination-port** [!] port[:port]|Xác định một hoặc một dãy các port đích|
+
+
+
 ##1.18 icmp
 
 #2. Target Extensions
