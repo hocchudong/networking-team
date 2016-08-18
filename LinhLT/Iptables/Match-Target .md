@@ -8,6 +8,8 @@ Cho phép bạn giới hạn số lượng kết nối TCP song song với một
 |:---:|:---:|
 |[!] **--connlimit-above** n|  phù hợp nếu số lượng kết nối TCP hiện tại là (không) trên n|
 | **--connlimit-mask** bits| nhóm hosts sử dụng mask|
+| **--connlimit-upto** n| Ngược lại với above|
+
 
 ###1.1.1 Ví dụ:
 
@@ -43,55 +45,7 @@ Khi kết nối ssh thứ 3 thì ngay lập tức bị lỗi
 ![](http://image.prntscr.com/image/1a70035b56b544638f70fe970d1cb902.png)
 
 
-
-##1.2 conntrack
-
-
-
-##1.3 hashlimit
-Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-| **--hashlimit** rate| Giống với tùy chọn limit trong module limit|
-| **--hashlimit-burst** num| Giống với tùy chọn limit-burst trong module limit|
-| **--hashlimit-mode** destip / destip-destport| Limit dựa trên ip hoặc port|
-| **--hashlimit-name foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
-| **--hashlimit-htable-size** num| 
-The number of buckets of the hash table
-| **--hashlimit-htable-max** num| Số lượng tối đa các entry trong hash|
-| **--hashlimit-htable-expire** num| Khoảng thời gian sau bao lâu thì hash entry hết hạn|
-|**--hashlimit-htable-gcinterval** num|
-How many miliseconds between garbage collection intervals
-
-
-##1.4 iprange
-Match một dãy các địa chỉ ip
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-| [!] **--src-range** ip-ip| Match dãy địa chỉ ip nguồn|
-| [!] **--dst-range** ip-ip| Match dãy địa chỉ ip đích|
-
-
-##1.5 length:
-Match chiều dài gói tin
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-|**--length** [!] length[:length]| Match chiều dài gói tin, có thể đặt theo khoảng|
-
-Theo RFC 793, SYN packet không mang theo "payload" (dữ liệu) và nếu các hệ thống ứng dụng đúng theo RFC 793 thì SYN packet chỉ có chiều dài tối đa là ở khoảng 40 đến 60 bytes nếu bao gồm các tcp options. Dựa trên quy định này (hầu hết các ứng dụng trên mọi hệ điều hành đều tuân thủ theo quy định của RFC 793), ví dụ: 
-
-```sh
-iptables -A INPUT -i $IF -p tcp --syn -s $NET --sport $HI_PORTS -d $IP --dport $port -m state --state NEW -m length --length 40:60 -j ACCEPT
-```
-
-Điều cần nói ở đây là giá trị -m length --length 40:60 ấn định chiều dài của gói tin SYN của giao thức TCP được firewall chúng ta tiếp nhận. Như đã đề cập ở trên, theo đúng quy định, gói SYN không mang dữ liệu cho nên kích thước của chúng không thể (và không nên) lớn hơn 40:60. Luật trên áp đặt một quy định rất khắc khe để loại trừ các gói SYN lại mang dữ liệu (và đặc biệt mang dữ liệu với kích thước lớn). Theo tôi thấy, những gói tin này rất hiếm thấy ngoại trừ trường hợp cố tình tạo ra hoặc thỉnh thoảng có dăm ba gói "lạc loài" ở đâu vào từ một hệ điều hành nào đó không ứng dụng đúng quy cách. Xử dụng luật này hay không là tùy mức khắc khe của bạn. Cách tốt nhất trước khi dùng, bạn nên thử capture các gói SYN cho suốt một ngày (hoặc nhiều) và mang về phân tích xem có bao nhiêu gói SYN thuộc dạng không cho phép, có bao nhiêu gói tin được xếp loại vào nhóm có chiều dài 40:60 bytes và từ đó mới đi đến quyết định cuối cùng. 
-
-
-
-##1.6 limit
+##1.2 limit
 Dùng để giới hạn tốc độ. Firewall sẽ chấp nhận các gói tin cho đến khi đạt giá trị limit.
 
 |Command|Ý nghĩa|
@@ -116,33 +70,32 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 
 Đây chỉ là một ví dụ minh hoạ ứng dụng -m limit. Bạn cần khảo sát số lượng truy cập đến dịch vụ nào đó trên máy chủ trước khi hình thành giá trị thích hợp cho -m limit. Nên cẩn thận trường hợp một proxy server chỉ có một IP và có thể có hàng ngàn người dùng phía sau proxy; ghi nhận yếu tố này để điều chỉnh limit rate cho hợp lý. 
 
-##1.7 mport
-Tương tự multiport, match các port nguồn và đích. Được sử dụng với **-p tcp** hoặc **-p udp**.
+##1.3 hashlimit
+Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 
 |Command|Ý nghĩa|
 |:---:|:---:|
-| **--source-ports** port[,port[,port...]]| Match các giá trị port nguồn|
-| **--destination-ports** port[,port[,port...]]|Match các giá trị port đích.
-| **--ports** port[,port[,port...]]| Match các giá trị port, Lưu ý là so sánh cả 2 giá trị port nguồn và port đích.|
-
-##1.8 multiport
-Có thể Match số lượng lớn các cổng nguồn và đích. Có thể lên đến 15 cổng. port range (port:port) được tính như là 2 cổng. Được sử dụng với **-p tcp** hoặc **-p udp**.
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-|**--sport** *< port, port >*| Match các giá trị port nguồn|
-|**--dport** *< port, port >*| Match các giá trị port đích.|
-|**--port** *< port, port >*| Mach các giá trị port (không phân biệt nguồn hay đích).|
-
-##1.9 mac
-Match địa chỉ mac nguồn
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-|**--mac-source** *address* | Match địa chỉ mac nguồn. Nó có dạng là XX:XX:XX:XX:XX:XX. Chú ý, chỉ có tác dụng với thiết bị Ethernet và chain PREROUTING, FORWARD, INPUT|
+| **--hashlimit** rate| Giống với tùy chọn limit trong module limit|
+| **--hashlimit-burst** num| Giống với tùy chọn limit-burst trong module limit|
+| **--hashlimit-mode** srcip|srcport|dstip|dstport| Limit dựa trên ip hay port, nguồn hay đích|
+| **--hashlimit-name foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
+| **--hashlimit-htable-size** num| 
+The number of buckets of the hash table
+| **--hashlimit-htable-max** num| Số lượng tối đa các entry trong hash|
+| **--hashlimit-htable-expire** num| Khoảng thời gian sau bao lâu thì hash entry hết hạn|
+|**--hashlimit-htable-gcinterval** num|
+How many miliseconds between garbage collection intervals
 
 
-##1.10 recent
+- dstip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ đích gủa gói tin.
+- dstport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng đích của gói tin.
+-srcip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ nguồn của gói tin
+- srcport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng nguồn gủa gói tin
+
+
+##1.4 recent
+Giới hạn số kết nối trên một khoảng thời gian. 
+
 Module này cho phép ta tạo ra một danh sách động chứa địa chỉ ip, rồi thực thi các hành động với danh sách này.
 
 |Command|Ý nghĩa|
@@ -156,9 +109,10 @@ Ví dụ cụ thể, các bạn có thể xem trong phần mở rộng của bà
 
 https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
 
+##1.5 conntrack
 
 
-##1.12 state
+##1.6 state
 Xác định trạng thái kết nối mà gói tin thể hiện
 
 |Command|Ý nghĩa|
@@ -188,7 +142,7 @@ Tuy nhiên, máy bên phải là máy client khởi tạo kết nối mới đ�
 
 
 
-##1.13 tcp
+##1.7 tcp
 Sử dụng với các giao thức tcp
 
 |Command|Ý nghĩa|
@@ -200,7 +154,7 @@ Sử dụng với các giao thức tcp
 |**--tcp-option** [!] number| Match trường TCP option|
 |**--mss** value[:value]| Match gói tin TCP SYN hoặc SYN/ACK với giá trị MSS (có thể nằm trong khoảng), để điều khiển kích thước tối đa của gói tin cho kết nối này|
 
-###1.13.1 Ví dụ: 
+###1.7.1 Ví dụ: 
 ```sh
 iptables -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -s $NET -j DROP
 ```
@@ -215,7 +169,74 @@ iptables -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -s $NET -j DROP
 Một gói tin mang tcp flag FIN và RST cùng một lượt cũng có thể được xem bất hợp lệ. FIN flag trong một gói tin hợp lệ dùng để thông báo đầu bên kia dòng tin được chấm dứt để xuất truy cập được kết thúc đúng quy cách. Trong khi đó, RST flag dùng để "xé" ngang một xuất truy cập bất chợt. Trường hợp FIN và RST cùng trong một gói tin là điều bất thường và không nên tiếp nhận. 
 
 
-##1.14 tcpmss
+##1.8 udp
+Sử dụng với giao thức udp
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-port** [!] port[:port]| Xác định một hoặc một dãy các port nguồn|
+| **--destination-port** [!] port[:port]|Xác định một hoặc một dãy các port đích|
+
+
+
+##1.9 icmp
+Sử dụng với giao thức icmp. `-p icmp`
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--icmp-type** [!] typename| Kiểu gói tin ICMP|
+
+##1.10 iprange
+Match một dãy các địa chỉ ip
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| [!] **--src-range** ip-ip| Match dãy địa chỉ ip nguồn|
+| [!] **--dst-range** ip-ip| Match dãy địa chỉ ip đích|
+
+
+##1.11 length:
+Match chiều dài gói tin
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--length** [!] length[:length]| Match chiều dài gói tin, có thể đặt theo khoảng|
+
+Theo RFC 793, SYN packet không mang theo "payload" (dữ liệu) và nếu các hệ thống ứng dụng đúng theo RFC 793 thì SYN packet chỉ có chiều dài tối đa là ở khoảng 40 đến 60 bytes nếu bao gồm các tcp options. Dựa trên quy định này (hầu hết các ứng dụng trên mọi hệ điều hành đều tuân thủ theo quy định của RFC 793), ví dụ: 
+
+```sh
+iptables -A INPUT -i $IF -p tcp --syn -s $NET --sport $HI_PORTS -d $IP --dport $port -m state --state NEW -m length --length 40:60 -j ACCEPT
+```
+
+Điều cần nói ở đây là giá trị -m length --length 40:60 ấn định chiều dài của gói tin SYN của giao thức TCP được firewall chúng ta tiếp nhận. Như đã đề cập ở trên, theo đúng quy định, gói SYN không mang dữ liệu cho nên kích thước của chúng không thể (và không nên) lớn hơn 40:60. Luật trên áp đặt một quy định rất khắc khe để loại trừ các gói SYN lại mang dữ liệu (và đặc biệt mang dữ liệu với kích thước lớn). Theo tôi thấy, những gói tin này rất hiếm thấy ngoại trừ trường hợp cố tình tạo ra hoặc thỉnh thoảng có dăm ba gói "lạc loài" ở đâu vào từ một hệ điều hành nào đó không ứng dụng đúng quy cách. Xử dụng luật này hay không là tùy mức khắc khe của bạn. Cách tốt nhất trước khi dùng, bạn nên thử capture các gói SYN cho suốt một ngày (hoặc nhiều) và mang về phân tích xem có bao nhiêu gói SYN thuộc dạng không cho phép, có bao nhiêu gói tin được xếp loại vào nhóm có chiều dài 40:60 bytes và từ đó mới đi đến quyết định cuối cùng. 
+
+
+##1.12 mport
+Tương tự multiport, match các port nguồn và đích. Được sử dụng với **-p tcp** hoặc **-p udp**.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-ports** port[,port[,port...]]| Match các giá trị port nguồn|
+| **--destination-ports** port[,port[,port...]]|Match các giá trị port đích.
+| **--ports** port[,port[,port...]]| Match các giá trị port, Lưu ý là so sánh cả 2 giá trị port nguồn và port đích.|
+
+##1.13 multiport
+Có thể Match số lượng lớn các cổng nguồn và đích. Có thể lên đến 15 cổng. port range (port:port) được tính như là 2 cổng. Được sử dụng với **-p tcp** hoặc **-p udp**.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--sport** *< port, port >*| Match các giá trị port nguồn|
+|**--dport** *< port, port >*| Match các giá trị port đích.|
+|**--port** *< port, port >*| Mach các giá trị port (không phân biệt nguồn hay đích).|
+
+##1.14 mac
+Match địa chỉ mac nguồn
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--mac-source** *address* | Match địa chỉ mac nguồn. Nó có dạng là XX:XX:XX:XX:XX:XX. Chú ý, chỉ có tác dụng với thiết bị Ethernet và chain PREROUTING, FORWARD, INPUT|
+
+##1.15 tcpmss
 Match giá trị MSS (Maximum segment size) trong gói tin TCP header. Bạn chỉ có thể sử dụng với gói tin SYN hoặc SYN/ACT, kể từ lúc MSS đàm phán trong quá trình bắt tay 3 bước.
 
 |Command|Ý nghĩa|
@@ -223,7 +244,7 @@ Match giá trị MSS (Maximum segment size) trong gói tin TCP header. Bạn ch�
 |[!] **--mss** value[:value]"|Match giá trị TCP MSS, có thể là một giá trị hoặc một khoảng giá trị|
 
 
-##1.15 tos
+##1.16 tos
 Match 8 bits trong trường Type of Service của gói tin IP datagra header.
 
 |Command|Ý nghĩa|
@@ -239,7 +260,7 @@ Accepted symbolic names for value are:
 - (0x00)  0 Normal-Service
 
 
-##1.16 ttl
+##1.17 ttl
 Matches trường ttl trong gói tin ip datagram.
 
 |Command|Ý nghĩa|
@@ -248,18 +269,6 @@ Matches trường ttl trong gói tin ip datagram.
 | **--ttl-gt** ttl| match TTL lớn hơn giá trị ttl mình cung cấp.|
 | **--ttl-lt** ttl| Match TTL nhỏ hơn giá trị ttl mình cung cấp|
 
-
-##1.17 udp
-Sử dụng với giao thức udp
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-| **--source-port** [!] port[:port]| Xác định một hoặc một dãy các port nguồn|
-| **--destination-port** [!] port[:port]|Xác định một hoặc một dãy các port đích|
-
-
-
-##1.18 icmp
 
 #2. Target Extensions
 
