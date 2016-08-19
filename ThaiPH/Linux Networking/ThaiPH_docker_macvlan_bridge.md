@@ -274,4 +274,6 @@ Kết quả ping thành công.
 </ul>
 <h2><a name="ref">3. Tham khảo</a></h2>
 [1] - <a href="http://hicu.be/docker-networking-macvlan-bridge-mode-configuration">http://hicu.be/docker-networking-macvlan-bridge-mode-configuration</a>
+<br>
+[2] - <a href="https://github.com/docker/docker/blob/master/experimental/vlan-networks.md">https://github.com/docker/docker/blob/master/experimental/vlan-networks.md</a>
 
