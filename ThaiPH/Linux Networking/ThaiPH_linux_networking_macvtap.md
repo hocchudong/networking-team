@@ -174,21 +174,23 @@ Một chương trình thuộc <b>user space</b> có thể mở file thiết bị
 </ul>
 
 <h2><a name="ref">4. Tham khảo</a></h2>
-[1] - <a href="http://hicu.be/bridge-vs-macvlan">http://hicu.be/bridge-vs-macvlan</a>
+[1] - <a href="http://backreference.org/2014/03/20/some-notes-on-macvlanmacvtap/">http://backreference.org/2014/03/20/some-notes-on-macvlanmacvtap/</a>
 <br>
-[2] - <a href="https://seravo.fi/2012/virtualized-bridged-networking-with-macvtap">https://seravo.fi/2012/virtualized-bridged-networking-with-macvtap</a>
+[2] - <a href="http://hicu.be/bridge-vs-macvlan">http://hicu.be/bridge-vs-macvlan</a>
 <br>
-[3] - <a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Virtualization_Administration_Guide/sect-attch-nic-physdev.html">https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Virtualization_Administration_Guide/sect-attch-nic-physdev.html</a>
+[3] - <a href="https://seravo.fi/2012/virtualized-bridged-networking-with-macvtap">https://seravo.fi/2012/virtualized-bridged-networking-with-macvtap</a>
 <br>
-[4] - <a href="http://virt.kernelnewbies.org/MacVTap">http://virt.kernelnewbies.org/MacVTap</a>
+[4] - <a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Virtualization_Administration_Guide/sect-attch-nic-physdev.html">https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Virtualization_Administration_Guide/sect-attch-nic-physdev.html</a>
 <br>
-[5] - <a href="https://www.juniper.net/documentation/en_US/junos16.1/topics/concept/bridging-reflective-relay-qfx-series.html">https://www.juniper.net/documentation/en_US/junos16.1/topics/concept/bridging-reflective-relay-qfx-series.html</a>
+[5] - <a href="http://virt.kernelnewbies.org/MacVTap">http://virt.kernelnewbies.org/MacVTap</a>
 <br>
-[6] - <a href="http://www.innervoice.in/blogs/2013/12/08/tap-interfaces-linux-bridge/">http://www.innervoice.in/blogs/2013/12/08/tap-interfaces-linux-bridge/</a>
+[6] - <a href="https://www.juniper.net/documentation/en_US/junos16.1/topics/concept/bridging-reflective-relay-qfx-series.html">https://www.juniper.net/documentation/en_US/junos16.1/topics/concept/bridging-reflective-relay-qfx-series.html</a>
 <br>
-[7] - <a href="http://backreference.org/2010/03/26/tuntap-interface-tutorial/">http://backreference.org/2010/03/26/tuntap-interface-tutorial/</a>
+[7] - <a href="http://www.innervoice.in/blogs/2013/12/08/tap-interfaces-linux-bridge/">http://www.innervoice.in/blogs/2013/12/08/tap-interfaces-linux-bridge/</a>
 <br>
-[8] - <a href="http://networkstatic.net/configuring-macvlan-ipvlan-linux-networking/">http://networkstatic.net/configuring-macvlan-ipvlan-linux-networking/</a>
+[8] - <a href="http://backreference.org/2010/03/26/tuntap-interface-tutorial/">http://backreference.org/2010/03/26/tuntap-interface-tutorial/</a>
 <br>
-[9] - <a href="http://suhu.dlinkddns.com/Presentation/20150203/">http://suhu.dlinkddns.com/Presentation/20150203/</a>
+[9] - <a href="http://networkstatic.net/configuring-macvlan-ipvlan-linux-networking/">http://networkstatic.net/configuring-macvlan-ipvlan-linux-networking/</a>
+<br>
+[10] - <a href="http://suhu.dlinkddns.com/Presentation/20150203/">http://suhu.dlinkddns.com/Presentation/20150203/</a>
 
