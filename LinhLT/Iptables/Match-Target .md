@@ -70,6 +70,90 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 
 Đây chỉ là một ví dụ minh hoạ ứng dụng -m limit. Bạn cần khảo sát số lượng truy cập đến dịch vụ nào đó trên máy chủ trước khi hình thành giá trị thích hợp cho -m limit. Nên cẩn thận trường hợp một proxy server chỉ có một IP và có thể có hàng ngàn người dùng phía sau proxy; ghi nhận yếu tố này để điều chỉnh limit rate cho hợp lý. 
 
+###1.2.1 Thử nghiệm
+
+- Mô hình: 
+![](http://i.imgur.com/Gdm8NoR.jpg)
+
+	- IPTables chạy trên Ubuntu server 14.04, có địa chỉ là 10.10.10.200
+	- Attacker sử dụng phần mềm hping3 để gửi liên tục các gói tin để server.
+	=> Sử dụng IPTables để ngăn chặn các gói tin không hợp lệ này.
+
+###1.2.2 Trên máy Attacker.
+- Cài đặt phần mềm hping3 để gửi nhiều gói tin với tốc độ nhanh đến server
+```sh
+apt-get install hping3
+```
+
+- Tiến hành chặn bắt các gói tin
+```sh
+tcpdump -i eth0 -w abc.pcap
+```
+=> Dòng lệnh trên sẽ bắt các gói tin đi ra đi vào từ cổng eth0 và ghi vào file abc.pcap. Từ đó, chúng ta sẽ dễ dàng để phân tích các gói tin.
+
+-  Tiến hành gửi gói tin: 
+```sh
+hping3 -V -i u10000 -1 -c 10 10.10.10.200 
+```
+- Giải thích tùy chọn các lệnh: 
+	- -V: hiển thị thông tin các kết quả các gói tin ra màn hình.
+	- -i u10000: Hping sẽ gửi với tốc độ 10 packets/s
+	- -1: Gửi gói tin ICMP (PING)
+	- -c 10: Gửi 10 gói tin.
+	- 10.10.10.200: Địa chỉ tấn công
+
+- Phân tích: Dòng lệnh trên sẽ gửi 10 gói tin ICMP với tốc độ 10packet/s đến webserver. Có nghĩa là 1 gói tin được gửi đi với thời gian 0.1s
+
+
+###1.2.3 Trên ubuntu server.
+- Tiến hành chạy các lệnh sau:
+```sh
+iptables -P INPUT DROP
+iptables -A INPUT -p icmp -m limit --limit 10s --limit-burst 3 -j ACCEPT
+iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+```
+
+- Giải thích các dòng lệnh:
+	- Dòng 1: Dùng để đặt policy là DROP cho chain INPUT. Có nghĩa là mặc định, các gói tin đi vào nếu không phù hợp với các rule thì sẽ bị DROP. Quy tắc này khiến cho iptables chặt chẽ hơn.
+	- Dòng 2: Dùng để thiết lập module limit với gói tin icmp. --limit 10s và --limit-burst 3 có nghĩa là ban đầu, chỉ có 3 gói tin đi vào sẽ được chấp nhận. Sau đó, cứ 1/10s (0,1s) thì lại có 1 gói tin được phép đi vào. Các gói tin còn lại sẽ bị DROP và ghi lại log nhờ dòng lệnh thứ 3.
+	- Dòng 3: Dùng để ghi lại LOG các gói tin icmp mà bị iptables DROP.
+
+###1.2.4 Kết quả.
+![](http://image.prntscr.com/image/e440524d0dce4ac294ef6a156ca93be8.png)
+
+=> Có 4 gói tin được gửi đi thành công trên tổng cộng 10 gói tin.
+
+
+![](http://image.prntscr.com/image/163a5e1b09804d36b9d94b26dd320e78.png)
+=>Vào đọc log ta thấy có 6 gói tin bị chặn.
+
+###1.2.5 Kiểm nghiệm
+- Tiến hành phân tích gói tin pcap mà lúc đầu chung ta bắt.
+
+![](http://image.prntscr.com/image/bf1166c0d9a34bd9ba4d67874c2e4e2a.png)
+
+- Nhìn vào hình ảnh, ta thấy:
+
+- Trong khoảng thời gian từ 3.18 đến 3.20, có 3 gói tin ICMP được gửi đi (theo thứ tự trong hình là 10,15,18) và được server trả lời thành công. => Chính xác với tùy chọn --limit-burst 3, tức là 3 gói tin đầu tiên sẽ được cho phép.
+
+- Tiếp theo, ở thời gian 3.21, gói tin ICMP thứ 4 (gói 22) được gửi đi nhưng server không đáp trả. Ta nhận thấy khoảng thời gian gói tin ICMP thứ 3 và thứ 4 chỉ là 3.21 -3 .20 = 0.01 (s). Do đó sau khi đã dùng hết 3 gói tin đầu, thì thời gian 0.01s là bé hơn thời gian để tiếp tục cho phép 1 gói tin đi vào (limit=1/10s), vì vậy nên gói tin bị LOG lại và DROP.
+
+- Ở thời gian 3.24, gói tin ICMP thứ 5 (gói 23) được gửi đi nhưng Server không đáp trả. Lý do là tương tự ở trên.
+
+- Ở thời gian 3.25, gói tin ICMP thứ 6 (gói 24) được gửi đi nhưng Server không đáp trả. Lý do tương tự ở trên.
+
+- Ở thời gian 3.27, gói tin ICMP thứ 7 (gói 25) được gửi đi nhưng Server không đáp trả. Lý do tương tự ở trên.
+
+- Ở thời gian 3.28, gói tin ICMP thứ 8 (gói 26) được gửi đi và Server đã trả lời gói tin này thành công. Ta nhận thấy thời gian của gói tin ICMP thứ 8 là 3.28 trừ đi thời gian gói tin đầu tiên là 3.18 đúng = 0.1s, bằng với tùy chọn --limit 10s mà mình đã khai báo ở trên. Do đó, sắp khi dùng hết 3 gói tin đầu tiên, và sau 0.1s với gói tin đầu tiên, thì gói tin thứ 8 đã được đồng ý để đi qua.
+
+- Ở thời gian 3.30, gói tin ICMP thứ 9 (gói 28) bị Server từ chối. Lý do là bởi vì khoảng thời gian từ gói tin thứ 8 đến gói thứ 9 là 3.30-3.28 = 0.02s bé hơn 0.1s. Do đó, gói tin bị từ chối.
+
+- Ở thời gian 3.32, gói tin ICMP thứ 10 (gói 29) bị Server từ chối. Lý do tương tự ở trên. 
+
+=> Kết quả cuối cùng, chỉ có 4 gói tin được phép đi qua (thứ 1, 2, 3, 8) và 6 gói tin bị chối. Phù hợp với kết quả ở trên.
+
+
+
 ##1.3 hashlimit
 Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 
