@@ -161,21 +161,80 @@ Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 |:---:|:---:|
 | **--hashlimit** rate| Giống với tùy chọn limit trong module limit|
 | **--hashlimit-burst** num| Giống với tùy chọn limit-burst trong module limit|
-| **--hashlimit-mode** srcip|srcport|dstip|dstport| Limit dựa trên ip hay port, nguồn hay đích|
-| **--hashlimit-name foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
+| **--hashlimit-mode** srcip/srcport/dstip/dstport| Limit dựa trên ip hay port, nguồn hay đích|
+| **--hashlimit-name** foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
 | **--hashlimit-htable-size** num| 
 The number of buckets of the hash table
 | **--hashlimit-htable-max** num| Số lượng tối đa các entry trong hash|
 | **--hashlimit-htable-expire** num| Khoảng thời gian sau bao lâu thì hash entry hết hạn|
-|**--hashlimit-htable-gcinterval** num|
-How many miliseconds between garbage collection intervals
+|**--hashlimit-htable-gcinterval** num| How many miliseconds between garbage collection intervals|
 
 
 - dstip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ đích gủa gói tin.
 - dstport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng đích của gói tin.
--srcip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ nguồn của gói tin
+- srcip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ nguồn của gói tin
 - srcport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng nguồn gủa gói tin
 
+###1.3.1 Thử nghiệm
+Tương tự với mô hình mà mình đã thử nghiệm ở module limit, chỉ khác ở chỗ là lúc này có cùng lúc 3 máy tấn công.
+
+- Mô hình:
+![](http://i.imgur.com/pnUpCZz.jpg)
+
+###1.3.2 Trên máy iptables
+
+- Chạy lệnh rule iptables
+```sh
+iptables -P INPUT DROP
+iptables -A INPUT -p icmp -m hashlimit --hashlimit 10s --hashlimit-burst 3 --hashlimit-mode srcip --hashlimit-name test -j ACCEPT
+iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+```
+
+- Chạy lệnh bắt gói tin
+```sh
+tcpdump -i eth0 -w hashlimit.pcap
+```
+
+###1.3.3 Trên 3 máy tấn công.
+- Chạy lệnh tấn công trên cả 3 máy trong cùng 1 thời điểm
+```sh
+hping3 -V -i u10000 -1 -c 10 10.10.10.200
+```
+
+###1.3.4 Kết quả
+![](http://image.prntscr.com/image/df49808c8d1341039afdf62706fb92fb.png)
+
+![](http://image.prntscr.com/image/6982361b737044d287f420c017a62e88.png)
+
+![](http://image.prntscr.com/image/b0ed507b17714a1b91bbebeb4fa35175.png)
+
+=> Mỗi máy gửi đi thành công 4 gói tin
+
+###1.3.5 Kiểm nghiệm
+![](http://i.imgur.com/ATnPP35.png)
+
+- Tương tự như bài phân tích module limit ở trên. Trên mỗi máy chỉ có 4 gói tin đi qua và 6 gói tin bị từ chối.
+
+=> Ở trong ví dụ trên, chứng tỏ rằng module hashlimit giới hạn dựa trên ip, phân biệt các ip nguồn (các máy khác nhau) với nhau. Điều đó thể hiện ở tùy chọn `--hashlimit-mode` mà ta đặt ở trên.
+
+###1.3.6 Sự khác nhau giữa hashlimit và limit
+Khi tôi thay đổi từ module hashlimit thành module limit và thực hiện lại các bước tấn công như trên, thì kết quả nhận được như sau
+
+![](http://image.prntscr.com/image/5863dc05960b4dd2881c1038283f245b.png)
+
+![](http://image.prntscr.com/image/e53704c4d65b4292a42fb61f6bbcf06a.png)
+
+![](http://image.prntscr.com/image/f33a247a775e499e80b7738131527d16.png)
+
+=> Mỗi máy gửi 10 gói tin => 3 máy gửi 30 gói tin, nhưng tổng cộng chỉ có 4 gói tin thành công.
+
+Tiến hành phân tích gói tin
+
+![](http://image.prntscr.com/image/faec3682dcc5449ba7a583b549815330.png)
+
+
+**Chúng ta thấy rằng module limit giới hạn trên tất cả các ip nguồn. Có nghĩa là nó không phân biệt ip A với ip B. Chỉ cần ip A đã đạt đến giới hạn thì ip B cũng không thể truy cập được vào server.
+Ngược lại module hashlimit giới hạn theo mỗi ip. ip A đã đạt giới hạn thì không thể truy cập được server, trong cùng lúc đó, ip B chưa đạt giới hạn vẫn có thể tiếp tục truy cập.**
 
 ##1.4 recent
 Giới hạn số kết nối trên một khoảng thời gian. 
