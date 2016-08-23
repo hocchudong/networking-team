@@ -1,17 +1,23 @@
 # Docker Networking: macvlan với VLAN 
 # Mục lục 
-<h3><a href="#topo">1. Topology</a></h3>
-<h3><a href="#cfg">2. Cài đặt và cấu hình</a></h3>
+<h3><a href="#purpose">1. Mục đích bài lab</a></h3>
+<h3><a href="#topo">2. Topology</a></h3>
+<h3><a href="#cfg">3. Cài đặt và cấu hình</a></h3>
 <ul>
-    <li><a href="#host_net">2.1. Cài đặt OpenvSwitch, KVM và cấu hình libvirt network</a></li>
-    <li><a href="#docker_host_cfg">2.2. Cấu hình các Docker host</a></li>
-    <li><a href="#container_test">2.3. Kiểm tra kết nối</a></li>
+    <li><a href="#host_net">3.1. Cài đặt OpenvSwitch, KVM và cấu hình libvirt network</a></li>
+    <li><a href="#docker_host_cfg">3.2. Cấu hình các Docker host</a></li>
+    <li><a href="#container_test">3.3. Kiểm tra kết nối</a></li>
 </ul>
-<h3><a href="#ref">3. Tham khảo</a></h3>
+<h3><a href="#ref">4. Tham khảo</a></h3>
 
 ---
 
-<h2><a name="topo">1. Topology</a></h2>
+<h2><a name="purpose">1. Mục đích bài lab</a></h2>
+<div>
+    Bài lab này là bài lab mở rộng sử dụng macvlan driver của Docker, mục đích là tạo kết nối giữa các container trên các host khác nhau. Ngoài ra, bài lab cũng sử dụng vlan driver trên linux để tạo các VLAN sub-interfaces trên các host, nhằm sử dụng được nhiều macvlan network trên các host này, đồng thời tách biệt về network giữa các container trên các macvlan network khác nhau, đáp ứng yêu cầu <b>isolation</b> khi cần thiết.
+</div>
+
+<h2><a name="topo">2. Topology</a></h2>
 <div>
     <img src="http://i.imgur.com/nUq4mzx.png">
     <br><br>
@@ -21,9 +27,9 @@
         <li>Tạo hai KVM docker host trên máy <b>HOST</b> chạy ubuntu desktop 14.04, trên mỗi máy cài đặt sẵn <b>docker</b> (thời điểm bài lab thực hiện đang cài phiên bản 1.12) và <b>vlan</b> driver.</li>
     </ul>
 </div>
-<h2><a name="cfg">2. Cài đặt và cấu hình</a></h2>
+<h2><a name="cfg">3. Cài đặt và cấu hình</a></h2>
 <ul>
-    <li><h3><a name="host_net">2.1. Cài đặt OpenvSwitch, KVM và cấu hình libvirt network</a></h3>
+    <li><h3><a name="host_net">3.1. Cài đặt OpenvSwitch, KVM và cấu hình libvirt network</a></h3>
     <div>
     Tất cả các thao tác sau thực hiện trên máy <b>HOST</b>
     <h4>Cài đặt KVM và virt-manager</h4>  
@@ -107,7 +113,7 @@ virsh net-autostart ovs-network
     </div>
     </li>
 
-    <li><h3><a name="docker_host_cfg">2.2. Cấu hình các Docker host</a></h3>
+    <li><h3><a name="docker_host_cfg">3.2. Cấu hình các Docker host</a></h3>
     <div>
         <h4>Cấu hình network cho các Docker host</h4>
         <div>
@@ -275,7 +281,7 @@ docker run --net=macvlan200 -itd --name macvlan200_4 alpine /bin/sh
 
     </li>
 
-    <li><h3><a name="container_test">2.3. Kiểm tra kết nối</a></h3>
+    <li><h3><a name="container_test">3.3. Kiểm tra kết nối</a></h3>
     <div>
         <ul>
             <li><b>Docker host 0</b>
@@ -536,7 +542,7 @@ round-trip min/avg/max = 0.712/1.219/2.351 ms
     </div>
     </li>
 </ul>
-<h2><a name="ref">3. Tham khảo</a></h2>
+<h2><a name="ref">4. Tham khảo</a></h2>
 [1] - <a href="https://sreeninet.wordpress.com/2016/05/29/docker-macvlan-and-ipvlan-network-plugins/">https://sreeninet.wordpress.com/2016/05/29/docker-macvlan-and-ipvlan-network-plugins/</a>
 <br>
 [2] - <a href="http://blog.scottlowe.org/2013/05/28/vlan-trunking-to-guest-domains-with-open-vswitch/">http://blog.scottlowe.org/2013/05/28/vlan-trunking-to-guest-domains-with-open-vswitch/</a>

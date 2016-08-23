@@ -1,17 +1,25 @@
 # Docker Networking: macvlan bridge
 # Mục lục
-<h3><a href="#nwtypes">1. Phân loại network trong Docker</a></h3>
-<h3><a href="#macvlan">2. Lab tính năng macvlan bridge trong docker</a></h3>
+<h3><a href="#purpose">1. Mục đích bài lab</a></h3>
+<h3><a href="#nwtypes">2. Phân loại network trong Docker</a></h3>
+<h3><a href="#macvlan">3. Lab tính năng macvlan bridge trong docker</a></h3>
 <ul>
-    <li><a href="#topo">2.1. Topology</a></li>
-    <li><a href="#requirement">2.2. Yêu cầu</a></li>
-    <li><a href="#cfg">2.3. Cài đặt và cấu hình</a></li>
+    <li><a href="#topo">3.1. Topology</a></li>
+    <li><a href="#requirement">3.2. Yêu cầu</a></li>
+    <li><a href="#cfg">3.3. Cài đặt và cấu hình</a></li>
 </ul>
-<h3><a href="#ref">3. Tham khảo</a></h3>
+<h3><a href="#ref">4. Tham khảo</a></h3>
 
 ---
 
-<h2><a name="nwtypes">1. Phân loại network trong Docker</a></h2>
+<h2><a name="purpose">1. Mục đích bài lab</a></h2>
+<div>
+    Macvlan được sử dụng để tạo kết nối mạng cho các container sử dụng công nghệ ảo hóa LXC hoặc Docker. Bài lab này là bài lab cơ bản để thử nghiệm macvlan driver với chế độ bridge (một trong 4 chế độ hoạt động của macvlan) trên Docker. 
+    <br>
+    <i>Ghi chú: Docker là nền tảng ảo hóa lấy ý tưởng từ LXC (Linux Container), mục đích là để triển khai các ứng dụng trong một <b>container</b> cung cấp đầy đủ thư viện để chạy ứng dụng, sử dụng chung kernel với hệ điều hành chủ, giảm overhead, dễ dàng, thuận tiện khi triển khai, nâng cấp, hủy bỏ,... ứng dụng so với khi triển khai ứng dụng trên VM hay LXC. </i> 
+</div>
+
+<h2><a name="nwtypes">2. Phân loại network trong Docker</a></h2>
 <div>
     Docker cung cấp các tùy chọn kết nối mạng tương tự như các nền tảng ảo hóa khác như các hypervisor của VMWare, Hyper-V, KVM, Xen, Virtualbox,... Tuy nhiên, cách tiếp cận của Docker có một chút khác biệt do các network driver mà nó cung cấp, gây khó hiểu đối với những người dùng mới đã quen thuộc với các khái niệm network trong các nền tảng ảo hóa khác. Bảng sau sẽ mô tả các chế độ network tương ứng với network driver mà docker cung cấp để tạo kết nối cho các container:
     <table>
@@ -37,21 +45,21 @@
         </tr>
     </table>
 </div>
-<h2><a name="macvlan">2. Lab tính năng macvlan bridge trong docker</a></h2>
+<h2><a name="macvlan">3. Lab tính năng macvlan bridge trong docker</a></h2>
 <ul>
-    <li><h3><a name="topo">2.1. Topology</a></h3>
+    <li><h3><a name="topo">3.1. Topology</a></h3>
 <br>
 <img src="http://i.imgur.com/RENOOzz.png">
 <br>
     </li>
-    <li><h3><a name="requirement">2.2. Yêu cầu</a></h3>
+    <li><h3><a name="requirement">3.2. Yêu cầu</a></h3>
     <ul>
         <li>Docker host cài đặt Ubuntu 14.04, phiên bản kernel yêu cầu thấp nhất là 3.9 (trong bài lab bản Ubuntu đã update kernel lên 4.x.x)</li>
         <li>Docker host cài đặt docker phiên bản thấp nhất là 1.11 hoặc mới hơn(thời điểm bài lab thực hiện đang là phiên bản 1.12)</li>
         <li>Docker host (lab trên VMware Workstation) có 1 card kết nối internet (chế độ bridge hoặc NAT), trong bài lab sử dụng card NAT dải <code>172.16.69.0/24</code>.</li>
     </ul>
     </li>
-    <li><h3><a name="cfg">2.3. Cài đặt và cấu hình</a></h3>
+    <li><h3><a name="cfg">3.3. Cài đặt và cấu hình</a></h3>
     <ul>
 
         <li><h4>Tạo macvlan network. </h4>Trong khi macvlan có 4 chế độ (VEPA, bridge, private, passthrough), thì Docker macvlan driver chỉ hỗ trợ macvlan bridge mode. Tiến hành tạo <code>macvlan network</code> mới tên là <b>macvlan0</b> sử dụng lệnh sau:
@@ -272,7 +280,7 @@ Kết quả ping thành công.
     </li>
 
 </ul>
-<h2><a name="ref">3. Tham khảo</a></h2>
+<h2><a name="ref">4. Tham khảo</a></h2>
 [1] - <a href="http://hicu.be/docker-networking-macvlan-bridge-mode-configuration">http://hicu.be/docker-networking-macvlan-bridge-mode-configuration</a>
 <br>
 [2] - <a href="https://github.com/docker/docker/blob/master/experimental/vlan-networks.md">https://github.com/docker/docker/blob/master/experimental/vlan-networks.md</a>
