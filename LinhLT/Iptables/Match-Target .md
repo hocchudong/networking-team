@@ -8,17 +8,17 @@
 		- [1.1.2 Thử nghiệm](#connlimitthunghiem)
 	- [1.2 limit](#limit)
 		- [1.2.1 Thử nghiệm](#limitthunghiem)
-		- [1.2.2 Trên máy Attacker.](#limitattacker)
-		- [1.2.3 Trên ubuntu server.](#limitserver)
-		- [1.2.4 Kết quả.](#limitketqua)
-		- [1.2.5 Kiểm nghiệm](#limitkiemnghiem)
+			- [1.2.1.1 Mô hình và mục đích.](#limitmohinh)
+			- [1.2.1.2 Cách thực hiện.](#limitthuchien)
+			- [1.2.1.3 Kết quả.](#limitketqua)
+			- [1.2.1.4 Kiểm chứng kết quả.](#limitkiemchung)
 	- [1.3 hashlimit](#hashlimit)
 		- [1.3.1 Thử nghiệm](#hashlimitthunghiem)
-		- [1.3.2 Trên máy iptables](#hashlimitserver)
-		- [1.3.3 Trên 3 máy tấn công.](#hashlimitattacker)
-		- [1.3.4 Kết quả](#hashlimitketqua)
-		- [1.3.5 Kiểm nghiệm](#hashlimitkiemnghiem)
-		- [1.3.6 Sự khác nhau giữa hashlimit và limit](#limitvshashlimit)
+			- [1.3.1.1 Mô hình và mục đích](#hashlimitmohinh)
+			- [1.3.1.2 Cách thực hiện.](#hashlimitthuchien)
+			- [1.3.1.3 Kết quả](#hashlimitketqua)
+			- [1.3.1.4 Kiểm chứng kết quả](#hashlimitkiemchung)
+		- [1.3.2 Sự khác nhau giữa hashlimit và limit](#limitvshashlimit)
 	- [1.4 recent](#recent)
 	- [1.5 conntrack](#conntrack)
 	- [1.6 state](#state)
@@ -113,56 +113,63 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 
 <a name="limitthunghiem"></a>
 ###1.2.1 Thử nghiệm
+<a href="limitmohinh"></a>
+####1.2.1.1 Mô hình và mục đích 
 
 - Mô hình: 
+
 ![](http://i.imgur.com/Gdm8NoR.jpg)
 
 	- IPTables chạy trên Ubuntu server 14.04, có địa chỉ là 10.10.10.200
 	- Attacker sử dụng phần mềm hping3 để gửi liên tục các gói tin để server.
-	=> Sử dụng IPTables để ngăn chặn các gói tin không hợp lệ này.
 
-<a name="limitattacker"></a>
-###1.2.2 Trên máy Attacker.
-- Cài đặt phần mềm hping3 để gửi nhiều gói tin với tốc độ nhanh đến server
-```sh
-apt-get install hping3
-```
+- Mục đích: 
+Sử dụng IPTables để ngăn chặn các gói tin được gửi quá nhanh đến Server. Server chỉ cho phép nhận 4 gói tin trong khoảng thời gian 1s.
 
-- Tiến hành chặn bắt các gói tin
-```sh
-tcpdump -i eth0 -w abc.pcap
-```
-=> Dòng lệnh trên sẽ bắt các gói tin đi ra đi vào từ cổng eth0 và ghi vào file abc.pcap. Từ đó, chúng ta sẽ dễ dàng để phân tích các gói tin.
+<a name="limitthuchien"></a>
+####1.2.1.2 Cách thực hiện
 
--  Tiến hành gửi gói tin: 
-```sh
-hping3 -V -i u10000 -1 -c 10 10.10.10.200 
-```
-- Giải thích tùy chọn các lệnh: 
-	- -V: hiển thị thông tin các kết quả các gói tin ra màn hình.
-	- -i u10000: Hping sẽ gửi với tốc độ 10 packets/s
-	- -1: Gửi gói tin ICMP (PING)
-	- -c 10: Gửi 10 gói tin.
-	- 10.10.10.200: Địa chỉ tấn công
+- Trên máy Attacker.
 
-- Phân tích: Dòng lệnh trên sẽ gửi 10 gói tin ICMP với tốc độ 10packet/s đến webserver. Có nghĩa là 1 gói tin được gửi đi với thời gian 0.1s
+	- Cài đặt phần mềm hping3 để gửi nhiều gói tin với tốc độ nhanh đến server
+	```sh
+	apt-get install hping3
+	```
 
-<a name="limitserver"></a>
-###1.2.3 Trên ubuntu server.
-- Tiến hành chạy các lệnh sau:
-```sh
-iptables -P INPUT DROP
-iptables -A INPUT -p icmp -m limit --limit 10s --limit-burst 3 -j ACCEPT
-iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
-```
+	- Tiến hành chặn bắt các gói tin
+	```sh
+	tcpdump -i eth0 -w abc.pcap
+	```
+	=> Dòng lệnh trên sẽ bắt các gói tin đi ra đi vào từ cổng eth0 và ghi vào file abc.pcap. Từ đó, chúng ta sẽ dễ dàng để phân tích các gói tin.
 
-- Giải thích các dòng lệnh:
-	- Dòng 1: Dùng để đặt policy là DROP cho chain INPUT. Có nghĩa là mặc định, các gói tin đi vào nếu không phù hợp với các rule thì sẽ bị DROP. Quy tắc này khiến cho iptables chặt chẽ hơn.
-	- Dòng 2: Dùng để thiết lập module limit với gói tin icmp. --limit 10s và --limit-burst 3 có nghĩa là ban đầu, chỉ có 3 gói tin đi vào sẽ được chấp nhận. Sau đó, cứ 1/10s (0,1s) thì lại có 1 gói tin được phép đi vào. Các gói tin còn lại sẽ bị DROP và ghi lại log nhờ dòng lệnh thứ 3.
-	- Dòng 3: Dùng để ghi lại LOG các gói tin icmp mà bị iptables DROP.
+	-  Tiến hành gửi gói tin: 
+	```sh
+	hping3 -V -i u10000 -1 -c 10 10.10.10.200 
+	```
+	- Giải thích tùy chọn các lệnh: 
+		- -V: hiển thị thông tin các kết quả các gói tin ra màn hình.
+		- -i u10000: Hping sẽ gửi với tốc độ 10 packets/s
+		- -1: Gửi gói tin ICMP (PING)
+		- -c 10: Gửi 10 gói tin.
+		- 10.10.10.200: Địa chỉ tấn công
+
+	- Phân tích: Dòng lệnh trên sẽ gửi 10 gói tin ICMP với tốc độ 10packet/s đến webserver. Có nghĩa là 1 gói tin được gửi đi với thời gian 0.1s
+
+- Trên ubuntu server.
+	- Tiến hành chạy các lệnh sau:
+	```sh
+	iptables -P INPUT DROP
+	iptables -A INPUT -p icmp -m limit --limit 10s --limit-burst 3 -j ACCEPT
+	iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+	```
+
+	- Giải thích các dòng lệnh:
+		- Dòng 1: Dùng để đặt policy là DROP cho chain INPUT. Có nghĩa là mặc định, các gói tin đi vào nếu không phù hợp với các rule thì sẽ bị DROP. Quy tắc này khiến cho iptables chặt chẽ hơn.
+		- Dòng 2: Dùng để thiết lập module limit với gói tin icmp. --limit 10s và --limit-burst 3 có nghĩa là ban đầu, chỉ có 3 gói tin đi vào sẽ được chấp nhận. Sau đó, cứ 1/10s (0,1s) thì lại có 1 gói tin được phép đi vào. Các gói tin còn lại sẽ bị DROP và ghi lại log nhờ dòng lệnh thứ 3.
+		- Dòng 3: Dùng để ghi lại LOG các gói tin icmp mà bị iptables DROP.
 
 <a name="limitketqua"></a>
-###1.2.4 Kết quả.
+####1.2.1.3 Kết quả.
 ![](http://image.prntscr.com/image/e440524d0dce4ac294ef6a156ca93be8.png)
 
 => Có 4 gói tin được gửi đi thành công trên tổng cộng 10 gói tin.
@@ -171,8 +178,10 @@ iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
 ![](http://image.prntscr.com/image/163a5e1b09804d36b9d94b26dd320e78.png)
 =>Vào đọc log ta thấy có 6 gói tin bị chặn.
 
-<a name="limitkiemgnhiem"></a>
-###1.2.5 Kiểm nghiệm
+=> Đáp ứng với mục đích ban đầu đề ra.
+
+<a name="limitkiemchung"></a>
+####1.2.1.4 Kiểm chứng kết quả
 - Tiến hành phân tích gói tin pcap mà lúc đầu chung ta bắt.
 
 ![](http://image.prntscr.com/image/bf1166c0d9a34bd9ba4d67874c2e4e2a.png)
@@ -223,43 +232,46 @@ Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 ###1.3.1 Thử nghiệm
 Tương tự với mô hình mà mình đã thử nghiệm ở module limit, chỉ khác ở chỗ là lúc này có cùng lúc 3 máy tấn công.
 
+<a href="hashlimitmohinh"></a>
+####1.3.1.1 Mô hình và mục đích
 - Mô hình:
 ![](http://i.imgur.com/pnUpCZz.jpg)
 
-<a name="hashlimitserver"></a>
-###1.3.2 Trên máy iptables
+- Mục đích: Ngăn chặn được các gói tin được gửi đi quá nhanh trên từng máy khác nhau. Chỉ cho phép 4 gói tin được đến server trong 1s.
 
-- Chạy lệnh rule iptables
-```sh
-iptables -P INPUT DROP
-iptables -A INPUT -p icmp -m hashlimit --hashlimit 10s --hashlimit-burst 3 --hashlimit-mode srcip --hashlimit-name test -j ACCEPT
-iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
-```
+<a name="hashlimitthuchien"></a>
+####1.3.1.2 Cách thực hiện
+- Trên máy iptables
+	- Chạy lệnh rule iptables
+	```sh
+	iptables -P INPUT DROP
+	iptables -A INPUT -p icmp -m hashlimit --hashlimit 10s --hashlimit-burst 3 --hashlimit-mode srcip --hashlimit-name test -j ACCEPT
+	iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+	```
 
-- Chạy lệnh bắt gói tin
-```sh
-tcpdump -i eth0 -w hashlimit.pcap
-```
+	- Chạy lệnh bắt gói tin
+	```sh
+	tcpdump -i eth0 -w hashlimit.pcap
+	```
 
-<a name="hashlimitattacker"></a>
-###1.3.3 Trên 3 máy tấn công.
-- Chạy lệnh tấn công trên cả 3 máy trong cùng 1 thời điểm
-```sh
-hping3 -V -i u10000 -1 -c 10 10.10.10.200
-```
+- Trên 3 máy tấn công.
+	- Chạy lệnh tấn công trên cả 3 máy trong cùng 1 thời điểm
+	```sh
+	hping3 -V -i u10000 -1 -c 10 10.10.10.200
+	```
 
 <a name="hashlimitketqua"></a>
-###1.3.4 Kết quả
+####1.3.1.3 Kết quả
 ![](http://image.prntscr.com/image/df49808c8d1341039afdf62706fb92fb.png)
 
 ![](http://image.prntscr.com/image/6982361b737044d287f420c017a62e88.png)
 
 ![](http://image.prntscr.com/image/b0ed507b17714a1b91bbebeb4fa35175.png)
 
-=> Mỗi máy gửi đi thành công 4 gói tin
+=> Mỗi máy gửi đi thành công 4 gói tin, các gói tin còn lại bị từ chối, bởi vì đã quá giới hạn trong 1s. Đúng với mục đích của bài.
 
-<a name="hashlimitkiemnghiem"></a>
-###1.3.5 Kiểm nghiệm
+<a name="hashlimitkiemchung"></a>
+####1.3.1.4 Kiểm chứng kết quả
 ![](http://i.imgur.com/ATnPP35.png)
 
 - Tương tự như bài phân tích module limit ở trên. Trên mỗi máy chỉ có 4 gói tin đi qua và 6 gói tin bị từ chối.
@@ -267,7 +279,7 @@ hping3 -V -i u10000 -1 -c 10 10.10.10.200
 => Ở trong ví dụ trên, chứng tỏ rằng module hashlimit giới hạn dựa trên ip, phân biệt các ip nguồn (các máy khác nhau) với nhau. Điều đó thể hiện ở tùy chọn `--hashlimit-mode` mà ta đặt ở trên.
 
 <a name="limitvshashlimit"></a>
-###1.3.6 Sự khác nhau giữa hashlimit và limit
+###1.3.2 Sự khác nhau giữa hashlimit và limit
 Khi tôi thay đổi từ module hashlimit thành module limit và thực hiện lại các bước tấn công như trên, thì kết quả nhận được như sau
 
 ![](http://image.prntscr.com/image/5863dc05960b4dd2881c1038283f245b.png)
