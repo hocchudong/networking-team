@@ -20,8 +20,8 @@
 			- [1.3.1.4 Kiểm chứng kết quả](#hashlimitkiemchung)
 		- [1.3.2 Sự khác nhau giữa hashlimit và limit](#limitvshashlimit)
 	- [1.4 recent](#recent)
-	- [1.5 conntrack](#conntrack)
-	- [1.6 state](#state)
+	- [1.5 state](#state)
+	- [1.6 conntrack](#conntrack)
 	- [1.7 tcp](#tcp)
 		- [1.7.1 Ví dụ:](#tcpvidu)
 	- [1.8 udp](#udp)
@@ -315,11 +315,9 @@ Ví dụ cụ thể, các bạn có thể xem trong phần mở rộng của bà
 
 https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
 
-<a name="conntrack"></a>
-##1.5 conntrack
 
 <a name="state"></a>
-##1.6 state
+##1.5 state
 Xác định trạng thái kết nối mà gói tin thể hiện
 
 |Command|Ý nghĩa|
@@ -347,6 +345,44 @@ Diễn dịch luật này thành ngôn ngữ bình thường như sau: mọi pac
 => Ở bên trái là máy server gửi các kết nối đến máy khác. Hoàn toàn ngon lành.
 Tuy nhiên, máy bên phải là máy client khởi tạo kết nối mới đến server lại bị lỗi, bởi vì iptables đã ngăn chặn các gói tin khởi tạo kết nối. :D
 
+<a name="conntrack"></a>
+##1.6 conntrack
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--ctstate** state| Tương tự như module -state --state ở trên. Cũng có các trạng thái là NEW, ESTABLISHED, RELATED, INVALID. Ngoài ra còn có thêm SNAT và DNAT
+|**--ctproto** proto| Match protocol, tương tự như tùy chọn --protocol. Có thể đảo ngược bằng cách thêm dấu !. Ví dụ `-m conntrack ! --ctproto TCP` sẽ match tất cả các giao thức ngoại trừ giao thức tcp.
+|**--ctorigsrc** [!] address[/mask]| Match dựa trên địa chỉ nguồn (địa chỉ gốc)
+|**--ctorigdst** [!] address[/mask]| Match dựa trên địac hỉ đích của gói tin|
+|**--ctreplsrc** [!] address[/mask]| Match dựa trên reply nguồn của gói tin. Về cơ bản thì nó tương tự ctorigsrc, tuy nhiên nó có thể match cho các gói tin sắp tới.
+|**--ctrepldst** [!] address[/mask]|Tương tự `--ctreplsrc`, chỉ khác là địa chỉ đích|
+|**--ctstatus** [NONE/EXPECTED/SEEN_REPLY/ASSURED][,...]|**NONE** - The connection has no status at all - Kết nối không có trạng thái.**EXPECTED** - This connection is expected and was added by one of the expectation handlers - Kết nối này được dự kiến bổ sung.**SEEN_REPLY** - This connection has seen a reply but isn't assured yet - Kết nối này nhìn thấy gói tin reply nhưng chưa chắc chắn.**ASSURED** - The connection is assured and will not be removed until it times out or the connection is closed by either end - Kết nối này được đảm bảo và sẽ không được gỡ bỏ cho đến khi hết thời gian time out hoặc bị đóng..|
+|**--ctexpire** time[:time]| Được sử dụng để đặt thời gian của conntrack entry. Được tính bằng giây. 
+
+- Các gói tiện ích bạn có thể cài thêm: 
+	- gói **conntrack**: Dùng để xem bảng các kết nối được theo dõi. (conntrack entry)
+	- gói **conntrackd**: Dùng để đồng bộ các conntrack entry giữa các firewall.
+
+- Hiển thị các kết nối khi sử dụng tools conntrack
+```sh
+conntrack -L
+```
+![](http://image.prntscr.com/image/060a376eab8f459ca0c2847b00ef8b8b.png)
+
+```sh
+root@adk:~# conntrack -L
+tcp      6 432000 ESTABLISHED src=10.10.10.200 dst=10.10.10.1 sport=22 dport=3120 src=10.10.10.1 dst=10.10.10.200 sport=3120 dport=22 [ASSURED] mark=0 use=1
+```
+- Phân tích: 
+	- tcp: chỉ giao thức của gói tin, ở đây sử dụng giao thức tcp.
+	- 6: Giá trị hệ 10 :v
+	- 432000: Thời gian conntrack entry này sống, ở đây là 432000 giây.
+	- ESTABLISHED: State hiện tại của kết nối trong thời gian này.
+	- src=10.10.10.200: Địa chỉ nguồn.
+	- dst=10.10.10.1: Địa chỉ đích
+	- sport=22: Cổng nguồn.
+	- dport=3120: Cổng đích.
+	- [ASSURED]: status kết nối.
 
 <a name="tcp"></a>
 ##1.7 tcp
@@ -492,3 +528,6 @@ http://linux.die.net/man/8/iptables
 http://www.hvaonline.net/hvaonline/posts/list/0/105.hva
 
 http://www.hvaonline.net/hvaonline/posts/list/135.hva
+
+https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html
+
