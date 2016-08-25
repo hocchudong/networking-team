@@ -19,7 +19,7 @@ hệ thống cũng như 1 phần cấu hình dịch vụ.
 
 ```sh
 Ở đây chúng ta có thể thấy range cấu hình là từ 10.10.10.132 đến 10.10.10.245
-``
+```
 
 - Bây giờ chúng ta thực hiện tải file cấu hình hiện thời về .
 
