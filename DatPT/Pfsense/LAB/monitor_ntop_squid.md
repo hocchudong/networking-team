@@ -9,7 +9,7 @@ ubuntu server (10.10.10.132/24) , win-client (10.10.10.133/24) Cả 2 máy đề
 
 ##B. Thực hiện.
 
-- Đầu tiên chúng ta tiến hành tải và cấu hình `Squid report` như [sau]()
+- Đầu tiên chúng ta tiến hành tải và cấu hình `Squid report` như [sau](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/Lab_repor_lightsquid.md)
 
 - Tải và cấu hình `Ntop`
 
