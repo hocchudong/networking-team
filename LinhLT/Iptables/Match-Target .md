@@ -348,6 +348,8 @@ Tuy nhiên, máy bên phải là máy client khởi tạo kết nối mới đ�
 <a name="conntrack"></a>
 ##1.6 conntrack
 
+Module conntrack cho phép truy cập đến thông tin các kết nối. Nó thể hiện tính stateful của iptables,  đó là có thể đọc được các trạng thái của gói tin.
+
 |Command|Ý nghĩa|
 |:---:|:---:|
 |**--ctstate** state| Tương tự như module -state --state ở trên. Cũng có các trạng thái là NEW, ESTABLISHED, RELATED, INVALID. Ngoài ra còn có thêm SNAT và DNAT
@@ -531,3 +533,4 @@ http://www.hvaonline.net/hvaonline/posts/list/135.hva
 
 https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html
 
+http://fibrevillage.com/sysadmin/199-linux-iptables-connection-tracking-configuration
