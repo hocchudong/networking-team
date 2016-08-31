@@ -6,11 +6,14 @@
   <li>Aliass</li>
   <li>[NAT 1:1](https://github.com/hocchudong/networking-team/blob/master/hocchudong/Pfsense/LAB/lab-NAT-pfSense.md)</li>
   <li>[NAT port forward](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/lab-NAT-portforward.md)</li>
+  <li>[Backup file cấu hình](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/lab_backup_restore.md)</li>
  </ul>
 - Một số dịch vụ:
  <ul>
   <li>[DHCP](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/service_lab_DHCP.md)</li>
   <li>[Proxy](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/proxy-server.md#chanurl)</li>
+  <li>[Monitor sử dụng ntop và squid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/monitor_ntop_squid.md)</li>
+  <li>[Report with LightSquid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/Lab_repor_lightsquid.md)</li>
  </ul>
 
 **Nguồn**
