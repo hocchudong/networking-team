@@ -246,6 +246,11 @@ The following additional options can be specified:
 |**-m multiport --port** *< port, port >*| xác định một loạt các giá trị port (không phân biệt nguồn hay đích).|
 |**-m --state** *<state>*| xác định trạng thái kết nối mà gói tin thể hiện: **ESTABLISHED:** gói tin thuộc một kết nối đã được thiết lập. **NEW:** gói tin thể hiện một yêu cầu kết nối. **RELATED:** gói tin thể hiện một yêu cầu kết nối thứ hai (có liên quan đến kết nối thứ nhất, thường xuất hiện ở những giao thức FPT hay ICMP). **INVALID:** thể hiện một gói tin không hợp lệ|
 
+
+- Để nắm rõ hơn về cách làm việc của các module, các bạn xem tại đây:
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/Match-Target%20.md
+
+
 <a name="case"></a>
 #6. Case trong thực tế.
 

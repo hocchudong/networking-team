@@ -1,6 +1,45 @@
 #Match Extensions and Target Extensions
 #Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1.Match Extensions](#match)
+	- [1.1 connlimit:](#connlimit)
+		- [1.1.1 Ví dụ:](#connlimitvidu)
+		- [1.1.2 Thử nghiệm](#connlimitthunghiem)
+	- [1.2 limit](#limit)
+		- [1.2.1 Thử nghiệm](#limitthunghiem)
+			- [1.2.1.1 Mô hình và mục đích.](#limitmohinh)
+			- [1.2.1.2 Cách thực hiện.](#limitthuchien)
+			- [1.2.1.3 Kết quả.](#limitketqua)
+			- [1.2.1.4 Kiểm chứng kết quả.](#limitkiemchung)
+	- [1.3 hashlimit](#hashlimit)
+		- [1.3.1 Thử nghiệm](#hashlimitthunghiem)
+			- [1.3.1.1 Mô hình và mục đích](#hashlimitmohinh)
+			- [1.3.1.2 Cách thực hiện.](#hashlimitthuchien)
+			- [1.3.1.3 Kết quả](#hashlimitketqua)
+			- [1.3.1.4 Kiểm chứng kết quả](#hashlimitkiemchung)
+		- [1.3.2 Sự khác nhau giữa hashlimit và limit](#limitvshashlimit)
+	- [1.4 recent](#recent)
+	- [1.5 state](#state)
+	- [1.6 conntrack](#conntrack)
+	- [1.7 tcp](#tcp)
+		- [1.7.1 Ví dụ:](#tcpvidu)
+	- [1.8 udp](#udp)
+	- [1.9 icmp](#icmp)
+	- [1.10 iprange](#iprange)
+	- [1.11 length:](#length)
+	- [1.12 mport](#mport)
+	- [1.13 multiport](#multiport)
+	- [1.14 mac](#mac)
+	- [1.15 tcpmss](#tcpmss)
+	- [1.16 tos](#tos)
+	- [1.17 ttl](#ttl)
+- [2. Target Extensions](#target)
+- [Tài liệu tham khảo](#)
+
+<a name="match"></a>
 #1.Match Extensions
+<a name="connlimit"></a>
 ##1.1 connlimit: 
 Cho phép bạn giới hạn số lượng kết nối TCP song song với một máy chủ cho mỗi địa chỉ IP của khách hàng (hoặc khối địa chỉ).
 
@@ -8,7 +47,9 @@ Cho phép bạn giới hạn số lượng kết nối TCP song song với một
 |:---:|:---:|
 |[!] **--connlimit-above** n|  phù hợp nếu số lượng kết nối TCP hiện tại là (không) trên n|
 | **--connlimit-mask** bits| nhóm hosts sử dụng mask|
+| **--connlimit-upto** n| Ngược lại với above|
 
+<a name="connlimitvidu"></a>
 ###1.1.1 Ví dụ:
 
 ```sh
@@ -34,7 +75,8 @@ Dựa trên tính chất này, chúng ta thấy một máy con có thể đòi h
 
 Nói một cách công bằng, dịch vụ trên máy của cố gắng đáp ứng các yêu cầu theo đúng chức năng nhưng vì không đủ tài nguyên nên phải dẫn đến tình trạng trên. vậy, bao nhiêu tài nguyên thì đủ cho máy chủ? Con số này phải được hình thành từ quá trình theo dõi và đúc kết số lần truy cập, tầng số truy cập... trên máy chủ. Trên bình diện bảo mật, firewall có thể dùng để trợ giúp các dịch vụ bằng cách hạn chế các xuất truy cập "concurrent". 
 
-###1.1.2 Kết quả
+<a name="connlimitthunghiem"></a>
+###1.1.2 Thử nghiệm
 ```sh
 iptables -A INPUT -i eth0 -d 10.10.10.200 -p tcp --dport 22 -m state --state NEW -m connnlimit ! --connlimit-above 2 -j ACCEPT
 ```
@@ -43,30 +85,8 @@ Khi kết nối ssh thứ 3 thì ngay lập tức bị lỗi
 ![](http://image.prntscr.com/image/1a70035b56b544638f70fe970d1cb902.png)
 
 
-
-##1.2 conntrack
-##1.3 hashlimit
-##1.4 iprange
-
-
-##1.5 length:
-Match chiều dài gói tin
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-|**--length** [!] length[:length]| Match chiều dài gói tin, có thể đặt theo khoảng|
-
-Theo RFC 793, SYN packet không mang theo "payload" (dữ liệu) và nếu các hệ thống ứng dụng đúng theo RFC 793 thì SYN packet chỉ có chiều dài tối đa là ở khoảng 40 đến 60 bytes nếu bao gồm các tcp options. Dựa trên quy định này (hầu hết các ứng dụng trên mọi hệ điều hành đều tuân thủ theo quy định của RFC 793), ví dụ: 
-
-```sh
-iptables -A INPUT -i $IF -p tcp --syn -s $NET --sport $HI_PORTS -d $IP --dport $port -m state --state NEW -m length --length 40:60 -j ACCEPT
-```
-
-Điều cần nói ở đây là giá trị -m length --length 40:60 ấn định chiều dài của gói tin SYN của giao thức TCP được firewall chúng ta tiếp nhận. Như đã đề cập ở trên, theo đúng quy định, gói SYN không mang dữ liệu cho nên kích thước của chúng không thể (và không nên) lớn hơn 40:60. Luật trên áp đặt một quy định rất khắc khe để loại trừ các gói SYN lại mang dữ liệu (và đặc biệt mang dữ liệu với kích thước lớn). Theo tôi thấy, những gói tin này rất hiếm thấy ngoại trừ trường hợp cố tình tạo ra hoặc thỉnh thoảng có dăm ba gói "lạc loài" ở đâu vào từ một hệ điều hành nào đó không ứng dụng đúng quy cách. Xử dụng luật này hay không là tùy mức khắc khe của bạn. Cách tốt nhất trước khi dùng, bạn nên thử capture các gói SYN cho suốt một ngày (hoặc nhiều) và mang về phân tích xem có bao nhiêu gói SYN thuộc dạng không cho phép, có bao nhiêu gói tin được xếp loại vào nhóm có chiều dài 40:60 bytes và từ đó mới đi đến quyết định cuối cùng. 
-
-
-
-##1.6 limit
+<a name="limit"></a>
+##1.2 limit
 Dùng để giới hạn tốc độ. Firewall sẽ chấp nhận các gói tin cho đến khi đạt giá trị limit.
 
 |Command|Ý nghĩa|
@@ -91,28 +111,197 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 
 Đây chỉ là một ví dụ minh hoạ ứng dụng -m limit. Bạn cần khảo sát số lượng truy cập đến dịch vụ nào đó trên máy chủ trước khi hình thành giá trị thích hợp cho -m limit. Nên cẩn thận trường hợp một proxy server chỉ có một IP và có thể có hàng ngàn người dùng phía sau proxy; ghi nhận yếu tố này để điều chỉnh limit rate cho hợp lý. 
 
-##1.7 mport
+<a name="limitthunghiem"></a>
+###1.2.1 Thử nghiệm
+<a href="limitmohinh"></a>
+####1.2.1.1 Mô hình và mục đích 
+
+- Mô hình: 
+
+![](http://i.imgur.com/Gdm8NoR.jpg)
+
+	- IPTables chạy trên Ubuntu server 14.04, có địa chỉ là 10.10.10.200
+	- Attacker sử dụng phần mềm hping3 để gửi liên tục các gói tin để server.
+
+- Mục đích: 
+Sử dụng IPTables để ngăn chặn các gói tin được gửi quá nhanh đến Server. Server chỉ cho phép nhận 4 gói tin trong khoảng thời gian 1s.
+
+<a name="limitthuchien"></a>
+####1.2.1.2 Cách thực hiện
+
+- Trên máy Attacker.
+
+	- Cài đặt phần mềm hping3 để gửi nhiều gói tin với tốc độ nhanh đến server
+	```sh
+	apt-get install hping3
+	```
+
+	- Tiến hành chặn bắt các gói tin
+	```sh
+	tcpdump -i eth0 -w abc.pcap
+	```
+	=> Dòng lệnh trên sẽ bắt các gói tin đi ra đi vào từ cổng eth0 và ghi vào file abc.pcap. Từ đó, chúng ta sẽ dễ dàng để phân tích các gói tin.
+
+	-  Tiến hành gửi gói tin: 
+	```sh
+	hping3 -V -i u10000 -1 -c 10 10.10.10.200 
+	```
+	- Giải thích tùy chọn các lệnh: 
+		- -V: hiển thị thông tin các kết quả các gói tin ra màn hình.
+		- -i u10000: Hping sẽ gửi với tốc độ 10 packets/s
+		- -1: Gửi gói tin ICMP (PING)
+		- -c 10: Gửi 10 gói tin.
+		- 10.10.10.200: Địa chỉ tấn công
+
+	- Phân tích: Dòng lệnh trên sẽ gửi 10 gói tin ICMP với tốc độ 10packet/s đến webserver. Có nghĩa là 1 gói tin được gửi đi với thời gian 0.1s
+
+- Trên ubuntu server.
+	- Tiến hành chạy các lệnh sau:
+	```sh
+	iptables -P INPUT DROP
+	iptables -A INPUT -p icmp -m limit --limit 10s --limit-burst 3 -j ACCEPT
+	iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+	```
+
+	- Giải thích các dòng lệnh:
+		- Dòng 1: Dùng để đặt policy là DROP cho chain INPUT. Có nghĩa là mặc định, các gói tin đi vào nếu không phù hợp với các rule thì sẽ bị DROP. Quy tắc này khiến cho iptables chặt chẽ hơn.
+		- Dòng 2: Dùng để thiết lập module limit với gói tin icmp. --limit 10s và --limit-burst 3 có nghĩa là ban đầu, chỉ có 3 gói tin đi vào sẽ được chấp nhận. Sau đó, cứ 1/10s (0,1s) thì lại có 1 gói tin được phép đi vào. Các gói tin còn lại sẽ bị DROP và ghi lại log nhờ dòng lệnh thứ 3.
+		- Dòng 3: Dùng để ghi lại LOG các gói tin icmp mà bị iptables DROP.
+
+<a name="limitketqua"></a>
+####1.2.1.3 Kết quả.
+![](http://image.prntscr.com/image/e440524d0dce4ac294ef6a156ca93be8.png)
+
+=> Có 4 gói tin được gửi đi thành công trên tổng cộng 10 gói tin.
 
 
+![](http://image.prntscr.com/image/163a5e1b09804d36b9d94b26dd320e78.png)
+=>Vào đọc log ta thấy có 6 gói tin bị chặn.
 
-##1.8 multiport
-Có thể Match số lượng lớn các cổng nguồn và đích. Có thể lên đến 15 cổng. port range (port:port) được tính như là 2 cổng. Được sử dụng với **-p tcp** hoặc **-p udp**.
+=> Đáp ứng với mục đích ban đầu đề ra.
+
+<a name="limitkiemchung"></a>
+####1.2.1.4 Kiểm chứng kết quả
+- Tiến hành phân tích gói tin pcap mà lúc đầu chung ta bắt.
+
+![](http://image.prntscr.com/image/bf1166c0d9a34bd9ba4d67874c2e4e2a.png)
+
+- Nhìn vào hình ảnh, ta thấy:
+
+- Trong khoảng thời gian từ 3.18 đến 3.20, có 3 gói tin ICMP được gửi đi (theo thứ tự trong hình là 10,15,18) và được server trả lời thành công. => Chính xác với tùy chọn --limit-burst 3, tức là 3 gói tin đầu tiên sẽ được cho phép.
+
+- Tiếp theo, ở thời gian 3.21, gói tin ICMP thứ 4 (gói 22) được gửi đi nhưng server không đáp trả. Ta nhận thấy khoảng thời gian gói tin ICMP thứ 3 và thứ 4 chỉ là 3.21 -3 .20 = 0.01 (s). Do đó sau khi đã dùng hết 3 gói tin đầu, thì thời gian 0.01s là bé hơn thời gian để tiếp tục cho phép 1 gói tin đi vào (limit=1/10s), vì vậy nên gói tin bị LOG lại và DROP.
+
+- Ở thời gian 3.24, gói tin ICMP thứ 5 (gói 23) được gửi đi nhưng Server không đáp trả. Lý do là tương tự ở trên.
+
+- Ở thời gian 3.25, gói tin ICMP thứ 6 (gói 24) được gửi đi nhưng Server không đáp trả. Lý do tương tự ở trên.
+
+- Ở thời gian 3.27, gói tin ICMP thứ 7 (gói 25) được gửi đi nhưng Server không đáp trả. Lý do tương tự ở trên.
+
+- Ở thời gian 3.28, gói tin ICMP thứ 8 (gói 26) được gửi đi và Server đã trả lời gói tin này thành công. Ta nhận thấy thời gian của gói tin ICMP thứ 8 là 3.28 trừ đi thời gian gói tin đầu tiên là 3.18 đúng = 0.1s, bằng với tùy chọn --limit 10s mà mình đã khai báo ở trên. Do đó, sắp khi dùng hết 3 gói tin đầu tiên, và sau 0.1s với gói tin đầu tiên, thì gói tin thứ 8 đã được đồng ý để đi qua.
+
+- Ở thời gian 3.30, gói tin ICMP thứ 9 (gói 28) bị Server từ chối. Lý do là bởi vì khoảng thời gian từ gói tin thứ 8 đến gói thứ 9 là 3.30-3.28 = 0.02s bé hơn 0.1s. Do đó, gói tin bị từ chối.
+
+- Ở thời gian 3.32, gói tin ICMP thứ 10 (gói 29) bị Server từ chối. Lý do tương tự ở trên. 
+
+=> Kết quả cuối cùng, chỉ có 4 gói tin được phép đi qua (thứ 1, 2, 3, 8) và 6 gói tin bị chối. Phù hợp với kết quả ở trên.
+
+
+<a name="hashlimit"></a>
+##1.3 hashlimit
+Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 
 |Command|Ý nghĩa|
 |:---:|:---:|
-|**--sport** *< port, port >*| xác định một loạt các giá trị port nguồn|
-|**--dport** *< port, port >*| xác định một loạt các giá trị port đích.|
-|**--port** *< port, port >*| xác định một loạt các giá trị port (không phân biệt nguồn hay đích).|
-
-##1.9 mac
-Match địa chỉ mac nguồn
-
-|Command|Ý nghĩa|
-|:---:|:---:|
-|**--mac-source** *address* | Match địa chỉ mac nguồn. Nó có dạng là XX:XX:XX:XX:XX:XX. Chú ý, chỉ có tác dụng với thiết bị Ethernet và chain PREROUTING, FORWARD, INPUT|
+| **--hashlimit** rate| Giống với tùy chọn limit trong module limit|
+| **--hashlimit-burst** num| Giống với tùy chọn limit-burst trong module limit|
+| **--hashlimit-mode** srcip/srcport/dstip/dstport| Limit dựa trên ip hay port, nguồn hay đích|
+| **--hashlimit-name** foo| Đặt tên file chứa danh sách các entry tại `/proc/net/ipt_hashlimit/foo` |
+| **--hashlimit-htable-size** num| The number of buckets of the hash table|
+| **--hashlimit-htable-max** num| Số lượng tối đa các entry trong hash|
+| **--hashlimit-htable-expire** num| Khoảng thời gian sau bao lâu thì hash entry hết hạn|
+|**--hashlimit-htable-gcinterval** num| How many miliseconds between garbage collection intervals|
 
 
-##1.10 recent
+- dstip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ đích gủa gói tin.
+- dstport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng đích của gói tin.
+- srcip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ nguồn của gói tin
+- srcport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng nguồn gủa gói tin
+
+<a name="hashlimithunghiem"></a>
+###1.3.1 Thử nghiệm
+Tương tự với mô hình mà mình đã thử nghiệm ở module limit, chỉ khác ở chỗ là lúc này có cùng lúc 3 máy tấn công.
+
+<a href="hashlimitmohinh"></a>
+####1.3.1.1 Mô hình và mục đích
+- Mô hình:
+![](http://i.imgur.com/pnUpCZz.jpg)
+
+- Mục đích: Ngăn chặn được các gói tin được gửi đi quá nhanh trên từng máy khác nhau. Chỉ cho phép 4 gói tin được đến server trong 1s.
+
+<a name="hashlimitthuchien"></a>
+####1.3.1.2 Cách thực hiện
+- Trên máy iptables
+	- Chạy lệnh rule iptables
+	```sh
+	iptables -P INPUT DROP
+	iptables -A INPUT -p icmp -m hashlimit --hashlimit 10s --hashlimit-burst 3 --hashlimit-mode srcip --hashlimit-name test -j ACCEPT
+	iptables -A INPUT -p icmp -j LOG --log-prefix "BADICMP: "
+	```
+
+	- Chạy lệnh bắt gói tin
+	```sh
+	tcpdump -i eth0 -w hashlimit.pcap
+	```
+
+- Trên 3 máy tấn công.
+	- Chạy lệnh tấn công trên cả 3 máy trong cùng 1 thời điểm
+	```sh
+	hping3 -V -i u10000 -1 -c 10 10.10.10.200
+	```
+
+<a name="hashlimitketqua"></a>
+####1.3.1.3 Kết quả
+![](http://image.prntscr.com/image/df49808c8d1341039afdf62706fb92fb.png)
+
+![](http://image.prntscr.com/image/6982361b737044d287f420c017a62e88.png)
+
+![](http://image.prntscr.com/image/b0ed507b17714a1b91bbebeb4fa35175.png)
+
+=> Mỗi máy gửi đi thành công 4 gói tin, các gói tin còn lại bị từ chối, bởi vì đã quá giới hạn trong 1s. Đúng với mục đích của bài.
+
+<a name="hashlimitkiemchung"></a>
+####1.3.1.4 Kiểm chứng kết quả
+![](http://i.imgur.com/ATnPP35.png)
+
+- Tương tự như bài phân tích module limit ở trên. Trên mỗi máy chỉ có 4 gói tin đi qua và 6 gói tin bị từ chối.
+
+=> Ở trong ví dụ trên, chứng tỏ rằng module hashlimit giới hạn dựa trên ip, phân biệt các ip nguồn (các máy khác nhau) với nhau. Điều đó thể hiện ở tùy chọn `--hashlimit-mode` mà ta đặt ở trên.
+
+<a name="limitvshashlimit"></a>
+###1.3.2 Sự khác nhau giữa hashlimit và limit
+Khi tôi thay đổi từ module hashlimit thành module limit và thực hiện lại các bước tấn công như trên, thì kết quả nhận được như sau
+
+![](http://image.prntscr.com/image/5863dc05960b4dd2881c1038283f245b.png)
+
+![](http://image.prntscr.com/image/e53704c4d65b4292a42fb61f6bbcf06a.png)
+
+![](http://image.prntscr.com/image/f33a247a775e499e80b7738131527d16.png)
+
+=> Mỗi máy gửi 10 gói tin => 3 máy gửi 30 gói tin, nhưng tổng cộng chỉ có 4 gói tin thành công.
+
+Tiến hành phân tích gói tin
+
+![](http://image.prntscr.com/image/faec3682dcc5449ba7a583b549815330.png)
+
+
+**Chúng ta thấy rằng module limit giới hạn trên tất cả các ip nguồn. Có nghĩa là nó không phân biệt ip A với ip B. Chỉ cần ip A đã đạt đến giới hạn thì ip B cũng không thể truy cập được vào server.
+Ngược lại module hashlimit giới hạn theo mỗi ip. ip A đã đạt giới hạn thì không thể truy cập được server, trong cùng lúc đó, ip B chưa đạt giới hạn vẫn có thể tiếp tục truy cập.**
+
+<a name="recent"></a>
+##1.4 recent
+Giới hạn số kết nối trên một khoảng thời gian. 
+
 Module này cho phép ta tạo ra một danh sách động chứa địa chỉ ip, rồi thực thi các hành động với danh sách này.
 
 |Command|Ý nghĩa|
@@ -127,8 +316,8 @@ Ví dụ cụ thể, các bạn có thể xem trong phần mở rộng của bà
 https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Iptables/lab/lab1.md
 
 
-## 1.11set
-##1.12 state
+<a name="state"></a>
+##1.5 state
 Xác định trạng thái kết nối mà gói tin thể hiện
 
 |Command|Ý nghĩa|
@@ -156,9 +345,49 @@ Diễn dịch luật này thành ngôn ngữ bình thường như sau: mọi pac
 => Ở bên trái là máy server gửi các kết nối đến máy khác. Hoàn toàn ngon lành.
 Tuy nhiên, máy bên phải là máy client khởi tạo kết nối mới đến server lại bị lỗi, bởi vì iptables đã ngăn chặn các gói tin khởi tạo kết nối. :D
 
+<a name="conntrack"></a>
+##1.6 conntrack
 
+Module conntrack cho phép truy cập đến thông tin các kết nối. Nó thể hiện tính stateful của iptables,  đó là có thể đọc được các trạng thái của gói tin.
 
-##1.13 tcp
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--ctstate** state| Tương tự như module -state --state ở trên. Cũng có các trạng thái là NEW, ESTABLISHED, RELATED, INVALID. Ngoài ra còn có thêm SNAT và DNAT
+|**--ctproto** proto| Match protocol, tương tự như tùy chọn --protocol. Có thể đảo ngược bằng cách thêm dấu !. Ví dụ `-m conntrack ! --ctproto TCP` sẽ match tất cả các giao thức ngoại trừ giao thức tcp.
+|**--ctorigsrc** [!] address[/mask]| Match dựa trên địa chỉ nguồn (địa chỉ gốc)
+|**--ctorigdst** [!] address[/mask]| Match dựa trên địac hỉ đích của gói tin|
+|**--ctreplsrc** [!] address[/mask]| Match dựa trên reply nguồn của gói tin. Về cơ bản thì nó tương tự ctorigsrc, tuy nhiên nó có thể match cho các gói tin sắp tới.
+|**--ctrepldst** [!] address[/mask]|Tương tự `--ctreplsrc`, chỉ khác là địa chỉ đích|
+|**--ctstatus** [NONE/EXPECTED/SEEN_REPLY/ASSURED][,...]|**NONE** - The connection has no status at all - Kết nối không có trạng thái.**EXPECTED** - This connection is expected and was added by one of the expectation handlers - Kết nối này được dự kiến bổ sung.**SEEN_REPLY** - This connection has seen a reply but isn't assured yet - Kết nối này nhìn thấy gói tin reply nhưng chưa chắc chắn.**ASSURED** - The connection is assured and will not be removed until it times out or the connection is closed by either end - Kết nối này được đảm bảo và sẽ không được gỡ bỏ cho đến khi hết thời gian time out hoặc bị đóng..|
+|**--ctexpire** time[:time]| Được sử dụng để đặt thời gian của conntrack entry. Được tính bằng giây. 
+
+- Các gói tiện ích bạn có thể cài thêm: 
+	- gói **conntrack**: Dùng để xem bảng các kết nối được theo dõi. (conntrack entry)
+	- gói **conntrackd**: Dùng để đồng bộ các conntrack entry giữa các firewall.
+
+- Hiển thị các kết nối khi sử dụng tools conntrack
+```sh
+conntrack -L
+```
+![](http://image.prntscr.com/image/060a376eab8f459ca0c2847b00ef8b8b.png)
+
+```sh
+root@adk:~# conntrack -L
+tcp      6 432000 ESTABLISHED src=10.10.10.200 dst=10.10.10.1 sport=22 dport=3120 src=10.10.10.1 dst=10.10.10.200 sport=3120 dport=22 [ASSURED] mark=0 use=1
+```
+- Phân tích: 
+	- tcp: chỉ giao thức của gói tin, ở đây sử dụng giao thức tcp.
+	- 6: Giá trị hệ 10 :v
+	- 432000: Thời gian conntrack entry này sống, ở đây là 432000 giây.
+	- ESTABLISHED: State hiện tại của kết nối trong thời gian này.
+	- src=10.10.10.200: Địa chỉ nguồn.
+	- dst=10.10.10.1: Địa chỉ đích
+	- sport=22: Cổng nguồn.
+	- dport=3120: Cổng đích.
+	- [ASSURED]: status kết nối.
+
+<a name="tcp"></a>
+##1.7 tcp
 Sử dụng với các giao thức tcp
 
 |Command|Ý nghĩa|
@@ -170,7 +399,8 @@ Sử dụng với các giao thức tcp
 |**--tcp-option** [!] number| Match trường TCP option|
 |**--mss** value[:value]| Match gói tin TCP SYN hoặc SYN/ACK với giá trị MSS (có thể nằm trong khoảng), để điều khiển kích thước tối đa của gói tin cho kết nối này|
 
-###1.13.1 Ví dụ: 
+<a name="tcpvidu"></a>
+###1.7.1 Ví dụ: 
 ```sh
 iptables -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -s $NET -j DROP
 ```
@@ -184,18 +414,123 @@ iptables -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -s $NET -j DROP
 
 Một gói tin mang tcp flag FIN và RST cùng một lượt cũng có thể được xem bất hợp lệ. FIN flag trong một gói tin hợp lệ dùng để thông báo đầu bên kia dòng tin được chấm dứt để xuất truy cập được kết thúc đúng quy cách. Trong khi đó, RST flag dùng để "xé" ngang một xuất truy cập bất chợt. Trường hợp FIN và RST cùng trong một gói tin là điều bất thường và không nên tiếp nhận. 
 
+<a name="udp"></a>
+##1.8 udp
+Sử dụng với giao thức udp
 
-##1.14 tcpmss
-##1.15 tos
-##1.16 ttl
-##1.17 udp
-##1.18 icmp
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-port** [!] port[:port]| Xác định một hoặc một dãy các port nguồn|
+| **--destination-port** [!] port[:port]|Xác định một hoặc một dãy các port đích|
 
+
+<a name="icmp"></a>
+##1.9 icmp
+Sử dụng với giao thức icmp. `-p icmp`
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--icmp-type** [!] typename| Kiểu gói tin ICMP|
+
+<a name="iprange"></a>
+##1.10 iprange
+Match một dãy các địa chỉ ip
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| [!] **--src-range** ip-ip| Match dãy địa chỉ ip nguồn|
+| [!] **--dst-range** ip-ip| Match dãy địa chỉ ip đích|
+
+
+<a name="length"></a>
+##1.11 length:
+Match chiều dài gói tin
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--length** [!] length[:length]| Match chiều dài gói tin, có thể đặt theo khoảng|
+
+Theo RFC 793, SYN packet không mang theo "payload" (dữ liệu) và nếu các hệ thống ứng dụng đúng theo RFC 793 thì SYN packet chỉ có chiều dài tối đa là ở khoảng 40 đến 60 bytes nếu bao gồm các tcp options. Dựa trên quy định này (hầu hết các ứng dụng trên mọi hệ điều hành đều tuân thủ theo quy định của RFC 793), ví dụ: 
+
+```sh
+iptables -A INPUT -i $IF -p tcp --syn -s $NET --sport $HI_PORTS -d $IP --dport $port -m state --state NEW -m length --length 40:60 -j ACCEPT
+```
+
+Điều cần nói ở đây là giá trị -m length --length 40:60 ấn định chiều dài của gói tin SYN của giao thức TCP được firewall chúng ta tiếp nhận. Như đã đề cập ở trên, theo đúng quy định, gói SYN không mang dữ liệu cho nên kích thước của chúng không thể (và không nên) lớn hơn 40:60. Luật trên áp đặt một quy định rất khắc khe để loại trừ các gói SYN lại mang dữ liệu (và đặc biệt mang dữ liệu với kích thước lớn). Theo tôi thấy, những gói tin này rất hiếm thấy ngoại trừ trường hợp cố tình tạo ra hoặc thỉnh thoảng có dăm ba gói "lạc loài" ở đâu vào từ một hệ điều hành nào đó không ứng dụng đúng quy cách. Xử dụng luật này hay không là tùy mức khắc khe của bạn. Cách tốt nhất trước khi dùng, bạn nên thử capture các gói SYN cho suốt một ngày (hoặc nhiều) và mang về phân tích xem có bao nhiêu gói SYN thuộc dạng không cho phép, có bao nhiêu gói tin được xếp loại vào nhóm có chiều dài 40:60 bytes và từ đó mới đi đến quyết định cuối cùng. 
+
+<a name="mport"></a>
+##1.12 mport
+Tương tự multiport, match các port nguồn và đích. Được sử dụng với **-p tcp** hoặc **-p udp**.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--source-ports** port[,port[,port...]]| Match các giá trị port nguồn|
+| **--destination-ports** port[,port[,port...]]|Match các giá trị port đích.
+| **--ports** port[,port[,port...]]| Match các giá trị port, Lưu ý là so sánh cả 2 giá trị port nguồn và port đích.|
+
+<a name="multiport"></a>
+##1.13 multiport
+Có thể Match số lượng lớn các cổng nguồn và đích. Có thể lên đến 15 cổng. port range (port:port) được tính như là 2 cổng. Được sử dụng với **-p tcp** hoặc **-p udp**.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--sport** *< port, port >*| Match các giá trị port nguồn|
+|**--dport** *< port, port >*| Match các giá trị port đích.|
+|**--port** *< port, port >*| Mach các giá trị port (không phân biệt nguồn hay đích).|
+
+<a name="mac"></a>
+##1.14 mac
+Match địa chỉ mac nguồn
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|**--mac-source** *address* | Match địa chỉ mac nguồn. Nó có dạng là XX:XX:XX:XX:XX:XX. Chú ý, chỉ có tác dụng với thiết bị Ethernet và chain PREROUTING, FORWARD, INPUT|
+
+<a name="tcpmss"></a>
+##1.15 tcpmss
+Match giá trị MSS (Maximum segment size) trong gói tin TCP header. Bạn chỉ có thể sử dụng với gói tin SYN hoặc SYN/ACT, kể từ lúc MSS đàm phán trong quá trình bắt tay 3 bước.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|[!] **--mss** value[:value]"|Match giá trị TCP MSS, có thể là một giá trị hoặc một khoảng giá trị|
+
+<a name="tos"></a>
+##1.16 tos
+Match 8 bits trong trường Type of Service của gói tin IP datagra header.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|[!] **--tos** value[/mask ]| Match giá trị tos
+|[!] **--tos** symbol | Match TOS field (IPv4 only) by symbol|
+
+Accepted symbolic names for value are:
+- (0x10) 16 Minimize-Delay
+- (0x08)  8 Maximize-Throughput
+- (0x04)  4 Maximize-Reliability
+- (0x02)  2 Minimize-Cost
+- (0x00)  0 Normal-Service
+
+<a name="ttl"></a>
+##1.17 ttl
+Matches trường ttl trong gói tin ip datagram.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+| **--ttl-eq** ttl| Match giá trị TTL|
+| **--ttl-gt** ttl| match TTL lớn hơn giá trị ttl mình cung cấp.|
+| **--ttl-lt** ttl| Match TTL nhỏ hơn giá trị ttl mình cung cấp|
+
+<a name="target"></a>
 #2. Target Extensions
 
+<a name="thamkhao"></a>
 #Tài liệu tham khảo
 http://linux.die.net/man/8/iptables
 
 http://www.hvaonline.net/hvaonline/posts/list/0/105.hva
 
 http://www.hvaonline.net/hvaonline/posts/list/135.hva
+
+https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html
+
+http://fibrevillage.com/sysadmin/199-linux-iptables-connection-tracking-configuration
