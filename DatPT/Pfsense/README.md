@@ -14,6 +14,7 @@
   <li>[Proxy](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/proxy-server.md#chanurl)</li>
   <li>[Monitor sử dụng ntop và squid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/monitor_ntop_squid.md)</li>
   <li>[Report with LightSquid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/Lab_repor_lightsquid.md)</li>
+  <li>[VPN](https://github.com/hocchudong/networking-team/tree/master/DatPT/Pfsense/LAB/VPN)</li>
  </ul>
 
 **Nguồn**
