@@ -15,7 +15,7 @@
 <div>
 OpenStack Networking cho phép tạo và quản lý networks, subnets, ports để các OpenStack services khác có thể sử dụng. Các plug-in có thể triển khai để sử dụng được các thiết bị và phần mềm networking khác, làm cho OpenStack trở nên linh hoạt cả về kiến trúc và khi triển khai.
 <br>
-Dịch vụ Networking, hay <b>neutron</b> cung cấp một API cho phép định nghĩa kết nối mạng và đánh địa chỉ trên cloud. Neutron cho phép người vận hành tận dụng nhiều công nghệ mạng khác nhau để vận hành hệ thống mạng trên cloud của họ. Neu tron cũng cung cấp một API để cấu hình và quản lý nhiều dịch vụ network khác như L3 forwarding, NAT, load balancing, firewall, VPNs.
+Dịch vụ Networking, hay <b>neutron</b> cung cấp một API cho phép định nghĩa kết nối mạng và đánh địa chỉ trên cloud, cung cấp "kết nối mạng như một dịch vụ" cho các dịch vụ khác trong cloud OpenStack. Neutron cho phép người vận hành tận dụng nhiều công nghệ mạng khác nhau để vận hành hệ thống mạng trên cloud của họ (các công nghệ về network namespaces, Linux bridges, OpenvSwitch, dnsmasq). Neu tron cũng cung cấp một API để cấu hình và quản lý nhiều dịch vụ network khác như L3 forwarding, NAT, load balancing, firewall, VPNs.
 <br>
 Các component bao gồm:
 <h4>API server</h4>
