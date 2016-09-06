@@ -188,6 +188,7 @@ Các component bao gồm:
         <li>DHCP</li>
     </ul>
     <h5>Metadata</h5>
+    Tham khảo thêm tại đây: <a href="https://github.com/hocchudong/networking-team/blob/master/ThaiPH/OpenStack%20Neutron/ThaiPH_neutron_ml2_plug-in.md#23">ML2 plugin-Agent.</a>
     </li>
     <li><h3><a name="service">2.4 Services</a></h3>
     <h5>Các dịch vụ routing.</h5>
