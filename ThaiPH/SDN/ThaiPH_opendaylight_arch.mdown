@@ -1,0 +1,102 @@
+# Kiến trúc OpenDaylight
+# Mục lục
+
+
+
+
+1. Giới thiệu:
+2. Kiến trúc:
+    OpenDaylight bao gồm nhiều thành phần và project. 
+    <h4>Kiến trúc giản lược</h4>
+    <div>
+    <br><br>
+    <img src="http://thenewstack.io/wp-content/uploads/2015/01/1a.png">
+    <br><br>    
+    Kiến trúc giản lược của OpenDaylight gồm 3 lớp chính:
+    <ul>
+    <li><b>Device layer: </b>Bao gồm các southbound plugins và sounthbound protocols để giao tiếp với các network device.</li>
+    <li><b>Coordination, control layer: </b>Thực hiện các chức năng mạng (network functions) và dịch vụ thích ứng (service adaptation)</li>
+    <li><b>Application layer: </b>Cung cấp các ứng dụng và các Northbound API để xây dựng ứng dụng SDN</li>
+    </ul>
+    Controller được xem như middleware trong hệ thống OpenDaylight. Nó là framework kết nối giữa các ứng dụng yêu cầu dịch vụ của các thiết bị mạng và các giao thức để nói chuyện với các thiết bị mạng để cung cấp các dịch vụ. Controller cho phép các ứng dụng tách biệt và không cần biết chi tiết về các thiết bị mạng, do đó cho phép các nhà phát triển ứng dụng tập trung vào phát triển các chức năng cho các ứng dụng về network thay vì phải mất thời gian viết drivers cho một thiết bị cụ thể nào đó. 
+    </div>
+
+    <h4>Kiến trúc chi tiết của OpenDaylight</h4>
+    <div>
+    <br><br>
+    <img src="http://thenewstack.io/wp-content/uploads/2015/01/2a.png">
+    <br><br>
+     <h5>Southbound Protocols</h5>
+     <div>
+         Southbound interface có khả năng hỗ trợ nhiều giao thức (bằng cách sử dụng các plugins riêng biệt), ví dụ: OpenFlow 1.0, OpenFlow 1.3, BGP-LS, LISP, SNMP,.. Các modules này liên kết động với lớp SAL (service abstration layer) để quyết định làm thế nào thực hiện các dịch vụ được yêu cầu (bởi ứng dụng) mà không phân biệt về các giao thức bên dưới được sử dụng giữa controller và các thiết bị mạng. 
+         <br>
+         <i>Ví dụ: Một OpenFlow plugin sẽ bao gồm các thành phần sau: (a) connection, session và state manager để quản lý các kết nối giữa các switch, (b) mô hình xử lý lỗi, (c) một bộ xử lý gói tin để xử lý các gói tin đến từ các switch, (d) tập hợp các dịch vụ cơ bản như flow, stats, và topology. OpenFlow plugin này cùng với các thư viện của giao thức OpenFlow, sẽ tạo nên southbound OF 1.0/1.3 module. </i>
+     </div>
+
+     <h5>SAL - Service Abstraction Layer</h5>
+     <div>
+         SAL cho phép tạo ra một lớp trừu tượng về dịch vụ giữa khách hàng và nhà cung cấp. SAL được xem như một "cuốn sổ" lớn ghi chép về các dịch vụ đại diện bởi nhiều modules và kết nối chúng tới các ứng dụng yêu cầu chúng. Các modules (hay producer) mà cung cấp các dịch vụ, có thể đăng ký các APIs của chúng vào SAL. Khi một ứng dụng (consumer) yêu cầu dịch vụ thông qua một generic API, SAL chịu trách nhiệm phân tích yêu cầu bằng cách kết nối giữa <b>consumer</b> (apps) và <b>producer</b>(các modules) vào trong một "hợp đồng", môi giới và phục vụ bởi SAL. SAL có hai kiến trúc với hai hướng triển khai khác nhau cho <b>registry</b>: 
+         <ul>
+             <li>Application-driven SAL (AD-SAL)</li>
+             <li>Module-driven SAL (MD-SAL)</li>
+         </ul>
+     </div>
+
+     <h5>Service Functions</h5>
+     <div>
+         Controller có chứa các chức năng mạng căn bản, bao gồm các dịch vụ phát hiện và truyền đi các topology, forwarding manager để quản lý các forwarding rules (các quy tắc chuyển tiếp gói), switch manager để chứng thực các thiết bị mạng ở topology vật lý. SAL được coi như "cuốn danh bạ" để môi giới hợp đồng giữa nhà cung cấp dịch vụ (bao gồm các protocol plugins và các plugins phục vụ các chức năng mạng căn bản) với các service consumer (các ứng dụng). Những "hợp đồng" này thực hiện bởi SAL mà không yêu cầu phụ thuộc trực tiếp và các plugins tương ứng. Ví dụ một plugin về topology của các dịch vụ chịu trách nhiệm tìm kiếm các nodes và các đường vật lý giữa các nodes đó và tạo ra đồ hình. Plugin này sẽ cung cấp các chức năng có thể sử dụng bởi một ứng dụng để có được góc nhìn hoàn chỉnh về lớp vật lý bên dưới. Khi đó, ứng dụng có thể sử dụng các dịch vụ về flow đã lập trình để tạo ra các flows giữa tất cả các thiết bị mạng mà không phải lo lắng về việc tạo ra chúng hay mô hình tạo ra như thế nào, để triển khai end-to-end flow logic.
+         <br>
+         Các service funtions cơ bản và một vài thành phần của chúng:
+         <br><br>
+         <img src="http://thenewstack.io/wp-content/uploads/2015/01/3.1.png">
+         <br><br>
+     </div>
+
+     <h5>Vendor Components (Platform services)</h5>
+     <div>
+         Controller Platform vốn đã chứa tập hợp các pluggable modules để thực hiện các tác vụ về network. Bên cạnh các dịch vụ mạng căn bản, các dịch vụ hướng nền tảng và các extensions khác cũng được thêm vào controller platform phucjvuj các chức năng SDN nâng cao. Một số dịch vụ hướng nền tảng như (a) VTN để phát hiện ra ứng dụng ảo hóa mạng multi-tenant sử dụng OpenFlow, (b) các dịch vụ quen thuộc cung cấp các APIs để thể hiện workload relationships và cấp độ dịch vụ, (c) BGP-LS/PCEP hỗ trợ thực hiện các kỹ thuật lưu lượng với BGP-LS (thư viện giao thức BGP và topology model) và PCEP (path programming model), (d) OpenStack neutron cung cấp Neutron API thực hiện nhiều tác vụ cung cấp dịch vụ mạn trong môi trường OpenStack, (e) group-based policy, giới thiệu một khái niệm mới về nhóm trừu tượng của các endpoints và các policy (tập trung vào ứng dụng) nhằm kiểm soát truyền thông giữa các nhóm, (f) service functions chaining (SFC) cung cấp một chuỗi các dịch vụ mạng có thứ tự, ứng dụng chủ yếu trong NFV, (g) LISP là mapping service sử dụng để triển khai các hệ thống mạng ảo, (h) SDNi aggregator thực hiện thu thập các thông tin về topology, thống kê,... để cho phép truyền thông nội bộ SDN controller.
+         <br>
+         Nhiều dịch vụ được cung cấp bởi OpenDaylight, trong khi đó cũng có những ứng dụng như VTN Manager, SDNI,.. được thiết kế cho các dịch vụ mà các ứng dụng northbound của chúng như OVSDB manager, cung cấp các tính năng chung cho các ứng dụng khác sử dụng. Tất cả các dịch vụ sử dụng lớp SAL để đăng ký các chức năng được triển khai  trong các dịch vụ đó bằng việc cung cấp các interfaces của chungns. SAL chịu trách nhiệm kết nối các lời gọi bắt nguồn từ các ứng dụng phía northbound để chỉ ra chức năng cụ thể được triển khai trong các modules.
+
+         <h5>Northbound APIs</h5>
+         <div>
+             Được controller cung cấp cho các ứng dụng network sử dụng. OpenDaylight hỗ trợ cả OSGi framework và REST APIs hai chiều trên lớp northbound. OSGi framework sử dụng chủ yếu bởi các ứng dụng chạy trên cùng không gian địa chỉ với controller, tỏng khi đó REST API được sử dụng bởi các ứng dụng có thể chạy trên cùng máy hoặc khác máy với controller. Các ứng dụng này nằm ở lớp business logic và có thể bao gồm các thuật toán cần thiết để thực hiện phân tích, sau đó sử dụng controller để điều phối tạo ra các rules mới.
+         </div>
+
+         <h5>ODL Applications</h5>
+         <div>
+             Bao gồm các ứng dụng business logic và network logic kiểm soát và giám sát trạng thái, hành vi của mạng. Hầu hết các ứng dụng sẽ tương ứng với các platforms service ở lớp controller, nhwg VTN coordinator tương ứng với VTN Manager, SDNI wrapper tương ứng với SDNI aggregator. Thêm vào đó, các ứng dụng northbound bao gồm các ứng dụng điều phối phức tạp hơn thực hiện sắp đặt lưu lượng mạng phù hợp với nhu cầu trong nhiều môi trường như cloud và NFV.  
+         </div>
+
+         <h5>Khái niệm Service Abstraction trong ODL</h5>
+         <div>
+             Abstraction là một trong những triết lý chủ đạo của OpenDaylight. SAL tách biệt giữa các plugins dựa trên các dịch vụ mà chúng cung cấp (service provider và producer) và dịch vụ mà chúng tiêu thụ (service consumers) và lớp trừu tượng giao tiếp giữa chúng. Dựa trên cơ sở các dịch vụ được đăng ký, tìm kiếm và tiêu thụ ra sao, SAL framework cho phép 2 hướng triển khai các plugins khác nhau - AD-SAL (application-driven SAL) và MD-SAL (model-driven SAL)
+         </div>
+
+         <h5>AD-SAL</h5>
+         <div>
+             OpenDaylight cung cấp framework giúp cho các nhà phát triển ứng dụng hoàn toàn độc lập với đặc tả về phần cứng, tập trung hơn và lớp business logic thay vì phải chú trọng về việc phải tương tác với thiết bị mạng cụ thể nào đó.
+             <br>
+             AD-SAL hay Application-Diven SAL được thiết kế để giải quyết vấn đề này, bằng việc cung cấp lớp trừu tượng tâp hợp các APIs cung cấp tất cả các chức năng của các thiết bị. Các thiết bị nói chuyện với OpenDaylight controller thông qua các modules protocol tương ứng. Các protocol plugins sẽ giao tiếp với các API cung cấp bởi lớp SAL. SAL chuyển đổi ngôn ngữ "giao tiếp" sử dụng bởi các  protocol plugins sang các APIs cụ thể, tất cả thực hiện trong khi vẫn duy trì các chức năng được yêu cầu bởi lớp business logic của ứng dụng.
+             <br><br>
+             <img src="http://thenewstack.io/wp-content/uploads/2015/01/4a.png">
+             <br><br>
+             Lấy ví dụ với SNMP southbound plugin khi được phát triển theo phương pháp AD-SAL, nó triển khai nhiều chức năng căn bản trong controller, bao gồm phân tích thông tin về trạng thái các port, tình trạng các switch, đồ hình OSPF. Các chức năng căn bản này sau đó được cung cấp cho các nhà phát triển northbound plugin. SNMP plugin có thể export các chức năng cụ thể, ví dụ như giám sát băng thông - chức năng không được thiết lập trong controller, trong trường hợp đó, các nhà phát triển northbound plugin phải triển khai trực tiếp các abtract Java APIs để import các chức năng 
+         </div>
+
+         <h5>MD-SAL</h5>
+         <div>
+             Nếu AD-SAL giúp các nhà phát triển tách biệt khỏi sự phức tạp của phần cứng, MD-SAL tiến thêm 1 bước xa hơn và cho phép họ làm việc trong một "silo", tách biệt cả với đặc tả của các service interfaces thể hiện bởi các modules cung cấp dịch vụ. Trong khi AD-SAL được thiết kế để trong suốt giữa north-south, MD-SAL thiết kế để kết nối các modules bằng cách cho phép các nhà phát triển sử dụng các giao diện chung để tìm kiếm các dịch vụ và tính toán mức tiêu thụ dịch vụ.
+             <br>
+             Điểm khác biệt lớn nhất giữa hai hướng thiết kế này là cách mà các APIs được sử dụng bởi các provider plugins và consumer plugins. Đối với MD-SAL, các providers - southbound plugins tạo ra một mô hình dữ liệu hay dịch vụ. Các model này được trình bày theo chuẩn YANG. Sau đó, YANG compiler được sử dụng để tạo ra các APIs thống nhất cho các consumers, các APIs này sau đó trở thành một phần của các plugin. 
+             <br><br>
+             <img src="http://thenewstack.io/wp-content/uploads/2015/01/5a.png">
+             <br><br>
+             Do đó, một OpenFlow plugin có thể được định nghĩa bằng YANG models trong đó chức mô tả về các dịch vụ, bao gồm các thông tin packet_in, packet_out và packet data được cung cấp. Sau đó, khi biên dịch các models, các APIs được tạo ra giúp OpenFlow plugin tương tác với các OpenFlow switches và bóc tách dữ liệu. Các APIs cho phép truy cập các dữ liệu đã được bóc tách từ northbound plugins cũng được tạo ra, bao gồm RPCs, RESTful interfaces, DOM APIs, các APIs lắng nghe các thông báo.
+             <br>
+             SAL giúp các plugins tạo ra MD-SAL đăng ký cho các consumer mong muốn về các sự kiện và thông báo tạo ra bởi các thiết bị (các sự kiện và thông báo này được xử lý bởi các southbound plugins.)
+         </div>
+
+     </div>
+
+    </div>

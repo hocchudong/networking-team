@@ -8,7 +8,8 @@
     <li><a href="#23">2.3. Agents</a></li>
     <li><a href="#24">2.4. Security</a></li>
 </ul>
-<h3><a href="#ref">3. Tham khảo</a></h3>
+<h3><a href="#backends">3. Network Back Ends trong OpenStack</a></h3>
+<h3><a href="#ref">4. Tham khảo</a></h3>
 
 ---
 
@@ -106,7 +107,7 @@ type_drivers = flat,vlan,vxlan,gre
         <ul>
             <li><b>VLAN: </b>người quản trị cần phải cấu hình miền VLAN IDs có thể sử dụng để cấp phát cho project (tenant) network</li>
             <li><b>GRE: </b>người quản trị cần phải cấu hình miền các tunnel IDs có thể sử dụng để cấp phát cho project (tenant)</li>
-            <li><b>VXLAN: </b>ngwpif quản trị cần cấu hình miền VXLAN IDs có thể sử dụng để cấp phát cho project (tenant).</li>
+            <li><b>VXLAN: </b>người quản trị cần cấu hình miền VXLAN IDs có thể sử dụng để cấp phát cho project (tenant).</li>
         </ul>
     </div>
     </li>
@@ -154,7 +155,7 @@ mechanism_drivers = ovs,l2pop
 
     <h4>L3 agent</h4>
     <div>
-        L3 agent cung cấp các dịch vụ lớp 3 nâng cao như các router ảo và floating ÍP. Nó yêu cầu chạy song song với L2 agent.
+        L3 agent cung cấp các dịch vụ lớp 3 nâng cao như các router ảo và floating IPs. Nó yêu cầu chạy song song với L2 agent.
     </div>
 
     <h4>DHCP agent</h4>
@@ -180,7 +181,29 @@ mechanism_drivers = ovs,l2pop
     </ul>
     </li>
 </ul>
-<h2><a name="ref">3. Tham khảo</a></h2>
+
+<h2><a name="backends">3. Network Back Ends trong OpenStack</a></h2>
+<div>
+    Hai tùy chọn networking back ends:
+    <ul>
+        <li><b>Nova networking: </b>
+        Back end này đã không còn được chấp nhận trên lộ trình phát triển của OpenStack, tuy nhiên vẫn được duy trì.
+        </li>
+        <li><b>OpenStack Networking (neutron): </b>Back end này được cân nhắc sử dụng làm thành phần chủ đạo của SDN của OpenStack và đang được phát triển.
+        </li>
+    </ul>
+    Các tùy chọn khi sử dụng OpenStack Networking (Neutron):
+    <ul>
+        <li>
+            Sử dụng overlay network: OpenStack Networking hỗ trợ GRE và VXLAN tunneling để cô lập lưu lượng giữa các máy ảo. Sử dụng GRE hoặc VXLAN không yêu cầu cấu hình VLAN trên network fabric (mạng trong đó các nodes kết nối nội bộ với nhau thông qua một hoặc nhiều switches), chỉ yêu cầu network vật lý cung cấp kết nối IP giữa các node. Ngoài ra, VXLAN hoặc GRE về mặt lý thuyết cung cấp được tới 16 triệu network IDs khác nhau, lớn hơn nhiều so với con số 4094 đối với chuẩn 802.1q VLAN ID. 
+        </li>
+        <li>Nếu yêu cầu sử dụng các địa chỉ IP chồng lấn nhau giữa các tenant: OpenStack Networking sử dụng <b>network namespaces</b> do linux kernel cung cấp, cho phép các tenants khác nhau sử dụng chung dải địa chỉ trên cùng 1 Compute node mà không gặp bất kì vấn đề gì về việc xuyên nhiễu hay chồng lấn về địa chỉ IP. Tính năng này phù hợp trong môi trường triển khai lớn nhiều tenant. </li>
+        <li>Nếu yêu cầu các dịch vụ FWaaS hoặc LaaS, OpenStack Networking cung cấp sẵn các dịch vụ này, các tenant có thể quản lý các dịch vụ này trên dashboard mà không cần sự can thiệp của người quản trị.</li>
+    </ul>
+
+</div>
+
+<h2><a name="ref">4. Tham khảo</a></h2>
 <div>
     [1] - <a href="http://docs.openstack.org/mitaka/networking-guide/config-ml2.html">http://docs.openstack.org/mitaka/networking-guide/config-ml2.html</a>
 </div>

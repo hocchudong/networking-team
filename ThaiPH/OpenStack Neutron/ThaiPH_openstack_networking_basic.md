@@ -93,10 +93,74 @@ Các component bao gồm:
       Security group và các security group rule cho phép người quản trị và các tenant chỉ định loại traffic và hướng (ingress/egress) được phép đi qua port. Một security group là một container của các security group rules.
  </div>
 
+   <h4>Open vSwitch</h4>
+   <div>
+       OpenvSwitch (OVS) là công nghệ switch ảo hỗ trợ SDN (Software-Defined Network), thay thế Linux bridge. OVS cung cấp chuyển mạch trong mạng ảo hỗ trợ các tiêu chuẩn <i>Netflow</i>, <i>OpenFlow</i>, <i>sFlow</i>. OpenvSwitch cũng được tích hợp với các switch vật lý sử dụng các tính năng lớp 2 như STP, LACP, 802.1Q VLAN tagging. OVS tunneling cũng được hỗ trợ để triển khai các mô hình network overlay như VXLAN, GRE.
+   </div>
+
+   <h4>L3 Agent</h4>
+   <div>
+       L3 agent là một phần của package <b>openstack-neutron</b>. Nó được xem như router layer3 chuyển hướng lưu lượng và cung cấp dịch vụ gateway cho network lớp 2. Các nodes chạy L3 agent không được cấu hình IP trực tiếp trên một card mạng mà được kết nối với mạng ngoài. Thay vì thế, sẽ có một dải địa chỉ IP từ mạng ngoài được sử dụng cho OpenStack networking. Các địa chỉ này được gán cho các routers mà cung cấp liên kết giữa mạng trong và mạng ngoài. Miền địa chỉ được lựa chọn phải đủ lớn để cung cấp địa chỉ IP duy nhất cho mỗi router khi triển khai cũng như mỗi floating IP gán cho các máy ảo.
+       <ul>
+           <li><b>DHCP Agent: </b> OpenStack Networking DHCP agent chịu trách nhiệm cấp phát các địa chỉ IP cho các máy ảo chạy trên network. Nếu agent được kích hoạt và đang hoạt động khi một subnet được tạo, subnet đó mặc định sẽ được kích hoạt DHCP.</li>
+           <li><b>Plugin Agent: </b> Nhiều networking plug-ins được sử dụng cho agent của chúng, bao gồm OVS và Linux bridge. Các plug-in chỉ định agent chạy trên các node đang quản lý lưu lượng mạng, bao gồm các compute node, cũng như các nodes chạy các agent</li>
+       </ul>
+       <br><br>
+       <img src="http://i.imgur.com/kBcsmJI.png">
+       <br><br>
+   </div>
+
+   <h4>Modular Layer 2 (ML2)</h4>
+   <div>
+       Tham khảo thêm ở <a href="#">bài viết sau.</a>
+   </div>
+
   <h4>Extensions</h4>
  <div>
       OpenStack Network service có khả năng mở rộng. Các extension phục vụ hai mục đích: cho phép tạo các tính năng mới trong API mà không yêu cầu thay đổi phiên bản và cho phép bổ sung chức năng phù hợp với nhà cung cấp cụ thể. Các ứng dụng có lấy danh sách các extensions có sẵn sử dụng phương thức GET trên <code>/extensions</code> URI. Chú ý đây là một request phụ thuộc vào phiên bản OpenStack, một extension sẵn sàng trong một API version có thẻ không sẵn sàng với phiên bản khác.
  </div>
+
+  <h4>Layer 3 High Availability</h4>
+  <div>
+      OpenStack Networking bao gồm các router ảo nằm tập trung trên Network node - một server vật lý dùng để chứa các thành phần của mạng ảo. Các router ảo này sẽ chuyển hướng lưu lượng tới và từ các máy ảo, do đó nó rất quan trọng để duy trì kết nối liên tục trong môi trường cloud. Các server vật lý có thể bị ngừng hoạt động vì nhiều lý dó, điều này khiến cho các máy ảo bị mất kết nối.
+      <br>
+      OpenStack Networking do đó sử dụng <i>Layer 3 High Availability</i> để giảm thiểu những rủi ro như vậy bằng việc triển khai chuẩn giao thức VRRP bảo vệ các routers ảo và duy tri các địa chỉ floating IP. Với <i>Layer 3 High Availability</i>, các router ảo của một tenant được cấp phát ngẫu nhiên thông qua nhiều Network node vật lý, trong đó có một router sẽ được chỉ định làm <b>active router</b>, và các router khác phục vụ ở trạng thái chờ, sẵn sàng thay thế nếu Network node chứa <b>active router</b> bị ngừng hoạt động. 
+  </div>
+
+  <h4>HAproxy</h4>
+  <div>
+      HAproxy là thành phần có sẵn trong load balancer (cần phân biệt với LBaaS) làm nhiệm vụ phân tán các kết nối giữa tất cả các controllers đang sẵn sàng, để cung cấp giải pháp HA (High Availability - tính sẵn sàng cao). HAProxy vận hành ở layer 4, bởi vì nó dựa trên chỉ số port UDP/TCP được gán cho mỗi dịch vụ. VRRP sẽ xác định các kết nối HAProxy instance được gửi tới đầu tiên, sau đó HAProxy sẽ phân tán các kết nối tới các servers phía backend. Cấu hình này có thể cung cấp cân bằng tải, tính sẵn sàng cao.
+  </div>
+
+  <h4>Load Balancing-as-a-Service</h4>
+  <div>
+      Load Balancing-as-a-Service (LBaaS) cho phép OpenStack Networking phân tán các yêu cầu tới một cách đồng đều giữa các instances được chỉ định. Điều này đảm bảo tải được chia sẻ giữa các instances, cho phép sử dụng tài nguyên hệ thống hiệu quả hơn. Các yêu cầu tới được phân tán sử dụng các thuật toán cân bằng tải sau:
+      <ul>
+          <li><b>Round robin: </b>xoay vòng yêu cầu hiệu quả giữa nhiều instances.</li>
+          <li><b>Source IP: </b>các yêu cầu tới từ một địa chỉ IP nguồn xác định sẽ được chuyển hướng nhất quán tới cùng một instances.</li>
+          <li><b>Least connnections: </b>cấp phát các yêu cầu tới instance với số lượng kết nối active là nhỏ nhất.</li>
+      </ul>
+  </div>
+
+  <h4>IPv6</h4>
+  <div>
+      OpenStack Neetworking hỗ trợ IPv6 cho các tenant network, cho phép cấp phát động các địa chỉ IPv6 cho các máy ảo (Stateful DHCPv6). OpenStack Networking cugnx có khả năng tích hợp với SLAAC trên các routers vật lý (Stateless Address Autoconfiguration), do đó các máy ảo có thể nhận được địa chỉ IPv6 từ hạ tầng DHCP có sẵn.
+  </div>
+
+  <h4>CIDR format(Classless Inter-Domain Routing - Định tuyến nội miền không phân lớp)</h4>
+  <div>
+      Các địa chỉ mạng có thể sử dụng theo hai cách
+      <ul>
+          <li>Sử dụng theo cách thông thường: các địa chỉ subnet theo truyền thống sẽ sử dụng địa chỉ mạng kèm theo subnet mask. Ví dụ:
+          <ul>
+              <li>Network address: 192.168.100.0</li>
+              <li>Subnet mask: 255.255.255.0</li>
+          </ul>
+          </li>
+          <li>Sử dụng định dạng CIDR: định dạng này rút gọn subnet mask thành số lượng bit active. Ví dụ: 192.168.100.0/24 tương đương với cặp 192.168.100.0 - 255.255.255.0</li>
+      </ul>
+  </div>
+  
 </div>
 
 <h2><a name="hierachy">2. Hệ thống phân cấp các thành phần và dịch vụ</a></h2>

@@ -1,0 +1,15 @@
+# Accessing address scopes 
+# Mục lục
+<h3><a href="#aac">1. Phạm vi địa chỉ truy cập</a></h3>
+<h3><a href="#bwc">2. Khả năng tương thích ngược</a></h3>
+<h3><a href="#crt">3. Tạo các phạm vi địa chỉ chia sẻ được với quyền quản trị</a></h3>
+<h3><a href="#route">4. Định tuyến trong các phạm vi địa chỉ đối với người dùng thường (không có đặc quyền)</a></h3>
+<h5><a href="#ref">5. Tham khảo</a></h5>
+
+---
+
+<h2><a name="aac">1. Phạm vi địa chỉ truy cập</a></h2>
+<h2><a name="bwc">2. Khả năng tương thích ngược</a></h2>
+<h2><a name="crt">3. Tạo các phạm vi địa chỉ chia sẻ được với quyền quản trị</a></h2>
+<h2><a name="route">4. Định tuyến trong các phạm vi địa chỉ đối với người dùng thường (không có đặc quyền)</a></h2>
+<h2><a name="ref">5. Tham khảo</a></h2>
