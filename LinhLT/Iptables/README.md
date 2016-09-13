@@ -163,13 +163,42 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 
 <a name="packetflow"></a>
 #4. Packet Flow
-![](http://www.linuxhomenetworking.com/wiki/images/f/f0/Iptables.gif)
+![](http://www.iptables.info/files/tables_traverse.jpg)
 
 Đầu tiên gói tin từ mạng A đi vào hệ thống firewall sẽ phải đi qua bảng Mangle với chain là PREROUTING (với mục đích để thay đôi một số thông tin của gói tin trước khi đưa qua quyết định dẫn đường) sau đó gói tin đến bảng NAT với với chain PREROUTING tại đây địa chỉ đích của gói tin có thể bị thay đổi hoặc không, qua bộ routing và sẽ quyết định xem gói tin đó thuộc firewall hay không:
 
 - **TH1: gói tin đó là của firewall:** gói tin sẽ đi qua bảng mangle và đến bản filter với chai là INPUT. Tại đây gói tin sẽ được áp dụng chính sách (rule) và ứng với mỗi rule cụ thể sẽ được áp dụng với target, sau quá trình xử lý gói tin sẽ đi đến bảng mangle tiếp đến là bảng NAT với chain OUTPUT được áp dụng một số chính sách và sau đó đi lần lượt qua các bảng magle với chain POSTROUTING cuối cùng đi đến bảng NAT với chain POSTROUTING để thay đổi địa chỉ nguồn nếu cần thiết.
 
 - **TH2: gói tin không phải của firewall** sẽ được đưa đến bảng mangle với chain FORWARD đến bảng filter với chain FORWARD. Đây là chain được sử dụng rất nhiều để bảo vệ người sử dụng mang trong lan với người sử dụng internet các gói tin thoải mãn các rule đặt ra mới có thể được chuyển qua giữa các card mạng với nhau, qua đó có nhiệm vụ thực hiện chính sách với người sử dụng nội bộ nhưng không cho vào internet, giới hạn thời gian,...và bảo vệ hệ thống máy chủ đối với người dung internet bên ngoài chống các kiểu tấn công. sau khi đi qua card mạng với nhau gói tin phải đi lần lượt qua bảng mangle và NAT với chain POSTROUTING để thực hiên việc chuyển đổi địa chỉ nguồn với target SNAT & MASQUERADE.
+
+- Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
+
+- Có 1 gói tin bắt đầu đi vào mạng: Đầu tiên gói tin đi vào bảng RAW, chain PREROUTING: Tại đây, kết nối sẽ được xử lý là có theo dõi kết nối này hay không. (Một kết nối bao gồm nhiều gói tin) 
+- Sau đó, gói tin chuyển đến bảng Mangle, chain PREROUTING: Tại đây, Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin, trước khi được định tuyến, thì nó sẽ xử lý ở bảng này.
+- Tiếp theo, gói tin đi vào bảng NAT, chain PREROUTING:  Nếu cần DNAT (NAT địa chỉ đích) thì sẽ được xử lý ở bảng này.
+- Sau đó, đến quá trình định tuyến: Có 2 trường hợp xảy ra: Trường hợp 1, Gói tin đi vào 1 mạng khác =>Đi vào nhánh bên phải. Trường hợp 2, Gói tin thuộc Firewall => Đi vào nhánh bên trái.
+	- Trường hợp 1: Gói tin đi đến bảng Mangle với chain FORWARD. Cũng tương tự như ở trên. Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin trước khi định tuyến để đi ra mạng khác.
+	- Sau đó, gói tin đến Bảng FORWARD chain filter. Ở đây, gói tin sẽ được lọc với các rules. Nếu rules cho phép đi qua Nó sẽ chuyển đến bước tiếp theo. Nếu không, gói tin sẽ bị dừng lại.
+	- Trường hợp 2: Gói tin đi vào bảng mangle, chain input: Nếu cần chỉnh sửa các giá trị header của gói tin trước khi đi vào bảng filter thì được thực hiện tại đây.
+	- Sau đó, gói tin đi đến bảng Filter chain input: Lọc các gói tin đi vào firewall với các rules. Nếu cho phép, gói tin sẽ đi đến các dịch vụ trên server. Nếu không, gói tin sẽ bị bỏ đi.
+
+- Tiếp theo quá trình, gói tin xuất phát từ firewall đi ra (Các service trên server firewall đi ra, có thể là khởi tạo một kết nối mới hoặc trả lời các kết nối đi vào).
+- Bảng raw output: Trước khi đi ra, có cần theo dõi kết nối này hay không.
+- Bảng mangle output, trước khi đi ra thì có cần chỉnh sửa gì header của gói tin không.
+- Bảng nat output, có cần nat địa chỉ đích (DNAT) hay không. Lưu ý là SNAT không dùng được ở chain này nhé, SNAT dùng ở chain postrouting. Khi tôi thử SNAT, thì nhận được thông báo như thế này.
+```sh
+[  208.007850] x_tables: ip_tables: SNAT target: used from hooks OUTPUT, but only usable from INPUT/POSTROUTING
+```
+- Bảng filter: lọc các gói tin đi ra. Nếu cho phép đi qua thì mới tiếp tục đi tiếp.
+
+
+- Sau đó là quá trình định tuyến để đi ra một mạng khác.
+- Sau khi 2 trường hợp 1 và 2 xử lý xong, nếu gói tin được phép đi qua, nó sẽ chuyển đến quá trình sau:
+- Đến bảng mangle chain POSTROUTING, có cần chỉnh sửa gì đến header trước khi đi ra mạng khác hay không.
+- NAT, postrouting: Có cần nat địa chỉ nguồn, trước khi định tuyến và đi ra mạng khác.
+- Cuối cùng, gói tin đi ra mạng khác.
+
+
 
 <a name="commands"></a>
 #5. Commands
