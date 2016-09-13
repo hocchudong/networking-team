@@ -75,7 +75,7 @@ Bảng này được sử dụng cho modifying packet. Bạn có thể thay đ�
 Các Targets trong bảng
 - TOS: Dùng để thay đổi trường **Type of Service** trong gói tin ipdatagram.
 - TTL: Dùng để thay đổi trường **Time To Live** trong gói tin ipdatagram.
-- MARK: Dùng để đặt giá trị  **special mark** cho gói tin.
+- MARK: Dùng để đặt giá trị  **special mark** cho gói tin. Sau đó, bạn có thể đặt một số rules riêng cho những gói tin được đánh dấu.
 
 Bạn được khuyên không sử dụng bảng này cho bất kỳ bộ lọc; cũng không có bất kỳ DNAT, SNAT hoặc Masquerading trong bảng này.
 
@@ -85,6 +85,33 @@ Các chain có trong bảng này:
 - FORWARD
 - OUTPUT
 - POSTROUTING
+
+- Ví dụ về 1 số giá trị TOS:
+
+```sh
+Minimum delay (16 or 0x10)
+Maximum throughput (8 or 0x08)
+Maximum reliability (4 or 0x04)
+Minimum cost (2 or 0x02)
+Normal service (0 or 0x00)
+```
+
+| Dịch vụ |Giá trị TOS|
+|:----:|:---:|
+|telnet, ssh, http|Minimum delay|
+|ftp, ftp-data, scp|Maximum throughput|
+|smtp|Maximum reliability|
+|pop3, imap|Minimum cost|
+
+Ví dụ:
+```sh
+iptables -t mangle -A PREROUTING -p tcp --dport 25 -j TOS --set-tos 0x04
+iptables -t mangle -A PREROUTING -p tcp --sport 25 -j TOS --set-tos 0x04
+
+
+iptables -t mangle -A PREROUTING -m multiport -p tcp --dport 80,23,22 -j TOS --set-tos 16
+iptables -t mangle -A PREROUTING -m multiport -p tcp --sport 80,23,22 -j TOS --set-tos 16
+```
 
 <a name="nat"></a>
 ###3.1.2 NAT
@@ -119,6 +146,8 @@ Các Chain có trong bảng này:
 ###3.1.4 RAW
 
 Bảng raw chủ yếu chỉ được sử dụng cho một điều, và đó là để thiết lập một đánh dấu trên gói tin rằng họ không nên được xử lý bởi các hệ thống theo dõi kết nối. Điều này được thực hiện bằng target `NOTRACK`.
+
+- Khi sử dụng target NOTRACK, bạn không thể sử dụng các module theo dõi kết nối như `state` và `conntrack`. Mình đã thử nghiệm và kết quả là không thể sử dụng được.
 
 Bảng này có 2 Chain, đó là
 - PREROUTING
@@ -200,8 +229,6 @@ Tiếp theo là quá trình gói tin xuất phát từ firewall đi ra (Các ser
 - **Bước 17:** Đi đến bảng NAT chain POSTROUTING. Cho phép ta SNAT (NAT địa chỉ nguồn), trước khi đi ra mạng khác.
 
 Cuối cùng, gói tin đi ra mạng B.
-
-
 
 <a name="commands"></a>
 #5. Commands
