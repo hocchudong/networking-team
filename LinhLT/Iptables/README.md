@@ -172,7 +172,8 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 - **TH2: gói tin không phải của firewall** sẽ được đưa đến bảng mangle với chain FORWARD đến bảng filter với chain FORWARD. Đây là chain được sử dụng rất nhiều để bảo vệ người sử dụng mang trong lan với người sử dụng internet các gói tin thoải mãn các rule đặt ra mới có thể được chuyển qua giữa các card mạng với nhau, qua đó có nhiệm vụ thực hiện chính sách với người sử dụng nội bộ nhưng không cho vào internet, giới hạn thời gian,...và bảo vệ hệ thống máy chủ đối với người dung internet bên ngoài chống các kiểu tấn công. sau khi đi qua card mạng với nhau gói tin phải đi lần lượt qua bảng mangle và NAT với chain POSTROUTING để thực hiên việc chuyển đổi địa chỉ nguồn với target SNAT & MASQUERADE.
 
 Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
-- Có 1 gói từ mạng A đi vào:
+
+Có 1 gói từ mạng A đi vào:
 - **1:** Đầu tiên gói tin đi vào bảng RAW, chain PREROUTING. Tại đây, IPTables sẽ xử lý là có theo dõi kết nối này hay không. (Một kết nối bao gồm nhiều gói tin) 
 - **2:** Sau đó, gói tin chuyển đến bảng Mangle, chain PREROUTING. Tại đây, Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin, trước khi được định tuyến, thì nó sẽ xử lý ở bảng này.
 - **3:** Tiếp theo, gói tin đi vào bảng NAT, chain PREROUTING. Nếu cần DNAT (NAT địa chỉ đích) thì sẽ được xử lý ở bảng này.
@@ -185,7 +186,8 @@ Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
 	- **8:** Sau đó, gói tin đi đến bảng FILTER, chain INPUT: Lọc các gói tin đi vào firewall với các rules.
 	- **9:** Tại đây, quá trình xử lý gói tin được diễn ra. Với các rules trong chain INPUT ở trên, nếu được phép, gói tin sẽ đi đến các dịch vụ trên server. Nếu không, gói tin sẽ bị bỏ đi.
 	- **10:** Quá trình định tuyến để dẫn đường các gói tin đi đến các dịch vụ trên server.
-- Tiếp theo là quá trình gói tin xuất phát từ firewall đi ra (Các service trên server firewall đi ra, có thể là khởi tạo một kết nối mới hoặc trả lời các kết nối đi vào).
+
+Tiếp theo là quá trình gói tin xuất phát từ firewall đi ra (Các service trên server firewall đi ra, có thể là khởi tạo một kết nối mới hoặc trả lời các kết nối đi vào).
 - **11:** Bảng RAW, chain INPUT. Cho phép ta quy định trước khi gói tin đi ra mạng khác, có cần theo dõi kết nối này hay không.
 - **12:** Bảng MANGLE chain OUTPUT. Cho phép ta chỉnh sửa header của gói tin trước khi đi ra mạng khác.
 - **13:** Bảng NAT, chain OUTPUT. Cho phép ta nat địa chỉ đích (DNAT) hay không. Lưu ý là SNAT không dùng được ở chain này nhé, SNAT dùng ở chain postrouting. Khi tôi thử SNAT, thì nhận được thông báo như thế này.
@@ -196,7 +198,8 @@ Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
 - **15:** Là quá trình định tuyến để đi ra một mạng khác. Sau khi 2 trường hợp 1 và 2 xử lý xong, nếu gói tin được phép đi qua, nó sẽ chuyển đến quá trình này.
 - **16:** Đến bảng MANGLE, chain POSTROUTING. Cho phép ta chỉnh sửa header của gói tin trước khi đi ra mạng khác hay không.
 - **17:** Đi đến bảng NAT chain POSTROUTING. Cho phép ta SNAT (NAT địa chỉ nguồn), trước khi đi ra mạng khác.
-- Cuối cùng, gói tin đi ra mạng B.
+
+Cuối cùng, gói tin đi ra mạng B.
 
 
 
