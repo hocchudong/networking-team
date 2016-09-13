@@ -171,15 +171,16 @@ Mỗi rule mà bạn tạo ra phải tương ứng với một chain, table nào
 
 - **TH2: gói tin không phải của firewall** sẽ được đưa đến bảng mangle với chain FORWARD đến bảng filter với chain FORWARD. Đây là chain được sử dụng rất nhiều để bảo vệ người sử dụng mang trong lan với người sử dụng internet các gói tin thoải mãn các rule đặt ra mới có thể được chuyển qua giữa các card mạng với nhau, qua đó có nhiệm vụ thực hiện chính sách với người sử dụng nội bộ nhưng không cho vào internet, giới hạn thời gian,...và bảo vệ hệ thống máy chủ đối với người dung internet bên ngoài chống các kiểu tấn công. sau khi đi qua card mạng với nhau gói tin phải đi lần lượt qua bảng mangle và NAT với chain POSTROUTING để thực hiên việc chuyển đổi địa chỉ nguồn với target SNAT & MASQUERADE.
 
-- Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
-
+Giải thích rõ hơn theo ngôn ngữ của bản thân tác giả:
 - Có 1 gói tin bắt đầu đi vào mạng: Đầu tiên gói tin đi vào bảng RAW, chain PREROUTING: Tại đây, kết nối sẽ được xử lý là có theo dõi kết nối này hay không. (Một kết nối bao gồm nhiều gói tin) 
 - Sau đó, gói tin chuyển đến bảng Mangle, chain PREROUTING: Tại đây, Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin, trước khi được định tuyến, thì nó sẽ xử lý ở bảng này.
 - Tiếp theo, gói tin đi vào bảng NAT, chain PREROUTING:  Nếu cần DNAT (NAT địa chỉ đích) thì sẽ được xử lý ở bảng này.
 - Sau đó, đến quá trình định tuyến: Có 2 trường hợp xảy ra: Trường hợp 1, Gói tin đi vào 1 mạng khác =>Đi vào nhánh bên phải. Trường hợp 2, Gói tin thuộc Firewall => Đi vào nhánh bên trái.
-	- Trường hợp 1: Gói tin đi đến bảng Mangle với chain FORWARD. Cũng tương tự như ở trên. Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin trước khi định tuyến để đi ra mạng khác.
+- Trường hợp 1:
+	- Gói tin đi đến bảng Mangle với chain FORWARD. Cũng tương tự như ở trên. Nếu cần thiết phải thay đổi một số giá trị trong header của gói tin trước khi định tuyến để đi ra mạng khác.
 	- Sau đó, gói tin đến Bảng FORWARD chain filter. Ở đây, gói tin sẽ được lọc với các rules. Nếu rules cho phép đi qua Nó sẽ chuyển đến bước tiếp theo. Nếu không, gói tin sẽ bị dừng lại.
-	- Trường hợp 2: Gói tin đi vào bảng mangle, chain input: Nếu cần chỉnh sửa các giá trị header của gói tin trước khi đi vào bảng filter thì được thực hiện tại đây.
+- Trường hợp 2:
+	- Gói tin đi vào bảng mangle, chain input: Nếu cần chỉnh sửa các giá trị header của gói tin trước khi đi vào bảng filter thì được thực hiện tại đây.
 	- Sau đó, gói tin đi đến bảng Filter chain input: Lọc các gói tin đi vào firewall với các rules. Nếu cho phép, gói tin sẽ đi đến các dịch vụ trên server. Nếu không, gói tin sẽ bị bỏ đi.
 
 - Tiếp theo quá trình, gói tin xuất phát từ firewall đi ra (Các service trên server firewall đi ra, có thể là khởi tạo một kết nối mới hoặc trả lời các kết nối đi vào).
