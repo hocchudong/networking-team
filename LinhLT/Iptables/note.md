@@ -58,3 +58,18 @@ sudo ip6tables-save | sudo tee /etc/iptables/rules.v6
 ```sh
 $ sudo service iptables-persistent restart
 ```
+
+##4. Vấn đề theo dõi kết nối với gói tin udp.
+- Mặc dù kết nối udp không phải là kết nối stateful, tuy nhiên iptables vẫn có thể theo dõi kết nối của udp dựa trên địa
+chỉ nguồn, địa chỉ đích, cổng nguồn và cổng đích.
+
+```sh
+udp	  17 20 src=192.168.1.2 dst=192.168.1.5 sport=137 dport=1025 [UNREPLIED] src=192.168.1.5 dst=192.168.1.2 sport=1025 dport=137 use=1
+udp	  17 170 src=192.168.1.2 dst=192.168.1.5 sport=137 dport=1025 src=192.168.1.5 dst=192.168.1.2 sport=1025 dport=137 [ASSURED] use=1
+```
+
+- Kết nối udp không cần phải thiết lập kết nối trước khi truyền dữ liệu.
+![](http://www.iptables.info/files/state-udp-connection.jpg)
+
+- Máy client gửi gói tin udp đến server. Trạng thái kết nối hiện tại là NEW.
+- Sau đó, server trao đổi với client. Lúc này trạng thái kết nối là ESTABLISHED.
