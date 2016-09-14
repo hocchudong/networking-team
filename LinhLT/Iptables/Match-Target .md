@@ -113,7 +113,7 @@ Nếu máy con ngừng truy cập vào máy chủ thì diễn biến sẽ như s
 
 <a name="limitthunghiem"></a>
 ###1.2.1 Thử nghiệm
-<a href="limitmohinh"></a>
+<a name="limitmohinh"></a>
 ####1.2.1.1 Mô hình và mục đích 
 
 - Mô hình: 
@@ -228,11 +228,29 @@ Tương tự với module limit, nhưng bổ sung thêm một số tính năng.
 - srcip: Sẽ lưu lại các entry trong bảng hash dựa trên địa chỉ nguồn của gói tin
 - srcport: Sẽ lưu lại các entry trong bảng hash dựa trên cổng nguồn gủa gói tin
 
+###Phân tích nội dung file hash.
+- Rules:
+```sh
+-A INPUT -m hashlimit --hashlimit 10/sec --hashlimit-burst 3 --hashlimit-mode srcip --hashlimit-name test -j ACCEPT
+```
+- Sau khi thực hiện rules trên, ta đọc được nội dung file hash: `cat /proc/net/ipt_hashlimit/test`
+```sh
+0 10.10.10.1:0->0.0.0.0:0 7040 9600 3200
+```
+- Cột đầu tiên: Số giây kể từ khi gói tin cuối cùng đạt đến mục bị phá hủy. Đếm ngược từ giá trị được thiết lập bởi `--hashlimit-htable-expire`
+- Cột thứ 2: src_ip:src_port->dest_ip:dest_port
+- Cột thứ 3: Giá trị hiện tại của credit (the current credit). Giá trị này sẽ được tăng lên theo thời gian. Nếu credit=0 thì sẽ bị limit.
+- Cột thứ 4: Giá trị tối đa của credit (the maximum value of the credit). Được tính bằng giá trị của `--hashlimit-burst × cost`.
+- Cột thứ 5: giá trị Cost. Là số credit giảm đi khi mỗi lần rule được match. (how much credit is decremented every time the rule is matched)
+  
+
+
+
 <a name="hashlimithunghiem"></a>
 ###1.3.1 Thử nghiệm
 Tương tự với mô hình mà mình đã thử nghiệm ở module limit, chỉ khác ở chỗ là lúc này có cùng lúc 3 máy tấn công.
 
-<a href="hashlimitmohinh"></a>
+<a name="hashlimitmohinh"></a>
 ####1.3.1.1 Mô hình và mục đích
 - Mô hình:
 ![](http://i.imgur.com/pnUpCZz.jpg)
@@ -534,3 +552,7 @@ http://www.hvaonline.net/hvaonline/posts/list/135.hva
 https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html
 
 http://fibrevillage.com/sysadmin/199-linux-iptables-connection-tracking-configuration
+
+http://unix.stackexchange.com/questions/215903/what-do-the-fields-in-proc-net-ipt-hashlimit-file-mean
+
+http://2u-moomin.blog.so-net.ne.jp/2014-01-23
