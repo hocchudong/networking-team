@@ -30,6 +30,7 @@ Khác với iptables chain được lưu trữ và xử lý tuyến tính.
 		- [2.4.10 hash:ip,port,ip](#)
 		- [2.4.11 hash:ip,port,net](#)
 		- [2.4.12 hash:ip,mark](#ha)
+	- [2.5 Lưu và khôi phục lại cấu hình của ipset](#save_restore)
 - [3. Kết hợp IPTables và IP sets.](#iptables_ipsets)
 - [4. Demo](#demo)
 - [5. Tài liệu tham khảo](#thamkhao)
@@ -87,7 +88,7 @@ OPTIONS := { -exist | -output { plain | save | xml } | -quiet | -resolve | -sort
 |Command|Ý nghĩa|
 |:---:|:---:|
 |-!, -exist| Bỏ qua lỗi khi có cùng tên set được tạo hoặc đã tồn tại entry trong set|
-|-o, -output { plain | save | xml }| Chọn định dạng khi xuất ra|
+|-o, -output { plain / save / xml }| Chọn định dạng khi xuất ra|
 |-q, -quiet| Suppress any output to stdout and stderr. ipset will still exit with error if it cannot continue.|
 |-r, -resolve| Chương trình sẽ resolved từ địa chỉ IP sang hostname.|
 | -s, -sorted| Sorted output.|
@@ -105,8 +106,8 @@ OPTIONS := { -exist | -output { plain | save | xml } | -quiet | -resolve | -sort
 |skbinfo, skbmark, skbprio, skbqueue| Cho phép lưu trữ các thông tin (firewall mark, tc class and hardware queue) với mỗi entry và map chúng vào packet sử dụng target `--map-set`.|
 |hashsize| Cho phép ta tùy chỉnh kích thước của hash khi tạo set|
 |maxelem| maximal number of elements được lưu trữ trong set. Dùng với lệnh create cho set kiểu hash.|
-|family { inet | inet6 }| Được dùng với lệnh create với các set kiểu hash. Nó định nghĩa protocol family của địa chỉ ip address được lưu trữ trong set. Mặc định là inet. `ipset create test hash:ip family inet6`|
-|nomatch||
+|family { inet / inet6 }| Được dùng với lệnh create với các set kiểu hash. Nó định nghĩa protocol family của địa chỉ ip address được lưu trữ trong set. Mặc định là inet. `ipset create test hash:ip family inet6`|
+|nomatch| Khi entry có tùy chọn này, thì set sẽ bỏ qua entry này. Ví dụ: Ta có 1 set gồm các entry là địa chỉ ip bị block vào webserver. Nếu có 1 entry được đánh dấu là nomatch thì ip này vẫn có thể truy cập được webserver |
 |forceadd|Khi add một entry vào set này, nhưng sety đã bị full, thì nó sẽ xóa đi 1 entry bất kỳ để có thể add entry mới vào. `ipset create foo hash:ip forceadd` |
 
 <a name="types"></a>
@@ -270,6 +271,7 @@ ipset add foo 192.168.1.0/24,80-82
 ipset add foo 192.168.1.1,udp:53
 ipset add foo 192.168.1.1,vrrp:0
 ipset test foo 192.168.1.1,80
+ipset add set6 192.168.1.1,icmp:ping
 ```
 
 <a name="hash_net_port"></a>
@@ -290,22 +292,111 @@ TEST-ENTRY := netaddr,[proto:]port
 ```sh
 ipset create foo hash:net,port
 ipset add foo 192.168.0/24,25
-ipset add foo 10.1.0.0/16,80
+ipset add set9 192.168.1.0/24,tcp:443
 ipset test foo 192.168.0/24,25
 ```
 
 ###2.4.10 hash:ip,port,ip
 ###2.4.11 hash:ip,port,net
+
+
 ###2.4.12 hash:ip,mark
 - Sử dụng hash để lưu trữ địa chỉ ip và đánh dấu các gói tin đi kèm với địa chỉ ip này.
+```sh
+CREATE-OPTIONS := [ family { inet | inet6 } ] | [ markmask value ] [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
+
+ADD-ENTRY := ipaddr,mark
+
+ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment string ] [ skbmark value ] [ skbprio value ] [ skbqueue value ]
+
+DEL-ENTRY := ipaddr,mark
+
+TEST-ENTRY := ipaddr,mark
+```
+- markmask value: Cho phép bạn thiết lập các bit bạn quan tâm đến các gói tin được đánh dấu.
+- Giá trị của mark từ 0 đến 4294967295.
+- Ví dụ:
+```sh
+ipset create foo hash:ip,mark
+ipset add foo 192.168.1.0/24,555
+```
+
+
 ###2.4.13 hash:net,port,net
+
+
 ###2.4.14 hash:net,iface
 - Sử dụng hash để lưu trữ các địa chỉ mạng có kích thước khác nhau đi kèm với interface.
-###2.4.15 list:set
+```sh
+CREATE-OPTIONS := [ family { inet | inet6 } ] | [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
+ADD-ENTRY := netaddr,[physdev:]iface
+
+ADD-OPTIONS := [ timeout value ] [ nomatch ] [ packets value ] [ bytes value ] [ comment string ] [ skbmark value ] [ skbprio value ] [ skbqueue value ]
+
+DEL-ENTRY := netaddr,[physdev:]iface
+
+TEST-ENTRY := netaddr,[physdev:]iface
+```
+- Ví dụ:
+```sh
+ipset create foo hash:net,iface
+ipset add foo 192.168.0/24,eth0
+ipset add foo 10.1.0.0/16,eth1
+ipset test foo 192.168.0/24,eth0
+```
+
+
+###2.4.15 list:set
+- Sẽ tạo ra một set mà chứa danh sách entry là tên các set khác.
+```sh
+CREATE-OPTIONS := [ size value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
+
+ADD-ENTRY := setname [ { before | after } setname ]
+
+ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment string ] [ skbmark value ] [ skbprio value ] [ skbqueue value ]
+
+DEL-ENTRY := setname [ { before | after } setname ]
+
+TEST-ENTRY := setname [ { before | after } setname ]
+```
+
+- size value: Kích thước của list. Mặc định là 8
+
+-Ví dụ:
+```sh
+ipset add set1 set3 set5
+```
+
+<a name="save_restore"></a>
+##2.5 Lưu và khôi phục lại cấu hình của ipset
+- Để Lưu vào file `/etc/ipset/ipset.conf`
+```sh
+ipset save > /etc/ipset/ipset.conf
+```
+
+- Khôi phục lại cấu hình từ file `/etc/ipset/ipset.conf`
+```sh
+ipset restore < /etc/ipset/ipset.conf
+```
 
 <a name="iptables_ipsets"></a>
 #3. Kết hợp IPTables và IP sets.
+- Sử dụng module **set** để kết hợp giữa IPTables và IP sets.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|--set setname flag[,flag...]| flag là src (địa chỉ nguồn) hoặc dst (địa chỉ đích). Ví dụ `iptables -A FORWARD -m set --set test src,dst
+`|
+
+- TARGET SET: Để thêm hoặc xóa các entries của ipset nhờ IPTables.
+
+|Command|Ý nghĩa|
+|:---:|:---:|
+|--add-set setname flag[,flag...]| Thêm địa chỉ hoặc port vào set. Flag là src hoặc dst|
+|--del-set setname flag[,flag...]| Xóa địa chỉ hoặc port của set. Flag là src hoặc dst|
+
+
 <a name="demo"></a>
 #4. Demo
 <a name="thamkhao"></a>
@@ -313,6 +404,6 @@ ipset test foo 192.168.0/24,25
 - http://ipset.netfilter.org/
 - http://ipset.netfilter.org/ipset.man.html
 - https://workshop.netfilter.org/2013/wiki/images/a/ab/Jozsef_Kadlecsik_ipset-osd-public.pdf
-
+- http://linux.die.net/man/8/iptables
 
 
