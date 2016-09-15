@@ -9,6 +9,31 @@ IP sets có thể giúp bạn:
 Bởi vì ipset được lữu trữ dưới dạng cấu trúc dữ liệu, hỗ trợ tìm kiếm hiệu quả hơn.
 Khác với iptables chain được lưu trữ và xử lý tuyến tính.
 
+# Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1. Cài đặt](#caidat)
+- [2. Commands](#command)
+	- [2.1 COMMANDS](#commands)
+	- [2.2 OTHER OPTIONS](#options)
+	- [2.3 CREATE AND ADD OPTIONS](#other_options)
+	- [2.4 SET TYPES](#types)
+		- [2.4.1 bitmap:ip](#bitmap_ip)
+		- [2.4.2 bitmap:ip,mac](#bitmap_ip_mac)
+		- [2.4.3 bitmap:port](#bitmap_port)
+		- [2.4.4 hash:ip](#hash_ip)
+		- [2.4.5 hash:mac](#hash_mac)
+		- [2.4.6 hash:net](#hash_net)
+		- [2.4.7 hash:net,net](#)
+		- [2.4.8 hash:ip,port](#hash_ip_port)
+		- [2.4.9 hash:net,port](#hash_net_port)
+		- [2.4.10 hash:ip,port,ip](#)
+		- [2.4.11 hash:ip,port,net](#)
+		- [2.4.12 hash:ip,mark](#ha)
+- [3. Kết hợp IPTables và IP sets.](#iptables_ipsets)
+- [4. Demo](#demo)
+- [5. Tài liệu tham khảo](#thamkhao)
+
 <a name="caidat"></a>
 #1. Cài đặt
 - Trên ubuntu
@@ -36,6 +61,7 @@ chỉ định match specifition của một rule trong iptables.
 ipset [ OPTIONS ] COMMAND [ COMMAND-OPTIONS ]
 ```
 Trong đó: 
+
 COMMANDS := { create | add | del | test | destroy | list | save | restore | flush | rename | swap | help | version | - }
 
 OPTIONS := { -exist | -output { plain | save | xml } | -quiet | -resolve | -sorted | -name | -terse | -file filename }
@@ -93,7 +119,7 @@ Nếu bạn đã có kích thước ngẫu nhiên của mạng, sử dụng hash
 ###2.4.1 bitmap:ip
 - Sử dụng một loại bộ nhớ, trong đó mỗi bit đại diện cho một địa chỉ IP. Có thể lưu trữ đến 65535 entries (Địa chỉ lớp B /16).
 - Các OPTIONS trong set này: 
-
+```sh
 CREATE-OPTIONS := range fromip-toip|ip/cidr [ netmask cidr ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := { ip | fromip-toip | ip/cidr }
@@ -103,7 +129,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := { ip | fromip-toip | ip/cidr }
 
 TEST-ENTRY := ip
-
+```
 - Ví dụ:
 ```sh
 ipset create foo bitmap:ip range 192.168.0.0/16
@@ -116,7 +142,7 @@ ipset test foo 192.168.1.1
 - Sử dụng một loại bộ nhớ, trong đó mỗi 8 bytes đại diện cho 1 địa chỉ ip và MAC address. Có thể lưu trữ đến 65535 địa chỉ ip kết hợp địa chỉ MAC.
 - Lưu ý, chỉ có thể lưu địa chỉ MAC nguồn.
 - Các OPTIONS trong set này:
-
+```sh
 CREATE-OPTIONS := range fromip-toip|ip/cidr [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := ip[,macaddr]
@@ -126,7 +152,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := ip[,macaddr]
 
 TEST-ENTRY := ip[,macaddr]
-
+```
 - Ví dụ:
 ```sh
 ipset create foo bitmap:ip,mac range 192.168.0.0/16
@@ -138,7 +164,7 @@ ipset test foo 192.168.1.1
 ###2.4.3 bitmap:port
 - Sử dụng một loại bộ nhớ, mà trong đó mỗi bit đại diện cho một port (TCP/UDP). Có thể lưu trữ lên đến 65535 ports.
 
-
+```sh
 REATE-OPTIONS := range fromport-toport [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := { [proto:]port | [proto:]fromport-toport }
@@ -148,7 +174,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := { [proto:]port | [proto:]fromport-toport }
 
 TEST-ENTRY := [proto:]port
-
+```
 - Ví dụ:
 ```sh
 ipset create foo bitmap:port range 0-1024
@@ -159,7 +185,7 @@ ipset test foo 80
 <a name="hash_ip"></a>
 ###2.4.4 hash:ip
 - Sử dụng hash để lưu trữ địa chỉ IP hoặc địa chỉ mạng. Cùng kích thước địa chỉ mạng có thể được lưu trữ trong một hash:ip.
-
+```sh
 CREATE-OPTIONS := [ family { inet | inet6 } ] | [ hashsize value ] [ maxelem value ] [ netmask cidr ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := ipaddr
@@ -169,7 +195,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := ipaddr
 
 TEST-ENTRY := ipaddr
-
+```
 - Ví dụ:
 ```sh
 ipset create foo hash:ip netmask 30
@@ -180,7 +206,7 @@ ipset test foo 192.168.1.2
 <a name="hash_mac"></a>
 ###2.4.5 hash:mac
 - Sử dụng hash để lưu trữ địa chỉ MAC. 
-
+```sh
 CREATE-OPTIONS := [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := macaddr
@@ -190,7 +216,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := macaddr
 
 TEST-ENTRY := macaddr
-
+```
 - Ví dụ: 
 ```sh
 ipset create foo hash:mac
@@ -201,7 +227,7 @@ ipset test foo 01:02:03:04:05:06
 <a name="hash_net"></a>
 ###2.4.6 hash:net
 - Sử dụng hash để lưu trữ các mạng có kích thước khác nhau (CIDR).
-
+```sh
 CREATE-OPTIONS := [ family { inet | inet6 } ] | [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := netaddr
@@ -211,7 +237,7 @@ ADD-OPTIONS := [ timeout value ] [ nomatch ] [ packets value ] [ bytes value ] [
 DEL-ENTRY := netaddr
 
 TEST-ENTRY := netaddr
-
+```
 - Ví dụ:
 ```sh
 ipset create foo hash:net
@@ -227,7 +253,7 @@ ipset add foo 192.168.0/24
 <a name="hash_ip_port"></a>
 ###2.4.8 hash:ip,port
 - Sử dụng hash để lưu trữ địa chỉ IP và port đi kèm.
-
+```sh
 CREATE-OPTIONS := [ family { inet | inet6 } ] | [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := ipaddr,[proto:]port
@@ -237,7 +263,7 @@ ADD-OPTIONS := [ timeout value ] [ packets value ] [ bytes value ] [ comment str
 DEL-ENTRY := ipaddr,[proto:]port
 
 TEST-ENTRY := ipaddr,[proto:]port
-
+```
 ```sh
 ipset create foo hash:ip,port
 ipset add foo 192.168.1.0/24,80-82
@@ -249,7 +275,7 @@ ipset test foo 192.168.1.1,80
 <a name="hash_net_port"></a>
 ###2.4.9 hash:net,port
 - Sử dụng hash để lưu trữ địa chỉ mạng và port đi kèm
-
+```sh
 CREATE-OPTIONS := [ family { inet | inet6 } ] | [ hashsize value ] [ maxelem value ] [ timeout value ] [ counters ] [ comment ] [ skbinfo ]
 
 ADD-ENTRY := netaddr,[proto:]port
@@ -259,7 +285,7 @@ ADD-OPTIONS := [ timeout value ] [ nomatch ] [ packets value ] [ bytes value ] [
 DEL-ENTRY := netaddr,[proto:]port
 
 TEST-ENTRY := netaddr,[proto:]port
-
+```
 - Ví dụ:
 ```sh
 ipset create foo hash:net,port
