@@ -24,15 +24,22 @@ Khác với iptables chain được lưu trữ và xử lý tuyến tính.
 		- [2.4.4 hash:ip](#hash_ip)
 		- [2.4.5 hash:mac](#hash_mac)
 		- [2.4.6 hash:net](#hash_net)
-		- [2.4.7 hash:net,net](#)
+		- [2.4.7 hash:net,net](#hash_net_net)
 		- [2.4.8 hash:ip,port](#hash_ip_port)
 		- [2.4.9 hash:net,port](#hash_net_port)
-		- [2.4.10 hash:ip,port,ip](#)
-		- [2.4.11 hash:ip,port,net](#)
-		- [2.4.12 hash:ip,mark](#ha)
+		- [2.4.10 hash:ip,port,ip](#hash_ip_port_ip)
+		- [2.4.11 hash:ip,port,net](#hash_ip_port_net)
+		- [2.4.12 hash:ip,mark](#hash_ip_mark)
+		- [2.4.13 hash:net,port,net](#hash_net_port_net)
+		- [2.4.14 hash:net,iface](#hash_net_iface)
+		- [2.4.15 list:set](#list_set)
 	- [2.5 Lưu và khôi phục lại cấu hình của ipset](#save_restore)
 - [3. Kết hợp IPTables và IP sets.](#iptables_ipsets)
 - [4. Demo](#demo)
+	- [4.1 Yêu cầu](#yeucau)
+	- [4.2 Mô hình](#mohinh)
+	- [4.3 Thực hiện](#thuchien)
+	- [4.4 Kết quả](#ketqua)
 - [5. Tài liệu tham khảo](#thamkhao)
 
 <a name="caidat"></a>
@@ -112,9 +119,6 @@ OPTIONS := { -exist | -output { plain | save | xml } | -quiet | -resolve | -sort
 
 <a name="types"></a>
 ##2.4 SET TYPES
-Nếu bạn muốn lưu trữ một mạng con (subnets) từ một mạng nào đó (say /24 blocks from a /8 network), sử dụng bitmap:ip.
-Nếu bạn muốn lưu trức mạng cùng kích thước, một cách ngẫu nhiên, sử dụng hash:ip.
-Nếu bạn đã có kích thước ngẫu nhiên của mạng, sử dụng hash:net
 
 <a name="bitmap_ip"></a>
 ###2.4.1 bitmap:ip
@@ -321,6 +325,7 @@ ipset add set9 192.168.1.0/24,tcp:443
 ipset test foo 192.168.0/24,25
 ```
 
+<a name="hash_ip_port_ip"></a>
 ###2.4.10 hash:ip,port,ip
 - Sử dụng hash để lưu trữ địa chỉ ip, port và một địa chỉ ip khác. (Đặt các thiết lập src,dst với các thông số này).
 
@@ -343,7 +348,7 @@ ipset add foo 192.168.1.1,80,10.0.0.1
 iptables -A INPUT -p tcp --dport 80 -j set --match-set foo src,dst,dst -j DROP
 ```
 
-
+<a name="hash_ip_port_net"></a>
 ###2.4.11 hash:ip,port,net
 - Sử dụng hash để lưu trữ địa chỉ ip, port và một địa chỉ mạng.
 ```sh
@@ -366,10 +371,7 @@ ipset add foo 192.168.2,25,10.1.0.0/16
 ipset test foo 192.168.1,80.10.0.0/24
 ```
 
-
-
-
-
+<a name="hash_ip_mark"></a>
 ###2.4.12 hash:ip,mark
 - Sử dụng hash để lưu trữ địa chỉ ip và đánh dấu các gói tin đi kèm với địa chỉ ip này.
 ```sh
@@ -391,7 +393,7 @@ ipset create foo hash:ip,mark
 ipset add foo 192.168.1.0/24,555
 ```
 
-
+<a name="hash_net_port_net"></a>
 ###2.4.13 hash:net,port,net
 - Sử dụng hash để lưu trữ địa chỉ mạng, port và một địa chỉ mạng khác.
 ```sh
@@ -413,7 +415,7 @@ ipset add foo 192.168.2.0/24,25,10.1.0.0/16
 ipset test foo 192.168.1.1,80,10.0.0.1
 ```
 
-
+<a name="hash_net_iface"></a>
 ###2.4.14 hash:net,iface
 - Sử dụng hash để lưu trữ các địa chỉ mạng có kích thước khác nhau đi kèm với interface.
 ```sh
@@ -435,7 +437,7 @@ ipset add foo 10.1.0.0/16,eth1
 ipset test foo 192.168.0/24,eth0
 ```
 
-
+<a name="list_set"></a>
 ###2.4.15 list:set
 - Sẽ tạo ra một set mà chứa danh sách entry là tên các set khác.
 ```sh
@@ -450,9 +452,9 @@ DEL-ENTRY := setname [ { before | after } setname ]
 TEST-ENTRY := setname [ { before | after } setname ]
 ```
 
-- size value: Kích thước của list. Mặc định là 8
+- size value: Kích thước của list. Mặc định là 8 set.
 
--Ví dụ:
+- Ví dụ:
 ```sh
 ipset add set1 set3 set5
 ```
@@ -471,7 +473,7 @@ ipset restore < /etc/ipset/ipset.conf
 
 <a name="iptables_ipsets"></a>
 #3. Kết hợp IPTables và IP sets.
-- Sử dụng module **set** để kết hợp giữa IPTables và IP sets.
+- MODULE **set** để chỉ định IPTables dùng set từ IP sets.
 
 |Command|Ý nghĩa|
 |:---:|:---:|
@@ -484,14 +486,63 @@ ipset restore < /etc/ipset/ipset.conf
 |**--add-set** setname flag[,flag...]| Thêm địa chỉ hoặc port vào set. Flag là src hoặc dst|
 |**--del-set** setname flag[,flag...]| Xóa địa chỉ hoặc port của set. Flag là src hoặc dst|
 
-
 <a name="demo"></a>
 #4. Demo
+
+<a name="yeucau"></a>
+##4.1 Yêu cầu:
+- Dùng IPset tạo ra một set chứa danh sách các địa chỉ IP được phép truy cập vào dịch vụ ssh của server.
+- Các ip khác ngoài danh sách trên, sẽ bị chặn.
+
+<a name="mohinh"></a>
+##4.2 Mô hình
+
+![](http://i.imgur.com/A9UGbmQ.jpg)
+
+- SSH server: 10.10.10.200
+- Các máy được phép truy cập ssh: 10.10.10.1 và 10.10.10.10
+- Các máy còn lại,không thể truy cập được. (Ví dụ: 10.10.10.150).
+
+<a name="thuchien"></a>
+##4.3 Thực hiện:
+- Cấu hình ipset:
+```sh
+ipset create ssh hash:ip
+ipset add ssh 10.10.10.1
+ipset add ssh 10.10.10.10
+```
+- Dòng 1: Tạo ra set có tên `ssh`, theo kiểu `hash:ip`.
+- Dòng 2 và 3: Thêm danh sách các địa chỉ ip vào danh sách vừa tạo ở trên.
+
+![](http://image.prntscr.com/image/86c07ad146fc40379e8af2123c4f5378.png)
+
+- Cấu hình IPTables:
+```sh
+iptables -P INPUT DROP
+iptables -A INPUT -p tcp --dport 22 -m set --match-set ssh src -j ACCEPT
+```
+- Dòng 1: Đặt default policy cho chain INPUT của tables Filter là DROP. Các gói tin nếu không match với các rules thì mặc định sẽ bị DROP.
+- Dòng 2: Với các gói tin tcp, truy cập đến dịch vụ ssh của server mà có địa chỉ nguồn nằm trong danh sách `ssh` thì cho phép đi qua.
+
+![](http://image.prntscr.com/image/aee003b5f98443f197add020dfccdaf0.png)
+
+<a name="ketqua"></a>
+##4.4 Kết quả
+- Trên máy 10.10.10.10
+
+![](http://image.prntscr.com/image/b06b8f80d24b4e558f7e1448abd36f5f.png)
+
+- Trên máy 10.10.10.150
+
+![](http://image.prntscr.com/image/b9792b8808aa434db0c9752c3621c2bf.png)
+
+**=> Nếu không sử dụng ipset, thì ta phải add từng rules cho từng địa chỉ ip, để IPTables cho phép truy cập ssh. Nếu sử dụng ipset,
+ta chỉ đơn giản là tạo ra danh sách chứa các địa chỉ ip và add chỉ một rules IPTables duy nhất.**
+
 <a name="thamkhao"></a>
 #5. Tài liệu tham khảo
 - http://ipset.netfilter.org/
 - http://ipset.netfilter.org/ipset.man.html
 - https://workshop.netfilter.org/2013/wiki/images/a/ab/Jozsef_Kadlecsik_ipset-osd-public.pdf
 - http://linux.die.net/man/8/iptables
-
-
+- http://www.linuxjournal.com/content/advanced-firewall-configurations-ipset
