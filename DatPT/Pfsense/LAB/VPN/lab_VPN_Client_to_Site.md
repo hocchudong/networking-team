@@ -23,96 +23,118 @@
 
 - Tạo chứng chỉ như sau :
 
-![scr3](http://i.imgur.com/6ae4nUC.png)
+![scr1](http://i.imgur.com/isnIs4W.png)
 
-- Sau đó nhấn `ADD` rồi điền các thiết lập:
+- Sau đó tại tab `CAs` chúng ta tạo một Certificate như sau :
 
-![scr4](http://i.imgur.com/Rs8JeKc.png)
+![scr2](http://i.imgur.com/UJ16BTx.png)
 
-- Sau khi thiết lập xong chứng chỉ chúng ta tạo một user để chúng ta có thể đăng nhập khi sử dụng máy chủ pfSense là máy chủ
-OpenVPN:
+```sh
+Ở đây ta cần chú ý rằng ở phần METHOD chúng ta chọn mục Create an internal Certificate Authority, các mục khác chúng ta 
+thiết lập bình thường.
+```
 
-![scr5](http://i.imgur.com/oWI7tlT.png)
+- Sau khi tạo xong Certificate chúng ta tạo một user cho `VPN` tại `System` => `User manager` :
 
-- Chọn `ADD` để thêm user mới , sau đó thiết lập như sau:
+![scr3](http://i.imgur.com/NpmQTHM.png)
 
-![scr6](http://i.imgur.com/NaJADxv.png)
+- Tại đây chúng ta tạo một user như sau :
 
-- Chọn vào ô `Click to create a user certificate`
+![scr4](http://i.imgur.com/T89oOUc.png)
 
-![scr7](http://i.imgur.com/43Lh3Nb.png)
+![scr5](http://i.imgur.com/9rtht58.png)
 
-- Đặt tên cũng như chọn vào chứng chỉ mà chúng ta vừa mới tạo trước đó. Sau đó `SAVE` lại.
 
-![scr8](http://i.imgur.com/VJT4hxt.png)
+- Ở đây chúng ta cần phải tạo ra `user` và `password` dùng để xác thực bên phía client. và sau đó chúng ta phải tạo thêm một
+`CA for user` - một chứng chỉ cho user sau đó `SAVE` lại.
 
-- Tiếp theo chúng ta vào `OpenVPN` để tiến hành các thiết lập cho máy chủ OpenVPN:
+- Tiếp theo chúng ta thiết lập VPN tại `VPN` => `OpenVPN` :
 
-![scr9](http://i.imgur.com/sVz4BpG.png)
+![scr6](http://i.imgur.com/SLBNAjg.png)
 
-- Chọn phần `Wizard` : 
+- Chọn tab `Wizards` :
 
-![scr10](http://i.imgur.com/Kjwxlve.png)
+![scr7](http://i.imgur.com/G4El5xs.png)
 
 - Chọn `NEXT`
 
-![scr11](http://i.imgur.com/AqT7T62.png)
+![scr8](http://i.imgur.com/nIOrlHA.png)
 
-- `NEXT` tiếp :
+- Chọn `NEXT` tiếp :
 
-![scr12](http://i.imgur.com/ywNHx4c.png)
-
-- Sau đó chọn `Add new certificate`
-
-![scr13](http://i.imgur.com/8MXVyXX.png)
-
-```sh
-Nếu phần này không tạo mới chúng ta sẽ gặp lỗi khi kết nối , lý do :
-
- This error is created the wrong type of Certificate for the OpenVPN Server.
- The OpenVPN Server requires a certificate of the type:Server
- The OpenVPN Client requires a certificate of the type:User
- Both certificates must use the same Certificate of Authority for their creation
-```
-
-- Điền tên sau đó `Create new certificate` lại :
-
-![scr14](http://i.imgur.com/uT9DhJ9.png)
-
-- Tiếp theo đó thiết lập `Port` rồi `NEXT`
-
-![scr15](http://i.imgur.com/sYcAyCg.png)
-
-- Sau đó `NEXT` tiếp:
-
-![scr16](http://i.imgur.com/wATbEEO.png)
-
-- Và `Finish` :
-
-![scr17](http://i.imgur.com/Tgoi1Vo.png)
-
-- Sau đó để lấy được file VPN cho máy client sử dụng ta chon phần `Client export`
-
-![scr18](http://i.imgur.com/Pa4aOp4.png)
-
-- Tùy theo phiên bản client mà chúng ta tải về file cần thiết. 
-
-![scr19](http://i.imgur.com/22iVSyf.png)
-
-- Bật OpenVPN trên máy client :
-
-![scr20](http://i.imgur.com/SrfY9uC.png)
-
-- Chạy file mà chúng ta vừa tải về cho client:
-
-![scr21](http://i.imgur.com/cpkZASq.png)
-
-- Connect từ CLient vào :
-
-![scr22](http://i.imgur.com/9Se7AyC.png)
-
-![scr23](http://i.imgur.com/OO2EUvp.png)
-
-![scr1](http://i.imgur.com/A4zr4Wz.png)
+![scr9](http://i.imgur.com/8YERx5U.png)
 
 
+- Chọn `Add new Certificate` - tạo chứng chỉ Server . VPN cần có `CA for user` và `CA for server` trước đó chúng ta
+mới tại `CA for user` khi tạo user còn `CA for server` chưa có thì chúng ta phải tạo. 
+
+![scr10](http://i.imgur.com/Jy8bWIg.png)
+
+- Thiết lập như hình sau đó nhấn `Create new Certificate`
+
+![scr11](http://i.imgur.com/BvRbYBX.png)
+
+- Tiếp theo chúng ta đến bước thiết lập connection cho VPN , chúng ta cần thiết lập các thông số như interface, protocol,
+local port  (Cần chú ý để lúc sau chúng ta cần NAT port này), tunnel network (tùy ý, đây là sẽ dải mạng mà VPn sẽ cấp phát cho các client khi truy cập vào VPN server).
+
+![scr12](http://i.imgur.com/bYtMwV7.png)
+
+![scr13](http://i.imgur.com/ZsNN9vI.png)
+
+- Sau khi thiết lập xong các thông số chúng ta chọn `NEXT`
+
+- Tiếp theo chúng ta tích vào 2 ô `Firewall rule` và `OpenVPN rule` sau đó chọn `NEXT`
+
+![scr14](http://i.imgur.com/bbG6hZv.png)
+
+- Chọn `Finish` để kết thúc.
+
+![scr15](http://i.imgur.com/MfbglVe.png)
+
+- Vì `pfSense` là `Firewall` do đó các port từ server `pfSense` sẽ bị chặn , do đó để client có thể kết nối được với 
+VPN server chúng ta còn phải mở port OpenVPN mà chúng ta đã cấp , cụ thể ở đây là port `1194`. Để mở port `1194` hay các
+port khác tương tự chúng ta vào tab `Firewall` chọn `NAT`
+
+![scr16](http://i.imgur.com/OOx0D86.png)
+
+- Tại tab `Port Forward` chúng ta chọn `ADD` để thêm mới rồi thiết lập các tùy chọn như sau:
+
+![scr17](http://i.imgur.com/j8hpnwY.png)
+
+- Redirect target IP : là địa chỉ của pfSense server.
+- Port  : Chọn OpenVPN.
+- protocol : TCP/UDP.
+
+- `SAVE` lại và sau đó tiến hành export file VPN để dùng tại Client. 
+
+- CHọn tab `VPN` rồi chọn `OpenVPN`
+
+![scr18](http://i.imgur.com/cV4ealY.png)
+
+- Chọn tab `Client export`
+
+![scr19](http://i.imgur.com/XyvUoDJ.png)
+
+- Chọn file phù hợp với phiên bản của hệ điều hành :
+
+![scr20](http://i.imgur.com/bqK1XcS.png)
+
+- Tại Client chúng ta bật `OpenVPN GUI`
+
+![scr21](http://i.imgur.com/B5XiJqc.png)
+
+- Chạy file export vừa tải về :
+
+![scr22](http://i.imgur.com/EhGON3E.png)
+
+- Sau đó connect vào :
+
+![scr23](http://i.imgur.com/pz6lKjz.png)
+
+- Điền user - pass:
+
+![scr24](http://i.imgur.com/TDc8eEq.png)
+
+- Và đây là kết quả thu được :
+
+![scr25](http://i.imgur.com/mcJwFgU.png)
