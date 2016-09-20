@@ -217,52 +217,50 @@ maxretry  = 6
 
 - Một số câu lệnh đơn giản:
 
-|command|Ý nghĩa|
-|:---:|:---:|
-|start|starts the server and the jails|
-|reloads| the configuration|
-|reload *<JAIL>*|reloads the jail <JAIL>|
-|stop|stops all jails and terminate the server|
-|status|gets the current status of the server|
-|ping|tests if the server is alive|
+```sh
+start: starts the server and the jails
+reloads: the configuration
+reload *<JAIL>*: reloads the jail <JAIL>
+stop: stops all jails and terminate the server
+status: gets the current status of the server
+ping: tests if the server is alive
+```
 
 - LOGGING
 
-|command|Ý nghĩa|
-|:---:|:---:|
-|set loglevel *<LEVEL>*||sets logging level to <LEVEL>. 0 is minimal, 4 is debu
-|get loglevel|gets the logging level|
-|set logtarget *<TARGET>*|sets logging target to <TARGET>. Can be STDOUT, STDERR, SYSLOG or a file|
-|get logtarget|gets logging target|
-
+```sh
+set loglevel *<LEVEL>*: sets logging level to <LEVEL>. 0 is minimal, 4 is debug
+get loglevel: gets the logging level
+set logtarget *<TARGET>*: sets logging target to <TARGET>. Can be STDOUT, STDERR, SYSLOG or a file
+get logtarget: gets logging target
+```
 
 - JAIL CONTROL
 
-|command|Ý nghĩa|
-|:---:|:---:|
-|add <JAIL> <BACKEND>|creates <JAIL> using <BACKEND>|
-|start <JAIL>|starts the jail <JAIL>|
-|stop <JAIL>|stops the jail <JAIL>. The jail is removed|
-|status <JAIL>|gets the current status of <JAIL>|
-
+```sh
+add <JAIL> <BACKEND>: creates <JAIL> using <BACKEND>
+start <JAIL>: starts the jail <JAIL>
+stop <JAIL>: stops the jail <JAIL>. The jail is removed
+status <JAIL>: gets the current status of <JAIL>
+```
 
 - JAIL CONFIGURATION
 
-|command|Ý nghĩa|
-|:---:|:---:|
-|set <JAIL> idle on/off|sets the idle state of <JAIL>|
-|set <JAIL> addignoreip <IP>|adds <IP> to the ignore list of <JAIL>|
-|set <JAIL> delignoreip <IP>|removes <IP> from the ignore list of <JAIL>|
-|...|...|
+```sh
+set <JAIL> idle on/off: sets the idle state of <JAIL>
+set <JAIL> addignoreip <IP>: adds <IP> to the ignore list of <JAIL>
+set <JAIL> delignoreip <IP>: removes <IP> from the ignore list of <JAIL>
+......
+```
 
 - JAIL INFORMATION
 
-|command|Ý nghĩa|
-|:---:|:---:|
-|get <JAIL> logpath|gets the list of the monitored files for <JAIL>|
-|get <JAIL> ignoreip|gets the list of ignored IP addresses for <JAIL>|
-|get <JAIL> timeregex|gets the regular expression used for the time detection for <JAIL>|
-|...|...|
+```sh
+get <JAIL> logpath: gets the list of the monitored files for <JAIL>
+get <JAIL> ignoreip: gets the list of ignored IP addresses for <JAIL>
+get <JAIL> timeregex: gets the regular expression used for the time detection for <JAIL>
+......
+```
 
 <a name="regex"></a>
 ##4.3 fail2ban-regex
