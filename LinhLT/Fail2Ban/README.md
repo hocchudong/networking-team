@@ -4,6 +4,21 @@
 - Fail2Ban có các filters cho những dịch vụ như apache, courier, ssh.
 
 #Mục lục
+- [1. Cài đặt](#caidat)
+- [2. Cấu hình](#cauhinh)
+	- [2.1 General settings](#general_setting)
+	- [2.2 Jailing](#Jailing)
+	- [2.3 Filter expressions](#filter)
+	- [2.4 Actions](#actions)
+- [3. Cơ chế hoạt động.](#hoatdong)
+- [4. Câu Lệnh](#caulenh)
+	- [4.1 fail2ban-server](#server)
+	- [4.2 fail2ban-client](#client)
+	- [4.3 fail2ban-regex](#regex)
+- [5. Demo](#demo)
+- [6. Nâng cao - Viết filter, action cho một ứng dụng???](#nangcao)
+- [7. Tham khảo](#thamkhao)
+
 
 <a name="caidat"></a>
 #1. Cài đặt
@@ -37,8 +52,9 @@ python setup.py install
 #2. Cấu hình
 - Fail2Ban gồm 2 thành phần là client và server. 
 - Mặc định trên ubuntu, khi cài đặt thì thư mục chứa các file cấu hình mặc định của fail2ban là `/etc/fail2ban/`
-- Cấu trúc thư mục:
-/etc/fail2ban/
+- Cấu trúc thư mục: `/etc/fail2ban/`
+
+```sh
 ├── action.d
 │   ├── dummy.conf
 │   ├── hostsdeny.conf
@@ -61,6 +77,8 @@ python setup.py install
 ├── jail.conf
 └── jail.local
 └── jail.d
+```
+
 
 - Mỗi file `.conf` có thể được ghi đè bởi file cùng tên có đuôi `.local`. 
 - Đầu tiên, file `.conf` được đọc, sau đó là file có đuôi `.local`. Như vậy, file `.local` không cần phải include mọi thứ tương
