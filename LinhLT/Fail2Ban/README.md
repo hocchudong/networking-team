@@ -50,7 +50,7 @@ python setup.py install
 ```
 <a name="cauhinh"></a>
 #2. Cấu hình
-- Fail2Ban gồm 2 thành phần là client và server. 
+- Fail2Ban gồm 2 thành phần là client và server. Server có nhiệm vụ lắng nghe. Còn client gửi các lệnh đến server.
 - Mặc định trên ubuntu, khi cài đặt thì thư mục chứa các file cấu hình mặc định của fail2ban là `/etc/fail2ban/`
 - Cấu trúc thư mục: `/etc/fail2ban/`
 
