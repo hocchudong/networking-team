@@ -5,24 +5,25 @@
 
 #Mục lục
 - [1. Cài đặt](#caidat)
-- [2. Cấu hình](#cauhinh)
-	- [2.1 General settings](#general_setting)
-	- [2.2 Jailing](#Jailing)
-		- [2.2.1 Các thông số mặc định](#jail_macdinh)
-		- [2.2.2 Các thông số cho dịch vụ cụ thể.](#jail_cuthe)
-	- [2.3 Filter expressions](#filter)
-	- [2.4 Actions](#actions)
-- [3. Cơ chế hoạt động.](#hoatdong)
-	- [3.1 Loading the Initial Configuration Files](#config_files)
-	- [3.2 Parsing the Action Files to Determine Starting Actions](#action_files)
-	- [3.3 Parsing the Filter Files to Determine Filtering Rules](#filter_files)
-- [4. Câu Lệnh](#caulenh)
-	- [4.1 fail2ban-server](#server)
-	- [4.2 fail2ban-client](#client)
-	- [4.3 fail2ban-regex](#regex)
-- [5. Demo](#demo)
-- [6. Nâng cao - Viết filter, action cho một ứng dụng???](#nangcao)
-- [7. Tham khảo](#thamkhao)
+- [2. Các thành phần trong fail2ban](#thanhphan)
+- [3. Cấu hình](#cauhinh)
+	- [3.1 General settings](#general_setting)
+	- [3.2 Jailing](#Jailing)
+		- [3.2.1 Các thông số mặc định](#jail_macdinh)
+		- [3.2.2 Các thông số cho dịch vụ cụ thể.](#jail_cuthe)
+	- [3.3 Filter expressions](#filter)
+	- [3.4 Actions](#actions)
+- [4. Cơ chế hoạt động.](#hoatdong)
+	- [4.1 Loading the Initial Configuration Files](#config_files)
+	- [4.2 Parsing the Action Files to Determine Starting Actions](#action_files)
+	- [4.3 Parsing the Filter Files to Determine Filtering Rules](#filter_files)
+- [5. Câu Lệnh](#caulenh)
+	- [5.1 fail2ban-server](#server)
+	- [5.2 fail2ban-client](#client)
+	- [5.3 fail2ban-regex](#regex)
+- [6. Demo](#demo)
+- [7. Nâng cao - Viết filter, action cho một ứng dụng???](#nangcao)
+- [8. Tham khảo](#thamkhao)
 
 
 <a name="caidat"></a>
@@ -52,10 +53,21 @@ git clone git://github.com/fail2ban/fail2ban.git
 cd fail2ban-0.10.0
 python setup.py install
 ```
+
+<a name="thanhphan"></a>
+#2. Các thành phần trong fail2ban
+- Các phiên bản trước 0.6, Fail2ban là một `daemon`, có nghĩa là một ứng dụng chạy nền.
+Điều này làm cho nó không thể cấu hình lại trong khi nó đang chạy. 
+- Để khắc phục nhược điểm trên, kể từ các phiên bản sau, Fail2Ban gồm 2 thành phần là client và server.
+- Phần Server sẽ lắng nghe lệnh trên Unix socket. Đồng thời nó theo dõi các file log và thực thi các hành động để cấm một host.
+- Fail2ban-server không biết về các file cấu hình. Các file cấu hình sẽ được đọc bởi fail2ban-client và gửi đến fail2ban-server.
+- Giao tiếp giữa Client và Server thực hiện qua socket thông qua một giao thức được định nghĩa. 
+Điều này cho phép ta có thể thay đổi các cấu hình trong khi fail2ban-server đang chạy mà không cần phải khởi động lại dịch vụ này.
+
 <a name="cauhinh"></a>
-#2. Cấu hình
-- Fail2Ban gồm 2 thành phần là client và server. Server có nhiệm vụ lắng nghe. Còn client gửi các lệnh đến server.
+#3. Cấu hình
 - Mặc định trên ubuntu, khi cài đặt thì thư mục chứa các file cấu hình mặc định của fail2ban là `/etc/fail2ban/`
+
 - Cấu trúc thư mục: `/etc/fail2ban/`
 
 ```sh
@@ -90,7 +102,7 @@ python setup.py install
 - Bạn nên thực hiện sửa đổi ở file `.local`. Nó sẽ giúp ta tránh một số lỗi không đáng có khi tiến hành nâng cấp. 
 
 <a name="general_setting"></a>
-##2.1 General settings
+##3.1 General settings
 - File cấu hình chính của Fail2Ban là `fail2ban.conf`, dùng để cấu hình dịch vụ fail2ban-server.
 - Trong file này, ta cấu hình các thông số là:
 	- logging level
@@ -123,14 +135,14 @@ pidfile = /var/run/fail2ban/fail2ban.pid
 ```
 
 <a name="jailing"></a>
-##2.2 Jailing
+##3.2 Jailing
 - Jail định nghĩa chính sách (tên dịch vụ, cổng, đường dẫn file log,.. )cho những ứng dụng, để từ đó fail2ban sẽ gây ra một hành động bảo vệ cho ứng dụng đó.
 - File cấu hình jail mặc định `/etc/fail2ban/jail.conf`. Trong file này, một số ứng dụng phổ biến được định nghĩa như apache, ssh, dovecot, mysql,...
 - Ta còn có thể đưa mỗi dịch vụ ra một file jail riêng, nằm trong thư mục `jail.d` để tiện quản lý.
 - Mỗi jail dựa trên bộ lọc ứng dụng `(/etc/fail2ban/fileter.d)` để phát hiện ra các cuộc tấn công.
 
 <a name="jail_macdinh"></a>
-###2.2.1 Các thông số mặc định.
+###3.2.1 Các thông số mặc định.
 ```sh
 [DEFAULT]
 
@@ -177,7 +189,7 @@ action = %(action_)s
 - Các lệnh **action** ở dưới sẽ gọi đến hành động `banaction` cùng với danh sách các tham số cần thiết cho việc ban.
 
 <a name="jail_cuthe"></a>
-###2.2.2 Các thông số cho dịch vụ cụ thể.
+###3.2.2 Các thông số cho dịch vụ cụ thể.
 - Bên dưới phần mặc định, có phần cho các dịch vụ cụ thể mà có thể được sử dụng để ghi đè lên các thiết lập mặc định
 - Mỗi dịch vụ quy định như thế này:
 
@@ -210,7 +222,7 @@ maxretry  = 6
 	- Ở đây, các thông số khác không được quy định, nó sẽ dùng các thông số mặc định ở trên.
 
 <a name="filter"></a>
-##2.3 Filter expressions
+##3.3 Filter expressions
 - Thư mục `filter.d` chứa các file filter của các dịch vụ.
 - Các file filter này được sử dụng để phát hiện break-in attempts, password failures, lọc ra các địa chỉ ip...
 - Các tập tin lọc sẽ xác định các đường mà fail2ban sẽ tìm kiếm trong các file bản ghi để xác định đặc điểm vi phạm.
@@ -262,7 +274,7 @@ Trong ví dụ trên, tập tin `common.conf` được đọc và được đặ
 
 
 <a name="actions"></a>
-##2.4 Actions
+##3.4 Actions
 - Thư mục `action.d` chứa các file định nghĩa các hành động của các dịch vụ khác nhau.
 - Khi đạt đến giới hạn mà ta quy định ở trên jail thì hành động này sẽ được thực thi. 
 - Tập tin này có trách nhiệm thiết lập tường lửa, với một cấu trúc cho phép dễ dàng thay đổi việc cấm các host độc hại, thêm và xóa các host khi cần thiết.
@@ -306,14 +318,14 @@ Tức có nghĩa là nó sẽ không ghi đè khi mà các tham số đã đư�
 có tham số cần thiết, thì nó mới lấy giá trị ở đây. **(ĐÃ KIỂM CHỨNG)**.
 
 <a name="hoatdong"></a>
-#3. Cơ chế hoạt động.
+#4. Cơ chế hoạt động.
 - Khi fail2ban được cấu hình để theo dõi các bản ghi của một dịch vụ. Nó sẽ nhìn vào **filter** đã được cấu hình cụ thể cho dịch vụ đó.
 - Các **filter** được thiết kế để xác định lỗi xác thực cho dịch vụ cụ thể thông qua việc sử dụng các biểu thức chính quy phức tạp, gọi là **failregex**.
 - Khi một dòng trong file log của dịch vụ đó trùng với **failregex** trong **filter**, **action** được định nghĩa cho dịch vụ đó sẽ được thực thi.
 - **action** có thể được cấu hình để làm nhiều việc khác nhau. Hành động mặc định là sẽ cấm các địa chỉ ip bởi rules của iptables. 
 
 <a name="config_files"></a>
-##3.1 Loading the Initial Configuration Files
+##4.1 Loading the Initial Configuration Files
 - Đầu tiên, tập tin `fail2ban.conf` được đọc để xác định các điều kiện mà các quá trình chính nên hoạt động theo.
 Nó tạo ra các socket pid, và file log nếu cần thiết và bắt đầu sử dụng chúng.
 - Tiếp theo, fail2ban đọc file `jail.conf` để biết chi tiết cấu hình.
@@ -326,7 +338,7 @@ Nếu nó tìm thấy, nó sử dụng các thông số xác định theo phần
 Bất kỳ tham số mà không được tìm thấy trong phần của dịch vụ thì sẽ sử dụng các thông số định nghĩa trong phần **[DEFAULT]**.
 
 <a name="action_files"></a>
-##3.2 Parsing the Action Files to Determine Starting Actions
+##4.2 Parsing the Action Files to Determine Starting Actions
 - Fail2ban tìm kiếm một `action` để thực hiện chính sách ban/unbanning. Nếu nó không tìm thấy, nó sẽ thực hiện theo hành động mặc định được xác định ở trên.
 - Các chỉ thị hành động bao gồm tên của tập tin hành động (s) sẽ được đọc, cũng như các giá trị quan trọng như tên,...
 Tên của dịch vụ thường được dùng với biến `__name__`. 
@@ -342,7 +354,7 @@ Nó sẽ sử dụng những giá trị này để tự động tạo ra các qu
 Nếu một biến nào đó đã không được thiết lập, nó có thể nhìn vào các giá trị mặc định trong các tập tin hành động để điền vào chỗ trống.
 
 <a name="filter_files"></a>
-##3.3 Parsing the Filter Files to Determine Filtering Rules
+##4.3 Parsing the Filter Files to Determine Filtering Rules
 - Fail2ban sẽ tìm kiếm trong thư mục `filter.d` để tìm tập tin lọc phù hợp với kết thúc bằng `.conf`.
 Nó đọc tập tin này để xác định các các trường mà có thể được sử dụng để **match** với dòng vi phạm.
 Sau đó nó tìm kiếm một tập tin lọc phù hợp với kết thúc với `.local` để có cần sửa đổi thông tin gì không.
@@ -369,10 +381,10 @@ Sau đó nó gọi hành động `actionban` cấm `client`vi phạm. Nó đặt
 Điều này thường xóa các chuỗi có chứa các quy tắc fail2ban và loại bỏ các quy tắc từ chuỗi INPUT đã gây ra để chuyển các **traffic** đến chuỗi đó.
 
 <a name="caulenh"></a>
-#4. Câu Lệnh
+#5. Câu Lệnh
 
 <a name="server"></a>
-##4.1 fail2ban-server
+##5.1 fail2ban-server
 - fail2ban server là đa luồng và lắng nghe lệnh trên Unix socket. Nó không biết về các file cấu hình. 
 - Khi khởi động, server ở trạng thái `default` và không có `jails` nào được định nghĩa.
 ```sh
@@ -386,7 +398,7 @@ Sau đó nó gọi hành động `actionban` cấm `client`vi phạm. Nó đặt
 - fail2ban-server thường được sử dụng trong trường hợp debugging lỗi.
 
 <a name="client"></a>
-##4.2 fail2ban-client 
+##5.2 fail2ban-client 
 - is the frontend of Fail2ban.
 - Nó kết nối đến file socket của server và gửi các lệnh đến server.
 - fail2ban-client có thể đọc các file config và gửi đến server.
@@ -454,7 +466,7 @@ get <JAIL> timeregex: gets the regular expression used for the time detection fo
 ```
 
 <a name="regex"></a>
-##4.3 fail2ban-regex
+##5.3 fail2ban-regex
 - Dùng để thử nghiệm các biểu thức chính quy. (This tools can test regular expressions for "fail2ban".)
 
 ```sh
@@ -487,12 +499,12 @@ string: a string representing an 'ignoreregex'
 filename: path to a filter file (filter.d/sshd.conf)
 ```
 <a name="demo"></a>
-#5. Demo
-##5.1 Mô hình
+#6. Demo
+##6.1 Mô hình
 - Attacker có địa chỉ là 10.10.10.10 tấn công brute password dịch vụ ssh của webserver 10.10.10.150
 - Dùng fail2ban kết hợp IPTables để chặn cuộc tấn công này.
 
-##5.2 Cấu hình
+##6.2 Cấu hình
 - Tạo file `ssh.conf` trong thư mục `jail.d`
 ```sh
 [ssh]
@@ -544,7 +556,7 @@ target     prot opt source               destination
 RETURN     all  --  anywhere             anywhere  
 ```
 
-##5.3 Kết quả
+##6.3 Kết quả
 - Rules IPTables:
 
 ![](http://image.prntscr.com/image/0deab067df9c402b959e844d81a27b30.png)
@@ -588,13 +600,14 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 
 
 <a name="nangcao"></a>
-#6. Nâng cao - Viết filter, action cho một ứng dụng???
+#7. Nâng cao - Viết filter, action cho một ứng dụng???
  
 <a name="thamkhao"></a>
-#7. Tham khảo
+#8. Tham khảo
 - http://www.fail2ban.org/wiki/index.php/MANUAL_0_8
 - https://linux.die.net/man/1/fail2ban-server
 - https://linux.die.net/man/1/fail2ban-client
 - https://linux.die.net/man/1/fail2ban-regex
 - http://xmodulo.com/configure-fail2ban-apache-http-server.html
 - https://www.digitalocean.com/community/tutorials/how-fail2ban-works-to-protect-services-on-a-linux-server
+- http://www.fail2ban.org/wiki/index.php/FEATURE_Client_Server
