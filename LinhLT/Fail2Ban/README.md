@@ -491,6 +491,7 @@ filename: path to a filter file (filter.d/sshd.conf)
 ##5.1 Mô hình
 - Attacker có địa chỉ là 10.10.10.10 tấn công brute password dịch vụ ssh của webserver 10.10.10.150
 - Dùng fail2ban kết hợp IPTables để chặn cuộc tấn công này.
+
 ##5.2 Cấu hình
 - Tạo file `ssh.conf` trong thư mục `jail.d`
 ```sh
@@ -542,8 +543,10 @@ Chain fail2ban-ssh (1 references)
 target     prot opt source               destination         
 RETURN     all  --  anywhere             anywhere  
 ```
+
 ##5.3 Kết quả
 - Rules IPTables:
+
 ![](http://image.prntscr.com/image/0deab067df9c402b959e844d81a27b30.png)
 
 
@@ -580,6 +583,7 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 ```
 
 - Kết quả trên máy Attacker:
+
 ![](http://image.prntscr.com/image/537c5b0591c64b4096ec67d6e4e8d121.png)
 
 
