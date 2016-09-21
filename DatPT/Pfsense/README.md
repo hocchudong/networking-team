@@ -33,3 +33,5 @@
 - https://luonghoanghuong.wordpress.com/tag/pfsense/
 - http://data.biitbook.com/Pf-Sense.pdf
 - http://www.hvaonline.net/hvaonline/posts/list/39917.hva
+- https://doc.pfsense.org/index.php/Routing_internet_traffic_through_a_site-to-site_OpenVPN-connection_in_PfSense_2.1
+- http://serenity-networks.com/step-by-step-guide-on-how-to-create-a-site-to-site-vpn-with-pfsense-using-openvpn-with-a-pre-shared-key/
