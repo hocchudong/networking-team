@@ -8,9 +8,14 @@
 - [2. Cấu hình](#cauhinh)
 	- [2.1 General settings](#general_setting)
 	- [2.2 Jailing](#Jailing)
+		- [2.2.1 Các thông số mặc định](#jail_macdinh)
+		- [2.2.2 Các thông số cho dịch vụ cụ thể.](#jail_cuthe)
 	- [2.3 Filter expressions](#filter)
 	- [2.4 Actions](#actions)
 - [3. Cơ chế hoạt động.](#hoatdong)
+	- [3.1 Loading the Initial Configuration Files](#config_files)
+	- [3.2 Parsing the Action Files to Determine Starting Actions](#action_files)
+	- [3.3 Parsing the Filter Files to Determine Filtering Rules](#filter_files)
 - [4. Câu Lệnh](#caulenh)
 	- [4.1 fail2ban-server](#server)
 	- [4.2 fail2ban-client](#client)
@@ -119,10 +124,12 @@ pidfile = /var/run/fail2ban/fail2ban.pid
 
 <a name="jailing"></a>
 ##2.2 Jailing
-- Jail định nghĩa chính sách cho những ứng dụng mà fail2ban sẽ gây ra một hành động bảo vệ cho ứng dụng đó.
+- Jail định nghĩa chính sách (tên dịch vụ, cổng, đường dẫn file log,.. )cho những ứng dụng, để từ đó fail2ban sẽ gây ra một hành động bảo vệ cho ứng dụng đó.
 - File cấu hình jail mặc định `/etc/fail2ban/jail.conf`. Trong file này, một số ứng dụng phổ biến được định nghĩa như apache, ssh, dovecot, mysql,...
 - Ta còn có thể đưa mỗi dịch vụ ra một file jail riêng, nằm trong thư mục `jail.d` để tiện quản lý.
 - Mỗi jail dựa trên bộ lọc ứng dụng `(/etc/fail2ban/fileter.d)` để phát hiện ra các cuộc tấn công.
+
+<a name="jail_macdinh"></a>
 ###2.2.1 Các thông số mặc định.
 ```sh
 [DEFAULT]
@@ -150,7 +157,7 @@ action = %(action_)s
 - **ignoreip**: fail2ban sẽ bỏ qua địa chỉ ip này. Tức có nghĩa là mặc dù có địa chỉ ip này trong danh sách log mà nó phát hiện được nhưng fail2ban sẽ không ban địa chỉ ip này.
 	Giá trị mặc định là 127.0.0.1/8, tức là chính nó.
 - **bantime**: Thời gian, tính bằng giây. Là khoảng thời gian mà ip sẽ bị ban. Mặc định là 600s = 10 phút.
-- **findtime**, **maxretry**: Số lần thử tối đa trong khoảng thời gian findtime (tính bằng giây).
+- **findtime**, **maxretry**: Số lần thử tối đa trong khoảng thời gian **findtime** (tính bằng giây).
 	Ví dụ với dịch vụ ssh, với giá trị mặc định (maxretry=3, findtime=600s) thì trong vòng 600s, bạn chỉ được phép đăng nhập thất bại 3 lần.
 - **backend**: Mục này quy định cách mà fail2ban sẽ theo dõi log của bạn như thế nào. Ở đây có các tùy chọn là `pyinotify` hoặc `gamin` hoặc `polling` hoặc `auto`.
 	- **pyinotify**: Pyinotify is a Python module for monitoring filesystems changes. Pyinotify relies on a Linux Kernel feature (merged in kernel 2.6.13) called inotify.
@@ -169,6 +176,7 @@ action = %(action_)s
 - **chain**: Chain mà nó sẽ được cấu hình để gửi các lưu lượng đến fail2ban chain.
 - Các lệnh **action** ở dưới sẽ gọi đến hành động `banaction` cùng với danh sách các tham số cần thiết cho việc ban.
 
+<a name="jail_cuthe"></a>
 ###2.2.2 Các thông số cho dịch vụ cụ thể.
 - Bên dưới phần mặc định, có phần cho các dịch vụ cụ thể mà có thể được sử dụng để ghi đè lên các thiết lập mặc định
 - Mỗi dịch vụ quy định như thế này:
@@ -233,6 +241,24 @@ failregex = ^%(__prefix_line)s(?:error: PAM: )?[aA]uthentication (?:failure|erro
 ignoreregex =
 ```
 
+- Các `[INCLUDES]` ở đầu, xác định bộ lọc tập tin khác được đọc trước khi hoặc sau khi tập tin này.
+Trong ví dụ trên, tập tin `common.conf` được đọc và được đặt trước khi các dòng khác trong tập tin này. Điều này thiết lập một số thông số mà chúng ta sẽ sử dụng trong lệnh cấu hình.
+- Tiếp theo, ta có một `[Definition]`, phần này định nghĩa các quy tắc cho phù hợp bộ lọc.
+	- Đầu tiên, ta đặt tên của **daemon** đang giám sát bằng cách sử dụng các tham số `_daemon`.
+	- Tiếp theo, `failregex` đặt các mẫu mà sẽ kích hoạt khi một dòng tương ứng trong `file log` được tìm thấy.
+	Đây là những biểu thức thông thường và nó sẽ `match` dựa trên các lỗi khác nhau, có thể được hiện ra khi một người dùng không xác thực
+	một cách chính xác.
+	- `%(__prefix_line)s` sẽ được thay thế bằng giá trị của một tham số được thiết lập trong file `common.conf`.
+	Ví dụ trong file `/var/log/auth.log` có nội dung như thế này:
+	```sh
+	May  6 18:18:52 localhost sshd[3534]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=101.79.130.213 
+	May  6 18:18:54 localhost sshd[3534]: Failed password for invalid user phil from 101.79.130.213 port 38354 ssh2
+	May  6 18:18:54 localhost sshd[3534]: Received disconnect from 101.79.130.213: 11: Bye Bye [preauth]
+	```
+	thì phần ``%(__prefix_line)s`` chính là `May  6 18:18:52 localhost sshd[3534]:`
+	- Phần còn lại chính là nội dung các lỗi mà failregex sẽ match với file log.
+- Ở phía dưới cùng, bạn có thể thấy tham số `ignoreregex`, mà hiện nay đang trống.
+Điều này có thể được sử dụng để loại trừ một trường hợp cụ thể.
 
 
 <a name="actions"></a>
@@ -265,6 +291,19 @@ protocol = tcp
 chain = INPUT
 ```
 
+- Cũng tương tự như ở trên, đầu tiên phần `[INCLUDES]` xác định file `iptables-blocktype.conf` cần đọc trước khi đọc nội dung file này.
+- Tiếp theo, phần `actionstart` xác định các hành động cần làm khi fail2ban khởi chạy.
+Các tham số **<name>, <chain>, <protocol>, <port>** được lấy từ giá trị trong file `jail.*`.
+Tất cả các thông số được thiết lập bởi các tập tin khác được tham chiếu bằng cách tên tham số trong dấu ngoặc nhọn. `<param_name>`
+- `actionstop`: Các hành động được làm khi Fail2ban dừng lại.
+- `actioncheck`: Dùng để kiểm tra chắc chắn rằng các chain đã được tạo ra (actionstart) trước khi thêm các rules.
+- `actionban`: Quy tắc này hoạt động bằng cách thêm một rule mới trong chain mình tạo ra ở bước `actionstart`.
+Các rules này `match` địa chỉ IP nguồn của client vi phạm (tham số `<ip>` được đọc từ các bản ghi uỷ quyền khi giới hạn maxretry đạt được)
+ và tham số `<blocktype>` được xác định bởi tham số `blocktype` trong file `iptables-blocktype.conf` được xác định ở phần `[INCLUDES]`.
+- `actionunban`: Dùng đễ gỡ bỏ lệnh cấm.
+- `[Init]`: Phần này cung cấp một số giá trị mặc định trong trường hợp nó không đọc được các giá trị trong file `jail.*`.
+Tức có nghĩa là nó sẽ không ghi đè khi mà các tham số đã được quy định đầy đủ trong file `jail.*`. Chỉ khi nào trong file `jail.*` không
+có tham số cần thiết, thì nó mới lấy giá trị ở đây. **(ĐÃ KIỂM CHỨNG)**.
 
 <a name="hoatdong"></a>
 #3. Cơ chế hoạt động.
@@ -273,6 +312,7 @@ chain = INPUT
 - Khi một dòng trong file log của dịch vụ đó trùng với **failregex** trong **filter**, **action** được định nghĩa cho dịch vụ đó sẽ được thực thi.
 - **action** có thể được cấu hình để làm nhiều việc khác nhau. Hành động mặc định là sẽ cấm các địa chỉ ip bởi rules của iptables. 
 
+<a name="config_files"></a>
 ##3.1 Loading the Initial Configuration Files
 - Đầu tiên, tập tin `fail2ban.conf` được đọc để xác định các điều kiện mà các quá trình chính nên hoạt động theo.
 Nó tạo ra các socket pid, và file log nếu cần thiết và bắt đầu sử dụng chúng.
@@ -285,6 +325,7 @@ Cuối cùng, nó tìm kiếm trong thư mục `jail.d` một lần nữa, đọ
 Nếu nó tìm thấy, nó sử dụng các thông số xác định theo phần đó để xây dựng một chính sách và quyết định những hành động được yêu cầu.
 Bất kỳ tham số mà không được tìm thấy trong phần của dịch vụ thì sẽ sử dụng các thông số định nghĩa trong phần **[DEFAULT]**.
 
+<a name="action_files"></a>
 ##3.2 Parsing the Action Files to Determine Starting Actions
 - Fail2ban tìm kiếm một `action` để thực hiện chính sách ban/unbanning. Nếu nó không tìm thấy, nó sẽ thực hiện theo hành động mặc định được xác định ở trên.
 - Các chỉ thị hành động bao gồm tên của tập tin hành động (s) sẽ được đọc, cũng như các giá trị quan trọng như tên,...
@@ -300,6 +341,7 @@ Nó đọc giá trị `actionstart` để xem các hành động cần làm đ�
 Nó sẽ sử dụng những giá trị này để tự động tạo ra các quy tắc thích hợp.
 Nếu một biến nào đó đã không được thiết lập, nó có thể nhìn vào các giá trị mặc định trong các tập tin hành động để điền vào chỗ trống.
 
+<a name="filter_files"></a>
 ##3.3 Parsing the Filter Files to Determine Filtering Rules
 - Fail2ban sẽ tìm kiếm trong thư mục `filter.d` để tìm tập tin lọc phù hợp với kết thúc bằng `.conf`.
 Nó đọc tập tin này để xác định các các trường mà có thể được sử dụng để **match** với dòng vi phạm.
