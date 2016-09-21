@@ -488,6 +488,100 @@ filename: path to a filter file (filter.d/sshd.conf)
 ```
 <a name="demo"></a>
 #5. Demo
+##5.1 Mô hình
+- Attacker có địa chỉ là 10.10.10.10 tấn công brute password dịch vụ ssh của webserver 10.10.10.150
+- Dùng fail2ban kết hợp IPTables để chặn cuộc tấn công này.
+##5.2 Cấu hình
+- Tạo file `ssh.conf` trong thư mục `jail.d`
+```sh
+[ssh]
+enabled  = true
+port     = ssh
+filter   = sshd
+logpath  = /var/log/auth.log
+maxretry = 3
+```
+
+- Khởi động lại fail2ban
+```sh
+service fail2ban restart
+```
+- Kiểm tra trạng thái fail2ban : 
+```sh
+root@adk:~# fail2ban-client status
+Status
+|- Number of jail:	1
+`- Jail list:		ssh
+```
+- IPTables trước khi khởi chạy fail2ban
+```sh
+root@adk:/etc/fail2ban/jail.d# iptables -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination     
+```
+
+- IPTables sau khi chạy fail2ban
+```sh
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+fail2ban-ssh  tcp  --  anywhere             anywhere             multiport dports ssh
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain fail2ban-ssh (1 references)
+target     prot opt source               destination         
+RETURN     all  --  anywhere             anywhere  
+```
+##5.3 Kết quả
+- Rules IPTables:
+![](http://image.prntscr.com/image/0deab067df9c402b959e844d81a27b30.png)
+
+
+![](http://image.prntscr.com/image/b94956495ebb40a5b32b43cd09741c43.png)
+
+- Đoạn log `/var/log/auth.log`
+```sh
+Sep 21 11:05:06 adk sshd[2185]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=10.10.10.10  user=adk
+Sep 21 11:05:08 adk sshd[2185]: Failed password for adk from 10.10.10.10 port 51377 ssh2
+Sep 21 11:05:13 adk sshd[2185]: message repeated 2 times: [ Failed password for adk from 10.10.10.10 port 51377 ssh2]
+Sep 21 11:05:13 adk sshd[2185]: Connection closed by 10.10.10.10 [preauth]
+Sep 21 11:05:13 adk sshd[2185]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=10.10.10.10  user=adk
+Sep 21 11:05:16 adk sshd[2187]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=10.10.10.10  user=adk
+Sep 21 11:05:17 adk sshd[2187]: Failed password for adk from 10.10.10.10 port 51378 ssh2
+Sep 21 11:05:24 adk sshd[2187]: message repeated 2 times: [ Failed password for adk from 10.10.10.10 port 51378 ssh2]
+Sep 21 11:05:24 adk sshd[2187]: Connection closed by 10.10.10.10 [preauth]
+Sep 21 11:05:24 adk sshd[2187]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=10.10.10.10  user=adk
+Sep 21 11:05:28 adk sshd[2189]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=10.10.10.10  user=adk
+Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51379 ssh2
+```
+- Đoạn log `/var/log/fail2ban.log`
+```sh
+2016-09-21 11:04:50,153 fail2ban.server : INFO   Changed logging target to /var/log/fail2ban.log for Fail2ban v0.8.11
+2016-09-21 11:04:50,153 fail2ban.jail   : INFO   Creating new jail 'ssh'
+2016-09-21 11:04:50,176 fail2ban.jail   : INFO   Jail 'ssh' uses pyinotify
+2016-09-21 11:04:50,193 fail2ban.jail   : INFO   Initiated 'pyinotify' backend
+2016-09-21 11:04:50,194 fail2ban.filter : INFO   Added logfile = /var/log/auth.log
+2016-09-21 11:04:50,196 fail2ban.filter : INFO   Set maxRetry = 3
+2016-09-21 11:04:50,197 fail2ban.filter : INFO   Set findtime = 600
+2016-09-21 11:04:50,198 fail2ban.actions: INFO   Set banTime = 600
+2016-09-21 11:04:50,231 fail2ban.jail   : INFO   Jail 'ssh' started
+2016-09-21 11:05:31,447 fail2ban.actions: WARNING [ssh] Ban 10.10.10.10
+2016-09-21 11:15:31,552 fail2ban.actions: WARNING [ssh] Unban 10.10.10.10
+```
+
+- Kết quả trên máy Attacker:
+![](http://image.prntscr.com/image/537c5b0591c64b4096ec67d6e4e8d121.png)
+
 
 <a name="nangcao"></a>
 #6. Nâng cao - Viết filter, action cho một ứng dụng???
