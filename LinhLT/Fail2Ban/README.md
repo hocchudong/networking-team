@@ -601,7 +601,8 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 
 <a name="nangcao"></a>
 #7. Nâng cao - Viết filter, action cho một ứng dụng???
- 
+
+
 <a name="thamkhao"></a>
 #8. Tham khảo
 - http://www.fail2ban.org/wiki/index.php/MANUAL_0_8
