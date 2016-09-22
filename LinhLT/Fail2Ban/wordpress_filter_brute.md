@@ -40,7 +40,7 @@ root@adk:~# tailf /var/log/apache2/access.log
 10.10.10.1 - - [22/Sep/2016:08:45:38 +0700] "GET /wordpress/wp-admin/ HTTP/1.1" 200 14128 "http://10.10.10.150/wordpress/wp-login.php" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36"
 ```
 
-OK, các bạn thấy sự khác biệt khi đăng nhập thành công và đăng nhập thất bại rồi chứ? So sánh 2 đoạn log mà tôi đã cung cấp ở 
+- OK, các bạn thấy sự khác biệt khi đăng nhập thành công và đăng nhập thất bại rồi chứ? So sánh 2 đoạn log mà tôi đã cung cấp ở 
 trên cho thấy:
 	- Nếu bạn đăng nhập thành công, blog sẽ tiến hành chuyển hướng sang trang `/wordpress/wp-admin/` với http code là `302`.
 	- Nếu bạn đăng nhập thất bại, blog sẽ vẫn đứng yên ở trang này, với http code là `200`.
@@ -56,7 +56,7 @@ failregex = ^<HOST>.*"POST \/wordpress\/wp-login\.php HTTP\/1\.1" 200
 ignoreregex =  
 ```
 
-Chỉ với dòng lệnh đơn giản như vậy, fail2ban sẽ nhận ra được những ip nào (dựa vào biến <HOST>) đăng nhập thất bại.
+Chỉ với dòng lệnh đơn giản như vậy, fail2ban sẽ nhận ra được những ip nào (dựa vào biến HOST) đăng nhập thất bại.
 
 Sau đó, tôi sẽ đặt một vài thiết lập như đăng nhập thất bại mấy lần thì sẽ bị block,..
 ```sh
@@ -72,7 +72,7 @@ maxretry = 3
 findtime = 60
 ```
 
-Ở đây, tôi đã thiết lập:
+- Ở đây, tôi đã thiết lập:
 	- Đăng nhập thất bại 3 lần trong vòng 1 phút thì sẽ bị block. Thời gian bị block 20 phút :)). Sau 20 phút, fail2ban sẽ tự động unban.
 	- `/var/log/apache2/access.log` là đường dẫn file log mà blog của tôi được ghi lại.
 	- `action = iptables-multiport[name=wp, port="http", protocol="tcp", chain="INPUT"]` Dòng này chỉ rõ khi đạt đến giới hạn, thì fail2ban
