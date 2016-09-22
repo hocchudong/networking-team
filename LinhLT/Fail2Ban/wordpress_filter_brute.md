@@ -1,7 +1,7 @@
 #Filter chặn brute password cho blog wordpress.
 
 Ở phần này, tôi sẽ trình bày cách mà tôi viết filter, chặn brute password vào blog của tôi. Blog của tôi sử dụng 
-mã nguồn wordpress.
+mã nguồn wordpress, chạy trên apache2, trên hệ điều hành ubuntu server 14.04.
 
 Vào một ngày đẹp trời, tôi nhâm nhi ly cafe và login vào server thông qua ssh để kiểm tra hoạt động của server.
 Đập vào mắt tôi là hàng trăm dòng log đăng nhập thất bại vào blog wordpress với tài khoản admin. Lập tức, tôi nghĩ ngay đến việc phải

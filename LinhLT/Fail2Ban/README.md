@@ -601,7 +601,53 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 
 <a name="nangcao"></a>
 #7. Nâng cao - Viết filter, action cho một ứng dụng???
+##7.1 Filter
+Để viết filter cho fail2ban, đòi hỏi các bạn phải biết viết các biểu thức chính quy để bóc tách dữ liệu. Đồng thời, phải nhận biết
+được trường hợp nào là bình thường, trường hợp nào là không bình thường (trong file log).
 
+Dưới đây là những ký hiệu cơ bản thường được sử dụng trong biểu thức chính quy.
+
+|Ký hiệu|Ý nghĩa|
+|:---:|:---:|
+|^	 |Tìm kiếm giá trị từ đầu chuỗi nguồn|
+|$	 |Tìm kiếm giá trị từ cuối chuỗi nguồn|
+|\	 |Tìm kiếm các giá trịđặt biệt trong chuỗi|
+|.	 |Đại diện cho một ký tự bất ký|
+|[]	 |Tìm tập hợp các ký tự|
+|–	 |Lấy các ký tự trong một khoảng nào đó (thường dùng với ký hiệu [])|
+|^	 |Nếu một ký tự ^ đứng trước một ký tự hay tập hợp có nghĩa là phủ định của ký hiệu hay tập hợp đó|
+|(A|B|C)	 |Lựa chọn các giá trị A hoặc B hoặc C|
+| *	 |0 hoặc nhiều lần xuất hiện|
+|+	 |1 hoặc nhiều lần xuất hiện|
+|?	 |0 hoặc 1 lần xuất hiện|
+|{n,m}	 |Số lần xuất hiện của ký tự từ n đến m lần|
+|*?	 |0 lần xuất hiện|
+|+?	 |1 lần xuất hiện|
+|??	 |0 lần xuất hiện|
+|\w	 |Tương đương [A-z0-9_]|
+|\W	 |Tương đương [^A-z0-9_]|
+|\s	 |Tập hợp những ký tự khoảng trắng|
+|\S	 |Tập hợp những ký tự không là ký tự khoảng trắng|
+|\d	 |[0-9] Tập hợp những ký tự từ 0 đến 9|
+|\D	 |[^0-9] Tập hợp những ký tự không thuộc từ 0 đến 9|
+|\A	 |^ Tìm kiếm giá trị từ đầu chuỗi nguồn|
+|\Z	 |$ Tìm kiếm giá trị từ cuốichuỗi nguồn|
+|\b	 |Tìm ở vị trí biên của một từ|
+|\B	 |Tìm ở vị trí không phải biên của một từ|
+
+##7.2 Action:
+Để viết được action, các bạn phải xác định được hành động phải làm khi mà fail2ban đã nhận biết được kẻ tấn công.
+Ví dụ, bạn muốn chặn kẻ tấn công bằng tường lửa iptables, thì bạn đồng thời phải biết thêm kiến thức iptables.
+
+- Bạn phải xác định các hành động trong những trường hợp:
+	- Khi fail2ban được khởi chạy.
+	- Khi fail2ban nhận diện được kẻ tấn công và tiến hành ban.
+	- Khi fail2ban unban.
+	- Khi fail2ban bị dừng lại.
+
+Trong phần này, mình có viết một ví dụ về chặn brute password admin ở blog dùng mã nguồn wordpress chạy trên apache. 
+Các bạn có thể tham khảo tại đây: 
+https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/Fail2Ban/wordpress_filter_brute.md
 
 <a name="thamkhao"></a>
 #8. Tham khảo
@@ -612,3 +658,4 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 - http://xmodulo.com/configure-fail2ban-apache-http-server.html
 - https://www.digitalocean.com/community/tutorials/how-fail2ban-works-to-protect-services-on-a-linux-server
 - http://www.fail2ban.org/wiki/index.php/FEATURE_Client_Server
+- http://laptrinhweb.org/tong-quan-ve-regular-expression/
