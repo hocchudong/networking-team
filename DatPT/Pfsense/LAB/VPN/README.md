@@ -6,7 +6,7 @@
 
 [2. Lab Client to Site](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/VPN/lab_VPN_Client_to_Site.md)
 
-[3. Lab Site to Site]()
+[3. Lab Site to Site](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/VPN/lab-VPN-site-to-site.md)
 
 #NGUỒN:
 
