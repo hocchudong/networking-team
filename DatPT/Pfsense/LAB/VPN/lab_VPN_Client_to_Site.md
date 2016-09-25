@@ -25,7 +25,11 @@
 
 ![scr1](http://i.imgur.com/isnIs4W.png)
 
-- Sau đó tại tab `CAs` chúng ta tạo một Certificate như sau :
+- Sau đó tại tab `CAs` chúng ta tạo một CA như sau :
+
+```sh
+CA này sẽ giúp chúng ta tạo certificate cho user và server
+```
 
 ![scr2](http://i.imgur.com/UJ16BTx.png)
 
@@ -34,7 +38,7 @@
 thiết lập bình thường.
 ```
 
-- Sau khi tạo xong Certificate chúng ta tạo một user cho `VPN` tại `System` => `User manager` :
+- Sau khi tạo xong CA chúng ta tạo một user cho `VPN` tại `System` => `User manager` :
 
 ![scr3](http://i.imgur.com/NpmQTHM.png)
 
@@ -75,7 +79,7 @@ mới tại `CA for user` khi tạo user còn `CA for server` chưa có thì ch�
 ![scr11](http://i.imgur.com/BvRbYBX.png)
 
 - Tiếp theo chúng ta đến bước thiết lập connection cho VPN , chúng ta cần thiết lập các thông số như interface, protocol,
-local port  (Cần chú ý để lúc sau chúng ta cần NAT port này), tunnel network (tùy ý, đây là sẽ dải mạng mà VPn sẽ cấp phát cho các client khi truy cập vào VPN server).
+local port , tunnel network (tùy ý, đây là sẽ dải mạng mà VPn sẽ cấp phát cho các client khi truy cập vào VPN server).
 
 ![scr12](http://i.imgur.com/bYtMwV7.png)
 
@@ -91,21 +95,7 @@ local port  (Cần chú ý để lúc sau chúng ta cần NAT port này), tunnel
 
 ![scr15](http://i.imgur.com/MfbglVe.png)
 
-- Vì `pfSense` là `Firewall` do đó các port từ server `pfSense` sẽ bị chặn , do đó để client có thể kết nối được với 
-VPN server chúng ta còn phải mở port OpenVPN mà chúng ta đã cấp , cụ thể ở đây là port `1194`. Để mở port `1194` hay các
-port khác tương tự chúng ta vào tab `Firewall` chọn `NAT`
-
-![scr16](http://i.imgur.com/OOx0D86.png)
-
-- Tại tab `Port Forward` chúng ta chọn `ADD` để thêm mới rồi thiết lập các tùy chọn như sau:
-
-![scr17](http://i.imgur.com/j8hpnwY.png)
-
-- Redirect target IP : là địa chỉ của pfSense server.
-- Port  : Chọn OpenVPN.
-- protocol : TCP/UDP.
-
-- `SAVE` lại và sau đó tiến hành export file VPN để dùng tại Client. 
+- Sau đó tiến hành export file VPN để dùng tại Client. 
 
 - CHọn tab `VPN` rồi chọn `OpenVPN`
 
@@ -138,3 +128,41 @@ port khác tương tự chúng ta vào tab `Firewall` chọn `NAT`
 - Và đây là kết quả thu được :
 
 ![scr25](http://i.imgur.com/mcJwFgU.png)
+
+##III. Kiểm thử kết quả.
+
+- Ở đây sẽ dùng một máy client kết nối vào VPN với IP là `172.16.1.15` và một máy trạm bên trong mạng VPN có địa chỉ IP là 
+`10.10.10.12` Sau đó chúng ta thực hiện PING đến máy trạm bên trong và dùng  Wireshark để thực hiện bắt và phân tích gói tin.
+
+- Sau khi máy client thực hiện kết nối VPN đến VPN server chúng ta tiến hành PING đến máy trạm :
+
+![scr1](http://i.imgur.com/k1PB3id.png)
+
+- Sau đó mở `Wireshark` lên mà tiến hành bắt gói tin trên đường truyền internet để phân tích, cụ thể ở đây là chúng ta cần phải 
+bắt gói tin trên card `VMnet8` :
+
+![scr2](http://i.imgur.com/T2LwDKE.png)
+
+- Tại đây chúng ta có thấy các gói tin có giao thức là VPN. Đây là những gói tin mà đã được mã hóa , chúng ta không thể biết được 
+giữa máy nguồn và máy đích đang thực hiện trao đổi thông tin gì ,....
+
+![scr3](http://i.imgur.com/oR1m3MD.png)
+
+- Sau đó chúng ta cần bắt gói tin khi đã được giải mã ở tại VPN server , để thực hiện bắt được gói tin này chúng ta cần kết nối 
+đến card mạng bên trong VPN server ở đây là `VMnet1`
+
+![scr5](http://i.imgur.com/60mx7Rv.png)
+
+- Ở đây ta có thể thấy được máy nguồn và máy đích đang trao đổi thông tin gì với nhau, cụ thể ở đây là máy nguồn và máy đích
+đang thực hiện PING đến nhau, và chúng ta cũng có thể thấy được đâu là gói reply cũng như đâu là gói request.
+
+```sh
+Như vậy thông qua kết quả kiểm thử chúng ta đã thấy được rằng gói tin trên đường truyền internet của VPN sẽ được mã hóa và 
+người ngoài bắt được cũng không thể nào biết được rằng chúng ta đang thực hiện gì trên đường hầm ảo đó.
+```
+
+##IV. Lưu ý khi thực hiện bài lab.
+
+- Vì chúng ta thực hiện trên môi trường lab cho nên chúng ta cần tắt chức năng `Block IP private` ở interface WAN.
+
+![scr10](http://i.imgur.com/SOtlCbh.png)

@@ -76,3 +76,35 @@ site to site chúng ta có thể đồng nhất mạng giữa 2 hoặc nhiều �
 - Ở đây mình sẽ sử dụng một máy client WIN 7 trong LAN SITE A thực hiện PING đến SITE B :
 
 ![scr14](http://i.imgur.com/hxU65Ou.png)
+
+##III. Kiểm thử kết quả.
+
+- Ở đây chúng ta sẽ tiến hành kiểm thử kết quả bằng cách PING giữa 2 máy trạm , mỗi máy nằm trong một VPN và dùng Wireshark 
+bắt gói tin để kiểm chứng sự đảm bảo của gói tin. Ở đây một máy có địa chỉ IP là `10.10.10.12` và máy kia là `10.10.20.12`
+
+- Sau khi kết nối VPN giữa 2 site với nhau chúng ta tiến hành PING giữa 2 máy trạm với nhau :
+
+![scr7](http://i.imgur.com/HiWu1Zc.png)
+
+- Sau đó dùng Wireshark bắt gói tin trên Card `VMnet8` , chúng ta sẽ thấy được những gói tin có giao thức ESP (của IPsec) 
+các gói tin này đã được mã hóa và chúng ta không thể biết bên trong mang gì và hoạt động bên trong là gì.
+
+![scr8](http://i.imgur.com/3weaI87.png)
+
+- Tiếp tục thực hiện trên Card `VMnet1` thì chúng ta có thể thấy được các gói tin đã được mã hóa và đang thực hiện PING với nhau 
+được thể hiện qua giao thức ICMP mà chúng ta đã bắt được :
+
+![scr9](http://i.imgur.com/LBkWn7a.png)
+
+```sh
+Kết quả kiểm thử cho ta thấy được rằng gói tin khi truyền trên intenet thì sẽ được đảm bảo an toàn và sẽ được giải mã khi đã 
+về tới VPN server an toàn.
+```
+
+##IV. Các lưu ý khi thực hiện bài lab.
+
+- Vì chúng ta thực hiện trên môi trường lab cho nên chúng ta cần tắt chức năng `Block IP private` ở interface WAN.
+
+![scr10](http://i.imgur.com/SOtlCbh.png)
+
+- Khi kết nối giữa các máy trạm với nhau chúng ta nên tắt firewall của Windows đi.
