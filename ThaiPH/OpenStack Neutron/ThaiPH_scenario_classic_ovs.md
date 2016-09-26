@@ -20,7 +20,7 @@
 
 <h2><a name="pre">1. Yêu cầu</a></h2>
 <div>
-    Mô hình cài đặt gồm 3 node (controller + network + compute) hoặc 2 node (controller và network + compute):
+    Mô hình cài đặt gồm 3 node (controller + network + compute) hoặc 2 node (controller và network + compute), cài đặt OpenStack phiên bản Mitaka:
     <ul>
         <li>Controller node cần 1 card mạng <b>management</b></li>
         <li>Network node cần 4 card mạng: management, project tunnel networks, VLAN project networks, external. OpenvSwitch bridge <b>br-vlan</b> phải chứa 1 port trên VLAN interface và OpenvSwitch bridge <b>br-ex</b> chứa một port trên external interface.</li>
