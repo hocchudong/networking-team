@@ -1,0 +1,124 @@
+# Kịch bản triển khai OpenStack cơ bản với OpenvSwitch
+# Mục lục
+<h3><a href="#pre">1. Yêu cầu</a></h3>
+<h3><a href="#arch">2. Kiến trúc</a></h3>
+<h3><a href="#flow">3. Packet flow</a></h3>
+<h3><a href="#cfg">4. Cấu hình</a></h3>
+<h3><a href="#ref">5. Tham khảo</a></h3>
+
+---
+<i>
+    Kịch bản triển khai này cho phép các user không có đặc quyền ddwpcj quản lý mạng ảo bên trong một project, bao gồm các thành phần sau:
+    <ul>
+        <li><b>Project (tenant) networks: </b> Cung cấp kết nối cho các instance trên một project. Các người dùng thông thường có thể quản lý các project network trong giới hạn mà người quản trị cấp cho họ. Project network có thể sử dụng VLAN, GRE hoặc VXLAN (trong bài này sử dụng VXLAN transport). Project neworks thông thường sử dụng các địa chỉ private IP và không thể kết nối ra mạng ngoài. Các địa chỉ IP trên project network được gọi là <b>fixed IP</b> addresses.</li>
+        <li><b>External networks: </b>Cung cấp kết nối ra mạng ngoài hay internet, được tạo bởi người quản trị, tương tác với hạ tầng mạng vật lý. External network có thể sử dụng VLAN hoặc flat phụ thuộc vào hạ tầng mạng vật lý.</li>
+        <li><b>Các routers: </b>cung cấp SNAT, DNAT và floating IP map với fixed IP để cung cấp kết nối mạng cho các instances.</li>
+        <li><b>Các dịch vụ hỗ trợ: </b>Bao gồm DHCP và metadata.</li>
+    </ul>
+</i>
+
+<h2><a name="pre">1. Yêu cầu</a></h2>
+<div>
+    Mô hình cài đặt gồm 3 node (controller + network + compute) hoặc 2 node (controller và network + compute):
+    <ul>
+        <li>Controller node cần 1 card mạng <b>management</b></li>
+        <li>Network node cần 4 card mạng: management, project tunnel networks, VLAN project networks, external. OpenvSwitch bridge <b>br-vlan</b> phải chứa 1 port trên VLAN interface và OpenvSwitch bridge <b>br-ex</b> chứa một port trên external interface.</li>
+        <li>Compute node cần 3 card mạng: management, project tunnel network và VLAN project networks. OpenvSwitch bridge <b>br-vlan</b> phải chứa 1 port trên VLAN interface.</li>        
+    </ul>
+    Tuy nhiên ở bài viết này, chỉ sử dụng mô hình gồm 2 node:
+    <ul>
+        <li><b>Controller + Network: </b> node này làm nhiệm vụ của cả controller và network node.       
+        </li>
+        <li><b>Compute node</b></li>
+    </ul>
+    Cả hai node này đều cấu hình gồm 3 card mạng (không sử dụng VLAN interface cho project network):
+    <ul>
+        <li><b>Management: </b>dải 10.10.10.0/24</li>
+        <li><b>Data: </b>dải 10.10.20.0/24</li>
+        <li><b>External: </b>dải 172.16.69.0/24 (dải này không cần thiết với compute node khi vận hành nhưng cần có để cài đặt các gói và cập nhật hệ thống).</li>
+    </ul>
+    Service layout như sau:
+    <br><br>
+    <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-services.png">
+    <br><br>
+</div>
+
+<h2><a name="arch">2. Kiến trúc</a></h2>
+<div>
+    <br><br>
+    <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-general.png">
+    <br><br>
+
+    <h3>Network node</h3>
+    <div>
+        Network node chứa các thành phần network như sau:
+        <ul>
+            <li>OpenvSwitch agent quản lý các switch ảo và kết nối giữa chúng, thông qua các port ảo tương tác với các thành phần khác như namespaces, linux bridge và các interfaces vật lý.</li>
+            <li>DHCP agent quản lý namespaces <b>qdhcp</b> - là namespaces cung cấp dịch vụ DHCP cho các instances sử dụng project networks.</li>
+            <li>L3 agent quản lý <b>qrouter</b> namespaces - thực hiện định tuyết giữa project network và external network và giữa các project network với nhau. Chúng cũng chuyển lưu lượng metadata giữa các máy ảo và metadata agent.</li>
+            <li>Metadata agent quản lý metadata của các instances.</li>
+        </ul>
+        <br><br>
+        <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-network1.png">
+
+        <br><br>
+
+        <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-network2.png">
+        <br><br>        
+    </div>
+    <h3>Compute node</h3>
+    <div>
+        Compute node chứa các thành phần sau:
+        <ul>
+            <li>OpenvSwitch agent</li>
+            <li>Linux bridges thực hiện security groups.</li>
+        </ul>
+        <br><br>
+        <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-compute1.png">
+        <br><br>
+        <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-compute2.png">
+        <br><br>
+    </div>
+</div>
+
+<h2><a name="flow">3. Packet flow</a></h2>
+<div>
+<i><b>Note: </b><b>North-south</b> network traffic chuyển lưu lượng giữa các máy ảo với mạng ngoài. <b>East-west</b> network traffic chuyển lưu lượng giữa các máy ảo.</i>
+<h3>Case 1: North-south với các instances với 1 địa chỉ fixed IP</h3>
+<div>
+    <ul>
+        <li>External network:  
+            <ul>
+                <li>Dải: 172.16.69.0/24</li>
+                <li>Pool: 172.16.69.143 - 172.16.69.149</li>
+                <li>Project network router interface (TR): 172.16.69.143</li>
+            </ul>
+        </li>
+        <li>Project network:
+            <ul>
+                <li>Dải: 192.168.224.0/24</li>
+                <li>Gateway: 192.168.224.1 - MAC address: TG</li>
+            </ul>
+        </li>
+        <li>Compute node 1: Máy ảo với IP 192.168.224.3 và MAC l1</li>
+        <li>Instance nằm trên compute node 1 và sử dụng project network, gửi packet ra mạng ngoài (internet).</li>
+    </ul>
+    Packet flow trên các node sẽ như sau:
+    <br><br>
+    <img src="http://docs.openstack.org/mitaka/networking-guide/_images/scenario-classic-ovs-flowns1.png">
+    <br><br>
+    <h3>Compute node</h3>
+    <div>
+        <ol>
+            <li>Tap interface (1) của máy ảo đưa gói tin tới Linux bridge <b>qbr</b>. Packet chứa địa chỉ MAC đích TG (vì ping ra mạng ngoài)</li>
+            <li>Security group rules (2)</li>
+        </ol>
+    </div>
+</div>
+
+</div>
+
+<h2><a name="cfg">4. Cấu hình</a></h2>
+
+
+<h2><a name="ref">5. Tham khảo</a></h2>
