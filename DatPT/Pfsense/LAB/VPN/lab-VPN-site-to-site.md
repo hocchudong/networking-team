@@ -1,5 +1,18 @@
 #Bài lab thực hiện VPN site-to-site sử dụng IPSEC.
 
+**Mục Lục**
+
+[I. Mô hình.] (#mohinh)
+
+[II. Thực hiện.] (#thuchien)
+
+[III. Kết quả kiểm thử. ] (#kiemthu)
+
+[IV. Những lưu ý.] (#luuy)
+
+****
+
+<a name="mohinh"></a>
 ##I. Mô hình thực hiện.
 
 ![scr1](http://i.imgur.com/1rPRQXx.png)
@@ -7,6 +20,7 @@
 - Mô hình thực hiện gồm 2 máy chủ pfSense 2.3.2 . Một máy ở SITE A có IP WAN là 172.16.1.20 và IP LAN là 10.10.10.123
 . Máy ở SITE B có IP WAN là 172.16.1.19 và IP LAN là 10.10.20.123.
 
+<a name="thuchien"></a>
 ##II. Thực hiện.
 
 - VPN có 2 hình thức kết nối là `Client to site` và `Site to site` . Với client to site máy client cần phải kết nối đến 
@@ -77,6 +91,7 @@ site to site chúng ta có thể đồng nhất mạng giữa 2 hoặc nhiều �
 
 ![scr14](http://i.imgur.com/hxU65Ou.png)
 
+<a name="kiemthu"></a>
 ##III. Kiểm thử kết quả.
 
 - Ở đây chúng ta sẽ tiến hành kiểm thử kết quả bằng cách PING giữa 2 máy trạm , mỗi máy nằm trong một VPN và dùng Wireshark 
@@ -100,7 +115,7 @@ các gói tin này đã được mã hóa và chúng ta không thể biết bên
 Kết quả kiểm thử cho ta thấy được rằng gói tin khi truyền trên intenet thì sẽ được đảm bảo an toàn và sẽ được giải mã khi đã 
 về tới VPN server an toàn.
 ```
-
+<a name="luuy"></a>
 ##IV. Các lưu ý khi thực hiện bài lab.
 
 - Vì chúng ta thực hiện trên môi trường lab cho nên chúng ta cần tắt chức năng `Block IP private` ở interface WAN.

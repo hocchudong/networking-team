@@ -1,13 +1,27 @@
 #Bài lab VPN Client to Site trên pfSense.
 
-##A. Mô hình.
+**Mục Lục**
+
+[I. Mô hình.] (#mohinh)
+
+[II. Thực hiện.] (#thuchien)
+
+[III. Kết quả kiểm thử. ] (#kiemthu)
+
+[IV. Những lưu ý.] (#luuy)
+
+****
+
+<a name="mohinh"></a>
+##I. Mô hình.
 
 ![scr24](http://i.imgur.com/SdS68jQ.png)
 
 - Một máy chủ pfSense có cài gói `Open VPN client Export`.
 - Một máy client.
 
-##B. Thực hiện.
+<a name="thuchien"></a>
+##II. Thực hiện.
 
 - Để thực thiết lập pfSense thành máy chủ VPN chúng ta cần phải cài đặt gói `open vpn client export`
 
@@ -129,6 +143,7 @@ local port , tunnel network (tùy ý, đây là sẽ dải mạng mà VPn sẽ c
 
 ![scr25](http://i.imgur.com/mcJwFgU.png)
 
+<a name="kiemthu"></a>
 ##III. Kiểm thử kết quả.
 
 - Ở đây sẽ dùng một máy client kết nối vào VPN với IP là `172.16.1.15` và một máy trạm bên trong mạng VPN có địa chỉ IP là 
@@ -160,7 +175,7 @@ giữa máy nguồn và máy đích đang thực hiện trao đổi thông tin g
 Như vậy thông qua kết quả kiểm thử chúng ta đã thấy được rằng gói tin trên đường truyền internet của VPN sẽ được mã hóa và 
 người ngoài bắt được cũng không thể nào biết được rằng chúng ta đang thực hiện gì trên đường hầm ảo đó.
 ```
-
+<a name="luuy"></a>
 ##IV. Lưu ý khi thực hiện bài lab.
 
 - Vì chúng ta thực hiện trên môi trường lab cho nên chúng ta cần tắt chức năng `Block IP private` ở interface WAN.

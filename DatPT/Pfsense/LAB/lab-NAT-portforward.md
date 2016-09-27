@@ -1,5 +1,16 @@
 #Bài lab Port-forward trong pfSense.
 
+**Mục Lục**
+
+[I. Mô hình.] (#mohinh)
+
+[II. Thực hiện.] (#thuchien)
+
+[III. Lưu ý] (#luuy)
+
+****
+
+<a name=mohinh></a>
 ##I. Mô hình.
 
 ![scr1](http://i.imgur.com/5Vumpb4.png)
@@ -7,6 +18,7 @@
 - Thực hiện NAT port-forward theo mô hình với một client để test thử kết nối đến địa chỉ chúng ta mốn public website ra ngoài,
 một máy chủ pfSense để thực hiện NAT và một máy chủ web-server có card mạng private.
 
+<a name=thuchien></a>
 ##II. Thực hiện.
 
 - Bước đầu tiên là chúng ta sẽ tạo một vitual IP, đây là địa chỉ mà chúng ta dùng để public website ra ngoài.
@@ -44,6 +56,7 @@ một máy chủ pfSense để thực hiện NAT và một máy chủ web-server
 
 - Như thế chúng ta đã thực hiện NAT website public với port 80 . 
 
+<a name=luuy></a>
 ##III. Lưu ý:
 
 - Khi thực hiện lab chúng ta cần chú ý loại bỏ 2 check box trong phần `interfaces` => `WAN` như dưới hình :

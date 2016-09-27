@@ -1,5 +1,14 @@
 #Tổng quan về VPN.
 
+**Mục Lục**
+
+[1. Khái niệm.] (#khainiem)
+
+[2. Phân loại VPN.] (#phanloai)
+
+****
+
+<a name="khainiem"></a>
 ##1. Khái niệm.
 
 - VPN (Vitual Private Network) hay mạng riêng ảo, là sự mở rộng của mạng riêng thông qua mạng công cộng. VPN được dùng để kết nối 
@@ -15,6 +24,7 @@ mạng riêng trên môi trường internet . Về bản chất , đây là quá
 GRE cung cấp cơ cấu đóng gói giao thức gói tin (Passenger Protocol) để truyền tải trên giao thức truyền tải (Carrier Protocol). 
 Nó bao gồm thông tin về loại gói tin đang mã hóa và thông tin kết nối giữa máy chủ và máy khách.
 
+<a name="phanloai"></a>
 ##2. Phân loại VPN.
 
 - Đối với doanh nghiệp VPN cung cấp các kết nối được triển khai trên hạ tầng mạng công cộng , giải pháp gồm 3 loại chính :
