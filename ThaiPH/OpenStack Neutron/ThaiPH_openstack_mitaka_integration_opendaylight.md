@@ -165,9 +165,9 @@ address 10.10.20.193/24
 </code></pre>
     </div>
 
-    <h4>Bước 5: Cấu hình file <code>ml2_conf.ini</code> trên các node của OpenStack</h4>
+    <h4>Bước 5: Cấu hình file <code>ml2_conf.ini</code> trên OpenStack Controller node</h4>
     <div>
-    Chỉnh sửa file <code>/etc/neutron/plugins/ml2/ml2_conf.ini</code> trên 2 node của OpenStack.
+    Chỉnh sửa file <code>/etc/neutron/plugins/ml2/ml2_conf.ini</code> trên Controller node của OpenStack.
         <h5>Trên Controller node</h5>
         <div>
 <pre><code>
@@ -176,11 +176,7 @@ $ sudo vi /etc/neutron/plugins/ml2/ml2_conf.ini
 type_drivers = flat,vlan,vxlan
 tenant_network_types = vxlan
 mechanism_drivers = opendaylight
-
-[ml2_odl]
-password = admin
-username = admin
-url = http://10.10.10.106:8080/controller/nb/v2/neutron
+extension_drivers = port_security
 
 [ml2_type_flat]
 flat_networks = provider
@@ -188,40 +184,17 @@ flat_networks = provider
 [ml2_type_vxlan]
 vni_ranges = 1:1000
 
-[ovs]
-local_ip = 10.10.20.193
-bridge_mappings = provider:br-ex
-
-[agent]
-tunnel_types = vxlan
-</code></pre>
-        <i><b>Chú ý: </b> nếu trước đó trong file <b>ml2_conf.ini</b> cấu hình <b>extension_drivers</b> trong section <b>[DEFAULT]</b> và có bất kỳ cấu hình nào trong section <b>[securitygroup]</b> thì phải comment lại hoặc xóa những dòng cấu hình đó đi. Lý do là khi tích hợp OpenStack với OpenDaylight, OpenDaylight chịu trách nhiệm cung cấp <b>security group rules</b> thay cho <b>iptables</b> trong những cấu hình thông thường.</i>
-        </div>
-
-        <h5>Trên Compute node</h5>
-        <div>
-            Nếu chưa cài ml2 plugin thì tiến hành cài theo lệnh: <code>apt-get install neutron-plugin-ml2</code>. Sau đó cấu hình file ml2 plugin như sau:
-<pre><code>
-$ sudo vi /etc/neutron/plugins/ml2/ml2_conf.ini
-[ml2]
-type_drivers = flat,vlan,vxlan
-tenant_network_types = vxlan
-mechanism_drivers = opendaylight
-
 [ml2_odl]
-password = admin
 username = admin
+password = admin
 url = http://10.10.10.106:8080/controller/nb/v2/neutron
 
-[ml2_type_vxlan]
-vni_ranges = 1:1000
-
-[ovs]
-local_ip = 10.10.20.194
-
-[agent]
-tunnel_types = vxlan
+[securitygroup]
+firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+enable_ipset = True
 </code></pre>
+        </div>
+
         </div>
     </div>
 
@@ -271,13 +244,10 @@ sudo service openvswitch-switch restart
 
     <h4>Bước 9: Cài đặt networking_odl python module</h4>
     <div>
-        Bước này cài đặt <code>networking_odl</code> trên Controller node để OpenStack làm việc với OpenDaylight (thay vì sử dụng <code>neutron-openvswitch-agent</code>).
+        Bước này cài đặt <code>networking_odl</code> trên Controller node để OpenStack làm việc với OpenDaylight (thay vì sử dụng <code>neutron-openvswitch-agent</code>). Sau đó khởi động lại <code>neutron-server</code>.
 <pre><code>
-sudo apt-get install git
-git clone https://github.com/openstack/networking-odl -b stable/mitaka
-cd networking-odl/
-sudo python setup.py install
-sudo service neutron-server restart
+sudo apt-get install python-networking-odl
+service neutron-server restart
 </code></pre>
     </div>
 
@@ -306,15 +276,16 @@ PING 172.16.69.143 (172.16.69.143) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 1998ms
 rtt min/avg/max/mdev = 0.088/0.200/0.423/0.157 ms
 </code></pre>
-        <i><b>Chú ý: </b>nếu tạo VMs kết nối vào project network <code>demo-net</code> và sử dụng floating IP để kết nối internet, chú ý không chọn <code>default</code> security group.</i>
     </div>
 
 </div>
 
 <h2><a name="ref">3. Tham khảo</a></h2>
 <div>
-[1] - <a href="http://sciencecloud-community.cs.tu.ac.th/?p=238">http://sciencecloud-community.cs.tu.ac.th/?p=238</a>
+[1] - <a href="https://github.com/netgroup-polito/frog4-openstack-do/blob/master/README_OPENSTACK.md">https://github.com/netgroup-polito/frog4-openstack-do/blob/master/README_OPENSTACK.md</a>
 <br>
-[2] - <a href="http://superuser.openstack.org/articles/open-daylight-integration-with-openstack-a-tutorial">http://superuser.openstack.org/articles/open-daylight-integration-with-openstack-a-tutorial</a>
+[2] - <a href="http://sciencecloud-community.cs.tu.ac.th/?p=238">http://sciencecloud-community.cs.tu.ac.th/?p=238</a>
+<br>
+[3] - <a href="http://superuser.openstack.org/articles/open-daylight-integration-with-openstack-a-tutorial">http://superuser.openstack.org/articles/open-daylight-integration-with-openstack-a-tutorial</a>
 </div>
 
