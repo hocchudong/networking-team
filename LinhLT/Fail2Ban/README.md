@@ -14,9 +14,9 @@
 	- [3.3 Filter expressions](#filter)
 	- [3.4 Actions](#actions)
 - [4. Cơ chế hoạt động.](#hoatdong)
-	- [4.1 Loading the Initial Configuration Files](#config_files)
-	- [4.2 Parsing the Action Files to Determine Starting Actions](#action_files)
-	- [4.3 Parsing the Filter Files to Determine Filtering Rules](#filter_files)
+	- [4.1 Load các file cấu hình.](#config_files)
+	- [4.2 Phân tích file actions để quyết định hành động ban đầu.](#action_files)
+	- [4.3 Phân tích file filter để quyết định các hành động tiếp theo.](#filter_files)
 - [5. Câu Lệnh](#caulenh)
 	- [5.1 fail2ban-server](#server)
 	- [5.2 fail2ban-client](#client)
@@ -60,9 +60,9 @@ python setup.py install
 Điều này làm cho nó không thể cấu hình lại trong khi nó đang chạy. 
 - Để khắc phục nhược điểm trên, kể từ các phiên bản sau, Fail2Ban gồm 2 thành phần là client và server.
 - Phần Server sẽ lắng nghe lệnh trên Unix socket. Đồng thời nó theo dõi các file log và thực thi các hành động để cấm một host.
-- Fail2ban-server không biết về các file cấu hình. Các file cấu hình sẽ được đọc bởi fail2ban-client và gửi đến fail2ban-server.
-- Giao tiếp giữa Client và Server thực hiện qua socket thông qua một giao thức được định nghĩa. 
-Điều này cho phép ta có thể thay đổi các cấu hình trong khi fail2ban-server đang chạy mà không cần phải khởi động lại dịch vụ này.
+- `Fail2ban-server` không biết về các file cấu hình như là `jail.conf`, các file `filter` và `action`. Tôi sẽ giới thiệu chi tiết các file cấu hình này ở mục 3.
+- `Fail2ban-client` sẽ tiến hành đọc các file cấu hình trên và gửi đến cho `fail2ban-server`.
+- Điều này cho phép ta có thể thay đổi các cấu hình trong khi `fail2ban-server` đang chạy mà không cần phải khởi động lại dịch vụ này.
 
 <a name="cauhinh"></a>
 #3. Cấu hình
@@ -95,11 +95,18 @@ python setup.py install
 └── jail.d
 ```
 
+- Thư mục `action.d`: Chứa các file định nghĩa các hành động của các dịch vụ.
+- File `fail2ban.conf`, `fail2ban.local`: Dùng để cấu hình cho thành phần `fail2ban-server`.
+- Thư mục `filter.d`: Chứa các file định nghĩa các biểu thức chính quy để lọc ra các thông tin cần thiết từ file log.
+- File `jail.conf`, `jail.local` và thư mục `jail.d`: Khai báo các thông số mặc định và khai báo thông số của các dịch vụ sẽ được fail2ban kiểm tra. Các thông số như: tên dịch vụ, giao thức, cổng, hành động, filter....
 
+- **CHÚ Ý:**
 - Mỗi file `.conf` có thể được ghi đè bởi file cùng tên có đuôi `.local`. 
+- File `.local` có cú pháp giống với file `.conf`, dùng để chứa các thiết lập. 
 - Đầu tiên, file `.conf` được đọc, sau đó là file có đuôi `.local`. Như vậy, file `.local` không cần phải include mọi thứ tương
-ứng với file `.conf`. File này chỉ nên chứa những thiết lập mà bạn muốn ghi đè lên.
+ứng với file `.conf`. **File này chỉ nên chứa những thiết lập mà bạn muốn ghi đè lên.**
 - Bạn nên thực hiện sửa đổi ở file `.local`. Nó sẽ giúp ta tránh một số lỗi không đáng có khi tiến hành nâng cấp. 
+- Mặc định khi cài đặt thì fail2ban sẽ không tạo ra các file `.local`. Do đó, tôi sẽ tiến hành phân tích các file `.conf` ở dưới.
 
 <a name="general_setting"></a>
 ##3.1 General settings
@@ -325,7 +332,7 @@ có tham số cần thiết, thì nó mới lấy giá trị ở đây. **(ĐÃ 
 - **action** có thể được cấu hình để làm nhiều việc khác nhau. Hành động mặc định là sẽ cấm các địa chỉ ip bởi rules của iptables. 
 
 <a name="config_files"></a>
-##4.1 Loading the Initial Configuration Files
+##4.1 Load các file cấu hình. (Loading the Initial Configuration Files)
 - Đầu tiên, tập tin `fail2ban.conf` được đọc để xác định các điều kiện mà các quá trình chính nên hoạt động theo.
 Nó tạo ra các socket pid, và file log nếu cần thiết và bắt đầu sử dụng chúng.
 - Tiếp theo, fail2ban đọc file `jail.conf` để biết chi tiết cấu hình.
@@ -338,7 +345,7 @@ Nếu nó tìm thấy, nó sử dụng các thông số xác định theo phần
 Bất kỳ tham số mà không được tìm thấy trong phần của dịch vụ thì sẽ sử dụng các thông số định nghĩa trong phần **[DEFAULT]**.
 
 <a name="action_files"></a>
-##4.2 Parsing the Action Files to Determine Starting Actions
+##4.2 Phân tích các file actions để quyết định hành động ban đầu. (Parsing the Action Files to Determine Starting Actions)
 - Fail2ban tìm kiếm một `action` để thực hiện chính sách ban/unbanning. Nếu nó không tìm thấy, nó sẽ thực hiện theo hành động mặc định được xác định ở trên.
 - Các chỉ thị hành động bao gồm tên của tập tin hành động (s) sẽ được đọc, cũng như các giá trị quan trọng như tên,...
 Tên của dịch vụ thường được dùng với biến `__name__`. 
@@ -354,7 +361,8 @@ Nó sẽ sử dụng những giá trị này để tự động tạo ra các qu
 Nếu một biến nào đó đã không được thiết lập, nó có thể nhìn vào các giá trị mặc định trong các tập tin hành động để điền vào chỗ trống.
 
 <a name="filter_files"></a>
-##4.3 Parsing the Filter Files to Determine Filtering Rules
+##4.3 Phân tích các file filter để quyết định các hành động tiêp theo. (Parsing the Filter Files to Determine Filtering Rules)
+**- CHÚ Ý: Phần này sẽ tương tác đồng thời với `actions` để đưa ra hành động.**
 - Fail2ban sẽ tìm kiếm trong thư mục `filter.d` để tìm tập tin lọc phù hợp với kết thúc bằng `.conf`.
 Nó đọc tập tin này để xác định các các trường mà có thể được sử dụng để **match** với dòng vi phạm.
 Sau đó nó tìm kiếm một tập tin lọc phù hợp với kết thúc với `.local` để có cần sửa đổi thông tin gì không.
@@ -605,7 +613,11 @@ Sep 21 11:05:30 adk sshd[2189]: Failed password for adk from 10.10.10.10 port 51
 Để viết filter cho fail2ban, đòi hỏi các bạn phải biết viết các biểu thức chính quy để bóc tách dữ liệu. Đồng thời, phải nhận biết
 được trường hợp nào là bình thường, trường hợp nào là không bình thường (trong file log).
 
-Dưới đây là những ký hiệu cơ bản thường được sử dụng trong biểu thức chính quy.
+- Chú ý: 
+	- Trong file dùng `<HOST>` để xác định địa chỉ IP trong file log.
+	- Sử dụng `^%(tenbien)s` để xác định giá trị của biến, mà biến đó đã được định nghĩa trước.
+
+- Dưới đây là những ký hiệu cơ bản thường được sử dụng trong biểu thức chính quy.
 
 |Ký hiệu|Ý nghĩa|
 |:---:|:---:|
@@ -644,6 +656,9 @@ Ví dụ, bạn muốn chặn kẻ tấn công bằng tường lửa iptables, t
 	- Khi fail2ban nhận diện được kẻ tấn công và tiến hành ban.
 	- Khi fail2ban unban.
 	- Khi fail2ban bị dừng lại.
+
+- Chú Ý: 
+	- Sử dụng <ten> để lấy được giá trị của `ten` được định nghĩa ở trước đó. 
 
 Trong phần này, mình có viết một ví dụ về chặn brute password admin ở blog dùng mã nguồn wordpress chạy trên apache. 
 Các bạn có thể tham khảo tại đây: 

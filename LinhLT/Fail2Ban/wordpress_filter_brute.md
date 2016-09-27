@@ -1,4 +1,9 @@
-#Filter chặn brute password cho blog wordpress.
+# Nội dung
+Bài viết này gồm 2 phần:
+- Phần 1: Tôi sẽ trình bày cách mà tôi viết filter chặn brute password.
+- PHân 2: Tôi sẽ hướng dẫn cách cấu hình để server sẽ tự động gửi email thông báo cho người quản trị.
+
+#1. Filter chặn brute password cho blog wordpress.
 
 Ở phần này, tôi sẽ trình bày cách mà tôi viết filter, chặn brute password vào blog của tôi. Blog của tôi sử dụng 
 mã nguồn wordpress, chạy trên apache2, trên hệ điều hành ubuntu server 14.04.
@@ -56,6 +61,15 @@ failregex = ^<HOST>.*"POST \/wordpress\/wp-login\.php HTTP\/1\.1" 200
 ignoreregex =  
 ```
 
+- Phân tích biểu thức chính quy: 
+	- Ký tự `^` dùng để bắt đầu tìm kiếm tra từ đầu chuỗi.
+	- `<HOST>`: Dùng để bắt địa chỉ ip trong file log.
+	- `.*"POST \/wordpress\/wp-login\.php HTTP\/1\.1" 200` dùng để tìm kiếm chuỗi `"POST \/wordpress\/wp-login\.php HTTP\/1\.1" 200` trong log.
+
+- Để các bạn hình dung dễ hơn, tôi đưa vào ảnh bên dưới. Chú ý là ở đây tôi thay thế <HOST> bằng địa chỉ IP bởi vì fail2ban hiểu được biến <HOST> còn trên trang này thì không :D
+
+![](http://image.prntscr.com/image/43a984eb107445b49f0a2917f68e11d0.png)
+
 Chỉ với dòng lệnh đơn giản như vậy, fail2ban sẽ nhận ra được những ip nào (dựa vào biến HOST) đăng nhập thất bại.
 
 Sau đó, tôi sẽ đặt một vài thiết lập như đăng nhập thất bại mấy lần thì sẽ bị block,..
@@ -88,3 +102,7 @@ Cuối cùng, tôi xin giới thiệu 2 trang web giúp cho bạn dễ dàng hơ
 - https://regex101.com/
 
 Chúc các bạn vui vẽ :))
+
+#2. Gửi mail thông báo cho người quản trị.
+
+#3. Thao khảo: 
