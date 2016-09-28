@@ -105,7 +105,9 @@ Chúc các bạn vui vẽ :))
 
 #2. Gửi mail thông báo cho người quản trị.
 Bạn muốn vừa đi du lịch vừa theo dõi được tình trạng hoạt động của fail2ban,...
+
 Thì ở phần này, tôi sẽ hướng dẫn bạn cấu hình để server có thể tự động gửi các email thông báo đến cho bạn với những nội dung như:
+
 	- Fail2ban bắt đầu hoạt động.
 	- Fail2ban tiến hành cấm một địa chỉ ip.
 	- Fail2ban vì một lý do nào đấy mà bị dừng lại.
@@ -138,7 +140,7 @@ vi /etc/postfix/sasl_passwd
 
 [smtp.gmail.com]:587    USERNAME@gmail.com:PASSWORD
 ```
-Trong đó: thay thế USERNAME và PASSWORD bằng tên đăng nhập và mật khẩu gmail của bạn. (Đây là địa chỉ mail dùng để gửi đi)
+Trong đó: thay thế **USERNAME** và **PASSWORD** bằng tên đăng nhập và mật khẩu gmail của bạn. (Đây là địa chỉ mail dùng để gửi đi)
 
 - Phân quyền và cập nhật file này cho `postfix`:
 
@@ -193,7 +195,8 @@ sendername = Fail2Ban
 mta = mail
 action = %(action_mwl)s
 ```
-Trong đó:
+
+- Trong đó:
 	- destemail: Địa chỉ email người nhận.
 	- sendername: Tên người gửi :D
 	- mta = mail: Chỉ ra file action gửi mail. Trong thư mục `action.d` có file mail dùng để gửi email đi. 
