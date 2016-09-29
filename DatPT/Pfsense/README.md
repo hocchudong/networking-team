@@ -14,6 +14,7 @@
   <li>[Proxy](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/proxy-server.md#chanurl)</li>
   <li>[Monitor sử dụng ntop và squid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/monitor_ntop_squid.md)</li>
   <li>[Report with LightSquid](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/Lab_repor_lightsquid.md)</li>
+  <li>[VPN](https://github.com/hocchudong/networking-team/tree/master/DatPT/Pfsense/LAB/VPN)</li>
  </ul>
 
 **Nguồn**
@@ -32,3 +33,5 @@
 - https://luonghoanghuong.wordpress.com/tag/pfsense/
 - http://data.biitbook.com/Pf-Sense.pdf
 - http://www.hvaonline.net/hvaonline/posts/list/39917.hva
+- https://doc.pfsense.org/index.php/Routing_internet_traffic_through_a_site-to-site_OpenVPN-connection_in_PfSense_2.1
+- http://serenity-networks.com/step-by-step-guide-on-how-to-create-a-site-to-site-vpn-with-pfsense-using-openvpn-with-a-pre-shared-key/
