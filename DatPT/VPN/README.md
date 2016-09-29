@@ -2,4 +2,4 @@
 
 [1. Tổng quan về VPN]()
 
-[2.Lab VPN client-to-site trên Ubuntu server 14.04]()
+[2. Lab VPN client-to-site trên Ubuntu server 14.04](https://github.com/hocchudong/networking-team/blob/master/DatPT/VPN/OpenVPN-Ubuntu-14-04.md)

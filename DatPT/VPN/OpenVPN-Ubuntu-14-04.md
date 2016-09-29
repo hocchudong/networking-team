@@ -4,16 +4,37 @@
 
 **Mục Lục**
 
+[I. Mô hình] (#mohinh)
+
+[II. Các bước thực hiện] (#thuchien)
+ <ul>
+  <li>[1. Cài đặt và cấu hình] (#caidat)</li>
+  <li>[2. Thiết lập Firewall] (#firewall)</li>
+  <li>[3. Tạo CA và Cert] (#ca)</li>
+  <li>[4. Test thử trên client] (#test)</li>
+ </ul>
+
+[III. Kiểm thử kết quả] (#kiemthu)
+
 ****
 
+<a name="mohinh"></a>
 ##I. Mô hình.
 
+![scr1](http://i.imgur.com/6TQ3ice.png)
+
+- Mô hình thực hiện bao gồm : 1 máy chủ Ubuntu server 14.04 có địa chỉ IP WAN là `172.16.1.133` và địa chỉ LAN là `10.10.10.69` 
+một máy Windows 7 là VPN client có địa chỉ IP WAN là `172.16.1.15` , một máy Windows 7 là máy trạm trong LAN có địa chỉ IP là 
+`10.10.10.12`
+
+<a name="thuchien"></a>
 ##II. Các bước thực hiện.
 
 **Lưu ý**
 
 - Tất cả đều thực hiện dưới quyền `root`.
 
+<a name="caidat"></a>
 ###1. Cài đặt và cấu hình OpenVPN server.
 
 - Trước tiên chúng ta update danh sách Ubuntu's repository.
@@ -98,6 +119,7 @@ net.ipv4.ip_forward=1
 
 - Lưu lại thay đổi và thoát ra.
 
+<a name="firewall"></a>
 ###2. Thiết lập Firewall.
 
 - Đầu tiên chúng ta cần cho phép được thực hiện SSH bằng lệnh sau:
@@ -170,6 +192,7 @@ Command may disrupt existing ssh connections. Proceed with operation (y|n)?
 ufw status
 ```
 
+<a name="ca"></a>
 ###3. Tạo CA và Cert.
 
 - Đầu tiên chúng ta coppy `easy-rsa` vào `/etc/openvpn`
@@ -271,6 +294,7 @@ chỉnh sửa . Trong quá trình sao chép chúng ta thay đổi tập tin từ
 cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf /etc/openvpn/easy-rsa/keys/client.ovpn
 ```
 
+<a name="test"></a>
 ###4. Tải file cấu hình và test thử trên Client.
 
 - Ở đây sẽ dùng Windows 7 để test , chúng ta cần có [OpenVPN](https://openvpn.net/index.php/open-source/downloads.html) cài đặt 
@@ -384,6 +408,36 @@ JuE5cfWjfqZ4jAI6skUffsRpelaQn+8=
 - Kết quả thu được khi thành công :
 
 ![scr7](http://i.imgur.com/TOX3QRK.png)
+
+<a name="kiemthu"></a>
+##III. Kiểm thử kết quả.
+
+- Sau khi kết nối thành công đến VPN server và nhận IP tunnel chúng ta tiến hành ping kiểm thử đến máy trạm bên trong mạng VPN
+có địa chỉ IP là `10.10.10.12`
+
+![scr3](http://i.imgur.com/X6sP1YN.png)
+
+- Tiếp theo chúng ta dùng [Wireshark](https://www.wireshark.org/download.html) để tiến hành bắt gói tin cũng như phân tích.
+
+- Mở Wireshark lên và tiến hành chặn bắt gói tin trên đường truyền internet , ở đây là card VMnet8. Chúng ta thấy được các 
+gói tin có giao thức `OpenVPN` đó là những gói tin mà đang trao đổi giữa Client VPN với máy có địa chỉ IP là `10.10.10.12` 
+tuy nhiên đã được mẫ hóa và chúng ta không thể nhìn thấy bên trong chúng đang làm gì và trao đổi gì cho nhau.
+
+![scr1](http://i.imgur.com/yNR8mXb.png)
+
+- Sau đó chúng ta tiến hành bắt gói tin trên VPN server, các gói tin này khi đến VPN server đã được giải mã, trên lý thuyết 
+chúng ta sẽ biết được chúng đang làm gì và trao đổi gì với nhau . Thực hiện bắt gói tin trên Card VMnet1 :
+
+- Và đây là kết quả thu được :
+
+![scr2](http://i.imgur.com/Qdbs17a.png)
+
+- Như trên hình chúng ta có thể thấy rõ ràng được rằng máy CLient VPN đang thực hiện trao đổi các gói tin ICMP.
+
+```sh
+Như vậy dựa vào Wireshark đã cho chúng ta thấy được rõ ràng , trên đường truyền Internet các gói tin đã được mã hóa và rất 
+an toàn, còn sau khi đến VPN server gói tin đã được giải mã và có thể đọc được từ máy trạm.
+```
 
 #Nguồn :
 
