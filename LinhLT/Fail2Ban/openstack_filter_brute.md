@@ -203,17 +203,19 @@ Và cuối cùng, nội dung file filter của tôi: `/etc/fail2ban/filter.d/ope
 
 [Definition]
 
-failregex = ^<HOST> - - \[(.*?)\] "POST \/horizon\/auth\/login\/ HTTP\/1.1" 200
+failregex = ^<HOST>.*\[(.*?)\] "POST \/horizon\/auth\/login\/.*200
 
 ignoreregex = 
 ```
 - Giải thích:
 
 ```sh
-	- ký tự `^`: Bắt đầu tiếm kiếm giá trị từ đầu chuỗi.
+	- ký tự`^: Bắt đầu tiếm kiếm giá trị từ đầu chuỗi.
 	- `<HOST>`: Khi có biến host, fail2ban sẽ tự nhận diện địa chỉ ip.
-	- \[(.*?)\]: Get thời gian tỏng file log.
-	- `"POST \/horizon\/auth\/login\/ HTTP\/1.1" 200`: Tìm đoạn nội dung này trong file log.
+	- ký tự .*: Đại diện cho chuỗi   - - 
+	- \[(.*?)\]: Get thời gian trong file log.
+	- `"POST \/horizon\/auth\/login\/" 200`: Tìm đoạn nội dung này trong file log.
+	- ký tự .*: Đại diện cho chuỗi HTTP/1.1" 
 ```
 
 <a name="dashboard_jail"></a>
@@ -313,7 +315,7 @@ Nội dung file filter của tôi là: `/etc/fail2ban/filter.d/openstack.conf`
 #dir log: /var/log/keystone/keystone-wsgi-admin.log
 [Definition]
 
-failregex = ^(.*?) (.*?) (.*?)WARNING keystone.common.wsgi \[(.*?)\] Authorization failed\. The request you have made requires authentication\. from <HOST>$ 
+failregex = ^(.*?) (.*?) (.*?) .*\[(.*?)\].*Authorization failed.*<HOST>$
 
 ignoreregex = 
 ```
