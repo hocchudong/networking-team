@@ -7,11 +7,36 @@ Mô hình có 2 node: 1 node controller và 1 node compute.
 Node controller có 2 dải địa chỉ ip là :
 	- card mạng external: 172.16.69.150
 	- card mạng internal: 10.10.10.150
+
+#Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1. Chặn tấn công vào Dashboard](#dashboard)
+- [1.1 Phân tích file log](#dashboard_log)
+		- [1.1.1 /var/log/apache2/access.log](#access)
+		- [1.1.2 /var/log/apache2/error.log](#error_log)
+		- [1.1.3 /var/log/apache2/keystone.log](#keystone)
+		- [1.1.4 /var/log/apache2/keystone_access.log](#keystone_access)
+	- [1.2 Viết filter](#dashboard_filter)
+	- [1.3 File jail](#dashboard_jail)
+	- [1.4 Kết quả:](#dashboard_ketqua)
+- [2. Chặn tấn công dựa trên API.](#api)
+	- [2.1 Phân tích log.](#api_log)
+		- [2.1.1 /var/log/apache2/keystone_access.log](#keystone_access_api)
+		- [2.1.2 /var/log/keystone/keystone-wsgi-admin.log](#keystone_admin_log)
+	- [2.2 Viết filter:](#api_filter)
+	- [2.3 File jail](#api_jail)
+	- [2.4 Kết quả:](#api_ketqua)
+	
+<a name="dashboard"></a>
 #1. Chặn tấn công vào Dashboard
 Dashboard mà tôi đang dùng chạy trên nền apache2. Vì vậy, đầu tiên, tôi sẽ kiểm tra file log của apache2.
 
+<a name="dashboard_log"></a>
 #1.1 Phân tích file log
-###1.1.1 /var/log/apache2/acces.log
+
+<a name="access"></a>
+###1.1.1 /var/log/apache2/access.log
 
 ```sh
 tailf /var/log/apache2/acces.log
@@ -39,6 +64,7 @@ Tôi sẽ tiến hành phân tích:
 sẽ được tự động chuyển sang trang quản lý của openstack. Còn ngược lại, khi đăng nhập thất bại thì ta vẫn đứng nguyên ở trang đăng nhập,
 không chuyển đi đâu cả.
 
+<a name="error_log"></a>
 ###1.1.2 /var/log/apache2/error.log
 
 ```sh
@@ -62,6 +88,7 @@ chứa địa chỉ ip của client nên không thể xác định được clie
 phần tùy chỉnh format log error của apache2 để xem có tùy chỉnh được ip của client vào dòng log này không. Nếu được, các bạn có thể 
 trao đổi với tôi nhé :v.
 
+<a name="keystone"></a>
 ###1.1.3 /var/log/apache2/keystone.log
 
 Nội dung file này giống với file log: `/var/log/keystone/keystone-wsgi-public.log`
@@ -118,7 +145,9 @@ Authorization failed. The request you have made requires authentication. from 10
 Tuy nhiên, địa chỉ ip ở đây là `10.10.10.150`, là địa chỉ ip của chính controller. Tức có nghĩa là khi người dùng ở mạng ngoài
 gửi một yêu cầu đăng nhập, thì ở đây phần keystone trên chính máy controller sẽ thực hiện xác thực, do đó, địa chỉ ip của client
 đã được thay thế thành địa chỉ ip của keystone. Vì vậy, tôi cũng loại bỏ luôn trường hợp này.
+```
 
+<a name="keystone_access"></a>
 ###1.1.4 /var/log/apache2/keystone_access.log
 
 ```sh
@@ -153,6 +182,7 @@ thành công có 2 đoạn POST với mã 201 và 401, dẫn đến khó khăn t
 
 Cuối cùng, tôi đi đến quyết định, sử dụng file log trong trường hợp đầu tiên để nhận dạng kẻ tấn công.
 
+<a name="dashboard_filter"></a>
 ##1.2 Viết filter
 
 Nội dung file log khi đăng nhập thành công:
@@ -186,6 +216,7 @@ ignoreregex =
 	- `"POST \/horizon\/auth\/login\/ HTTP\/1.1" 200`: Tìm đoạn nội dung này trong file log.
 ```
 
+<a name="dashboard_jail"></a>
 ##1.3 File jail: `/etc/fail2ban/jail.d/openstack2.conf`
 
 ```sh
@@ -207,6 +238,7 @@ maxretry = 3
 
 Các thông số còn lại tôi để mặc định.
 
+<a name="dashboard_ketqua"></a>
 ##1.4 Kết quả:
 Khi tôi cố tình đăng nhập sai 3 lần liên tục trong 10s, kết quả tôi nhận được là:
 
@@ -214,6 +246,7 @@ Khi tôi cố tình đăng nhập sai 3 lần liên tục trong 10s, kết quả
 
 ![](http://image.prntscr.com/image/5ff485b7b7ba4dc8a50510053875ae65.png)
 
+<a name="api"></a>
 #2. Chặn tấn công dựa trên API.
 Trong phần này, tôi có viết một đoạn php để kiểm tra user có đăng nhập được hay không, thông qua API sử dụng curl của OpenStack.
 
@@ -223,7 +256,9 @@ Nội dung file tôi để trong thư mục: https://github.com/lethanhlinh247/n
 
 Để hiểu rõ hơn về các API của OpenStack, các bạn tham khảo tại đây: http://developer.openstack.org/api-ref/identity/v3/index.html
 
+<a name="api_log"></a>
 ##2.1 Phân tích log.
+<a name="keystone_access_api"></a>
 ###2.1.1 /var/log/apache2/keystone_access.log
 Đăng nhập thất bại:
 
@@ -239,6 +274,7 @@ Nội dung file tôi để trong thư mục: https://github.com/lethanhlinh247/n
 OK, ta dễ dàng nhận ra được là khi đăng nhập thất bại, response POST có http code là 401.
 Ngược lại, đăng nhập thành công, response POST có http code là 201.
 
+<a name="keystone_admin_log"></a>
 ###2.1.2 /var/log/keystone/keystone-wsgi-admin.log 
 Nội dung file log này tương đương với file log ở: `/var/log/apache2/keystone.log`
 
@@ -261,6 +297,7 @@ Còn nếu đăng nhập thành công, keystone sẽ tiến hành tạo key.
 
 Do đó, tôi quyết định sẽ dựa vào phần nội dung của file log này để viết nên filter.
 
+<a name="api_filter"></a>
 ##2.2 Viết filter:
 
 Tôi sẽ dựa vào dòng này để viết filter: 
@@ -291,6 +328,7 @@ ignoreregex =
 	- ký tự $: Kết thúc chuỗi.
 ```
 
+<a name="api_jail"></a>
 ##2.3 File jail: `/etc/fail2ban/jail.d/openstack.conf`
 
 ```sh
@@ -307,6 +345,7 @@ maxretry = 3
 	- port = 35357: Port dùng trong API.
 	- logpath: Đường dẫn file log khác so với trên kia.
 
+<a name="api_ketqua"></a>
 ##2.4 Kết quả:
 
 ![](http://image.prntscr.com/image/f6a29c591a8240dc87e2153f603457fe.png)
