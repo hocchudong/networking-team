@@ -76,7 +76,53 @@
 
 <h2><a name="arch">3. Kiến trúc NFV</a></h2>
 <div>
-    
+    <h3>High level Architecture</h3>
+    <div>
+       Kiến trúc NFV ở mức high level gồm 3 miền làm việc chính:
+       <ul>
+           <li>VNF - Virtualised Network Functions: là các chức năng mạng hay thiết bị mạng ảo triển khai dưới dạng phần mềm trên hạ tầng NFV</li>
+           <li>NFVI - NFV Infrastructure: bao gồm các tài nguyên vật lý và công nghệ ảo hóa hỗ trợ để cung cấp tài nguyên triển khai VNF.</li>
+           <li>NFV Management and Orchestration: thực hiện điều phối, quản lý vòng đời các tài nguyên phần cứng và tài nguyên phần mềm hỗ trợ hạ tầng ảo hóa, quản lý vòng đời các VNFs. </li>
+       </ul>
+        <br><br>
+            <img src="https://www.sdxcentral.com/wp-content/uploads/2015/04/nfv-report-2015-high-level-nfv-framework.png">
+        <br><br>
+        NFV framework cho phép xây dựng, quản lý các VNFs instance và mối liên hệ giữa các VNFs về mặt dữ liệu, kiểm soát, quản lý, các gói phụ thuộc và các thuộc tính khác. Có nhiều góc nhìn khác nhau đối với các VNFs để từ đó nảy sinh ra các usecase khác nhau, điển hình là hai use case:
+        <ul>
+            <li>VNF Forwarding Graph (VNF-FG hay Service Chaining): đặc tả kết nối mạng giữa các VNFs (firewall, NAT, load balancer, etc.) tạo thành chuỗi các dịch vụ (Service Chain)</li>
+            <li>Virtualisation of the Home Environment.</li>
+        </ul>
+    </div>
+
+    <h3>NFV Reference Architectural Framework</h3>
+    <div>
+        <br><br>
+        <img src="http://i.imgur.com/xQKq5GD.png">
+        <br><br>
+        Các khối chức năng:
+        <ol>
+            <li> Virtualised Network Function (VNF): là các chức năng mạng ảo hóa như: NAT, DHCP, firewall, load balancer, PGW (Packet Data Network Gateway), Serving Gateway (SGW), Mobility Management Entity (MME), etc. Các VNF có thể triển khai trong 1 VM hoặc cũng có thể là sự kết hợp của nhiều VM tùy vào loại dịch vụ mạng mà VNF cung cấp và cách triển khai.
+            </li>
+            <li> Element Management System (EMS): quản lý việc vận hành của VNF, giống như hệ thống EMS quản lý cho các thành phần network vật lý, EMS quản lý sự cố và hiệu năng của VNF. EMS làm được điều đó thông qua interface phù hợp. Một EMS có thể quản lý cho 1 VNF hoặc nhiều VNF. Tự thân EMS cũng có thể là một VNF.</li>
+            <li> NFV Infrastructure, bao gồm:
+                <ul>
+                    <li>Tài nguyên vật lý và tài nguyên ảo hóa: các tài nguyên vật lý bao gồm các tài nguyên tính toán, lưu trữ và network cung cấp chức năng xử lý, lưu trữ và kết nối tới các VNF thông qua lớp ảo hóa hypervisors. Tài nguyên tính toán vật lý là Commercial off-the-shelf.</li>
+                    <li>Lớp ảo hóa</li>
+                </ul>
+            </li>
+            <li> Virtualised Infrastructure Manager(s): thống kê, giám sát tài nguyên trên hạ tầng NFV; quản lý và cấp phát tài nguyên cho các VNF.</li>
+            <li> NFV Orchestrator chịu trách nhiệm tạo, bảo trì và xóa bỏ các network services. Nếu có nhiều VNFs, orchestrator sẽ kích hoạt việc khởi tạo E2E service thông qua nhiều VNFs. NFVO cũng chịu trách nhiệm quản lý tài nguyên của NFVI (các tài nguyên compute, storage, networking giữa nhiều VIMs trong mạng). Orchestrator thực hiện các chức năng của nó gián tiếp qua VNFM và VIM chứ không trực tiếp tới từng VNFs.
+            <br> 
+            Ví dụ: nhiều VNFs cần phải xâu lại với nhau để tạo E2E service, ví dụ như virtual Base station và virtual EPC. Khi đó NFVO sẽ nói chuyện với các VNFs để tạo E2E network theo yêu cầu.               
+            </li>
+
+            <li> VNF Manager(s) quản lý một hoặc nhiều VNF(s), cụ thể là quản lý vòng đời các VNF instances. Quản lý vòng đời ở đây bao gồm việc cài đặt, bảo trì và hủy bỏ VNFs. Một VNF manager có thể thực hiện cùng chức năng với EMS nhưng thông qua giao diện phù hợp với interface/reference point trong kiến trúc NFV (Ve-Vnfm).            
+            </li>
+            <li> Operations and Business Support Systems (OSS/BSS): công cụ của nhà cung cấp dịch vụ mạng viễn thông (operator), hỗ trợ trong việc quản lý vận hành hệ thống mạng (OSS) cũng như trong việc quản lý khách hàng, kinh doanh, tính cước (BSS). Với sự phát triển của mạng viễn thông (ngày càng phức tạp, nhiều dịch vụ, nhiều thiết bị,...), OSS/BSS trở thành một công cụ không thể thiếu của các operators giúp họ quản lý vận hành mạng một cách hiệu quả hơn.  </li>
+        </ol>
+    </div>
+
+
 </div>
 
 <h2><a name="usecases">4. NFV Usecases</a></h2>
