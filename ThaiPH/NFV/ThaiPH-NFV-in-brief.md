@@ -92,21 +92,62 @@
         </li>
 
         <li><h3>Virtual Network Function as a Service (VNFaaS)</h3>
-            
+            Hệ thống mạng các doanh nghiệp hiện đang triển khai các dịch vụ sử dụng một thiết bị vật lý phục vụ cho mỗi tính năng, gặp vấn đề về sự thiếu linh hoạt, cài đặt và bảo trì chậm, khó khăn. Các chức năng có thể cung cấp trong một access router tích hợp nhưng hạn chế về tính năng. Do đó khi doanh nghiệp phát triển, đòi hỏi nhiều dịch vụ hơn thì họ di trú dịch vụ và ứng dụng lên datacenter hoặc public cloud. Ngoài ra, xu hướng mobility và BYOD (Bring your own device) là hệ quả tất yếu dẫn tới yêu cầu các dịch vụ như ngăn chặn rò rỉ dữ liệu.
+            <br>
+            <i><b>BYOD - bring your own device: </b> là xu hướng các công ty khuyến khích nhân viên của họ sử dụng thiết bị cá nhân như smartphone, tablet để truy cập dịch vụ hay dữ liệu của công ty, điều đó nảy sinh ra vấn đề về bảo mật và nguy cơ bị đánh cắp thông tin.</i>
+            <br>Giải pháp cho vấn đề trên là đưa các Access Router ảo vCPE vào trong mạng của nhà vận hành, triển khai dưới dạng dịch vụ chạy trên các máy ảo hay VNF (Virtualize Network Functions) instance trên hạ tầng NFV (sử dụng công nghệ cloud computing). Nhờ vậy, khi cần cung cấp thêm các tính năng networking nâng cao như <code>measured service</code>, các dịch vụ này sẽ được đáp ứng nhanh chóng và quan trọng là doanh nghiệp không phải tốn thêm chi phí vận hành mua các thiết bị vật lý mới như trước đây để triển khai các dịch vụ đó. Giờ đây họ chỉ phải trả chi phí cơ bản cho nhà cung cấp để họ cung cấp thêm dịch vụ, hoặc mở rộng tài nguyên trên hạ tầng NFV để cấp phát thêm tài nguyên cho các VNF instance đáp ứng nhu cầu sử dụng tăng lên của các VNF.
+            <br><br>
+            <img src="http://i.imgur.com/sAyWTUQ.png">
+            <br>
+            <img src="http://i.imgur.com/lcDF1XV.png">
+            <br><br>
+        </li>
+
+        <li><h3>Service Chains (VNF Forwarding Graphs)</h3>
+            Network Function Forwarding Graph (NFFG) định nghĩa một tập hợp có trình tự các Network Functions mà packet phải đi qua, tạo thành Network Service. VNFFGs tương tự như vậy, tuy nhiên nó là sự kết nối về mặt logic giữa các thiết bị mạng ảo triển khai trong các VNF (Virtualized Network Functions), ngoài ra cũng có thể kết nối nội bộ với các Physical Network Functions để cung cấp Network services.
+            <br>
+            Logical View:
+            <br><br>
+            <img src="http://i.imgur.com/9oeLxpf.png">
+            <br><br>
+            Service Chaining - VNFFG scenario:
+            <ul>
+                <li><b>INTRA-DATACENTER SERVICE CHAINING</b>
+                    <br><br>
+                    <img src="http://www.sdnspace.com/Portals/0/LiveBlog/983/fig1_thumb.png">
+                    <br><br>
+                </li>
+                <li><b>INTER-DATACENTER SERVICE CHAINING</b>
+                    <br><br>
+                    <img src="http://i.imgur.com/wsIYRkT.png">
+                    <br><br>
+                </li>
+            </ul>
+        </li>
+
+        <li><h3>Virtualisation of the Home Environment</h3>
+            Các nhà cung cấp dịch vụ cung cấp dịch vụ gia đình sử dụng hệ thống network và CPE (customer premises equipments) đặt tại hộ gia đình. Các thiết bị CPE này nhận biết nhà cung cấp và nhà cung cấp dịch vụ bằng cách sử dụng RGW (Residential Gateway) cho dịch vụ Internet và VOIP, Set-top box với dịch vụ đa phương tiện. 
+            <br>
+            Ứng dụng NFV để ảo hóa môi trường cung cấp dịch vụ gia đình có nhiều ưu điểm:
+            <ul>
+                <li>Giảm chi phí về STB và RGW</li>
+                <li>Giảm chi phí duy trì và nâng cấp CPEs</li>
+                <li>Cải thiện chất lượng trải nghiệm dịch vụ (QoE) như điều khiển truy cập tới tất cả cá nội dung và dịch vụ, hỗ trợ multi-screen và di động.</li>
+                <li>Cung cấp dịch vụ mới nhanh chóng và tiện lợi, giảm bớt sự rườm rà vì phụ thuộc chức năng của CPE cũng như tiến trình cài đặt cũng được đơn giản hóa.</li>
+            </ul>
+            Với mạng truyền thống không sử dụng ảo hóa, mỗi gia đình sẽ sử dụng một RGW và một IP STB. Tất cả các dịch vụ được nhận từ RGW, chuyển đổi sang địa chỉ private IP và cung cấp vào hộ gia đình đó. RGW kết nối (thông qua PPPoE Tunnel hoặc IPoE) tới BNG để kết nối tới Internet hoặc DC. 
+            <br><br>
+            <img src="http://i.imgur.com/6hHDN42.png">
+            <br><br>
+            Với hạ tầng ảo hóa NFV, các dịch vụ và chức năng di trú từ thiết bị tại nhà lên NFV cloud, các thiết bị như RGW và STB được triển khai trong các VNF instance và trở thành vRGW và vSTB.
+            <br><br>
+            <img src="http://i.imgur.com/u0LkmH3.png">
+            <br><br>
         </li>
 
         <li><h3>Virtual Network Platform as a Service (VNPaaS)</h3></li>
         <li><h3>Virtualisation of Mobile Core Network and IMS</h3></li>
         <li><h3>Virtualisation of Mobile base station</h3></li>
-
-        <li><h3>Virtualisation of the Home Environment</h3>
-
-        </li>
-
-        <li><h3>Service Chains (VNF Forwarding Graphs)</h3>
-
-        </li>
-
         <li><h3>Virtualisation of CDNs (vCDN)</h3></li>
         <li><h3>Fixed Access Network Functions Virtualisation</h3></li>
     </ul>
