@@ -95,9 +95,9 @@ conn siteb-to-sitea
     type=tunnel
 ```
 
-Giải thích các thông số:
-|Lệnh|Ý nghĩa|
-|:---:|:---:|
+Giải thích các thông số. Các thông số này tương tự trong phần cấu hình OpenSwan. Các bạn có thể
+tham khảo tại đây: https://github.com/lethanhlinh247/networking-team/blob/master/LinhLT/VPN/OpenSwan-sitetosite.md
+
 
 
 ##2.3 Cấu hình xác thực
