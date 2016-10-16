@@ -168,24 +168,26 @@ OpenSwan ipsec cho phép t sử dụng 2 phương thức để xác thực các 
 Lưu ý là chúng ta chỉ chọn 1 trong 2 phương thức để xác thực.
 
 ###2.3.1 Pre-Share-Key
-- Tạo Pre-Share-Key (PSK): `vi /etc/ipsec.secrets`
+- Tạo Pre-Share-Key (PSK). PSK trên 2 server phải giống nhau.
+- Đường dẫn file chứa PSK `/etc/ipsec.secrets`.
 
 ```sh
-ip-public-site1  ip-publici-ste2 :  PSK  "123456a@"
+root@adk:~# vi /etc/ipsec.secrets
+ip-public-site1  ip-publici-site2 :  PSK  "123456a@"
 ```
 - Hoặc chúng ta có thể tạo PSK cho mọi tunnel với nội dung sau:
 ```sh
 %any %any : PSK "123456a@"
 ```
 
-- Ví dụ với site A:
+- Ở đây, tôi đã cấu hình với site A:
 ```sh
-10.10.40.129    10.10.40.130:  PSK  "123456a@"
+10.10.40.129    10.10.40.130 :  PSK  "123456a@"
 ```
 
 - Tương tự, với site B.
 ```sh
-10.10.40.130    10.10.40.129:  PSK  "123456a@"
+10.10.40.130    10.10.40.129 :  PSK  "123456a@"
 ```
 
 - Restart lại dịch vụ
