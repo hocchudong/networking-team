@@ -19,7 +19,7 @@ Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site tr
 cd /root/
 wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/config.cfg
 ```
-
+- Ví dụ trên site A tôi cấu hình như thế này: 
 ```sh
 #########
 ip_public_local=10.10.40.131
@@ -34,6 +34,23 @@ user=root	#user for login ssh on site remote.
 dir_log=/var/log/openvpn
 dir_openvpn=/etc/openvpn
 ```
+
+- Và trên site B tôi cấu hình như thế này:
+```sh
+#########
+ip_public_local=10.10.40.132
+ip_public_remote=10.10.40.131
+port=1194
+ip_tunnel_local=10.0.0.2
+ip_tunnel_remote=10.0.0.1
+dir_key=/etc/openvpn/vpn.key
+net_lan_remote=10.10.10.0
+mask_lan_remote=255.255.255.0
+user=root	#user for login ssh on site remote.
+dir_log=/var/log/openvpn
+dir_openvpn=/etc/openvpn
+```
+
 #3. Chạy trên cả 2 site.
 - Tải file `install_openvpn.sh` về, phân quyền cho phép thực thi file và chạy file.
 - Lưu ý, file `config.cfg` phải nằm cùng thư mục với file `install_openvpn.sh`.
