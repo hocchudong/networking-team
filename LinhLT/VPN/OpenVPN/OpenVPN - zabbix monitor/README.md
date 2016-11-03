@@ -2,6 +2,7 @@
 #1. Cài đặt
 #1.1 Import Template
 - Các bạn tiến hành tải file `Template App OpenVPN.xml` và import và zabbix.
+
 ##1.2. Tải các file 
 - Tải file `openvpn.conf` và đưa vào thư mục `/etc/zabbix/`
     Nội dung file này:
