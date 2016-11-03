@@ -8,7 +8,7 @@ Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site tr
 - Chú ý, các bạn phải tải file này về ở cả 2 site.
 ```sh
 cd /root/
-wget 
+wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/config.cfg
 ```
 
 ```sh
@@ -30,7 +30,7 @@ Tải file `install_openvpn.sh` về, phân quyền cho phép thực thi file v�
 Lưu ý, file `config.cfg` phải nằm cùng thư mục với file `install_openvpn.sh`.
 ```sh
 cd /root/
-wget 
+wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/install_openvpn.sh
 chmod u+x 
 ./install_openvpn.sh
 ```
@@ -41,7 +41,7 @@ Lưu ý, trong quá trình chạy scripts, sẽ có yêu cầu thông báo nhậ
 
 ```sh
 cd /root/
-wget
+wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/genkey.sh
 chmod u+x
 ./genkey.sh
 ```
