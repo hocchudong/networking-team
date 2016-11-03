@@ -6,6 +6,7 @@ Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site tr
 #2. Thiết lập các thông số trên cả 2 site
 - Tải file `config.cfg`, thay đổi các thông số phù hợp với mô hình của bạn.
 - Chú ý, các bạn phải tải file này về ở cả 2 site.
+
 ```sh
 cd /root/
 wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/config.cfg
@@ -25,9 +26,10 @@ user=root	#user for login ssh on site remote.
 dir_log=/var/log/openvpn
 dir_openvpn=/etc/openvpn
 ```
-#3. Chạy trên site A.
-Tải file `install_openvpn.sh` về, phân quyền cho phép thực thi file và chạy file.
-Lưu ý, file `config.cfg` phải nằm cùng thư mục với file `install_openvpn.sh`.
+#3. Chạy trên cả 2 site.
+- Tải file `install_openvpn.sh` về, phân quyền cho phép thực thi file và chạy file.
+- Lưu ý, file `config.cfg` phải nằm cùng thư mục với file `install_openvpn.sh`.
+
 ```sh
 cd /root/
 wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/install_openvpn.sh
@@ -36,8 +38,8 @@ chmod u+x
 ```
 
 #4. Trên site A.
-Tải file `genkey.sh` về,  phần quyền cho phép thực thi file và chạy file.
-Lưu ý, trong quá trình chạy scripts, sẽ có yêu cầu thông báo nhập mật khẩu ssh để truy cập đến site B từ site A, phục vụ cho mục đích chép file key vpn từ site A sang site B. Nếu các bạn đã cấu hình ssh trên site A và site B bằng cách sử dụng file key thì không cần phải nhập mật khẩu.
+- Tải file `genkey.sh` về,  phần quyền cho phép thực thi file và chạy file.
+- Lưu ý, trong quá trình chạy scripts, sẽ có yêu cầu thông báo nhập mật khẩu ssh để truy cập đến site B từ site A, phục vụ cho mục đích chép file key vpn từ site A sang site B. Nếu các bạn đã cấu hình ssh trên site A và site B bằng cách sử dụng file key thì không cần phải nhập mật khẩu.
 
 ```sh
 cd /root/
