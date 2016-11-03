@@ -2,10 +2,18 @@
 Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site trên nền tảng ubuntu 14.04
 #1. Mô hình:
 
+![](https://camo.githubusercontent.com/57b1fbe2d551e35e857474590a1d827a10d5f25b/687474703a2f2f692e696d6775722e636f6d2f737a56726c35332e6a7067)
+
+- Site A:
+	- ip public: 10.10.40.131
+	- ip lan private: 10.10.10.0/24
+- Site B:
+	- ip public: 10.10.40.132
+	- ip lan private: 10.10.20.0/24
 
 #2. Thiết lập các thông số trên cả 2 site
 - Tải file `config.cfg`, thay đổi các thông số phù hợp với mô hình của bạn.
-- Chú ý, các bạn phải tải file này về ở cả 2 site.
+- Chú ý, các bạn phải tải file này về ở cả 2 site và phải cấu hình trên từng site. Nội dung cấu hình trên các site là hoàn toàn khác nhau.
 
 ```sh
 cd /root/
@@ -14,8 +22,8 @@ wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/Lin
 
 ```sh
 #########
-ip_public_local=172.16.69.131
-ip_public_remote=172.16.69.132
+ip_public_local=10.10.40.131
+ip_public_remote=10.10.40.132
 port=1194
 ip_tunnel_local=10.0.0.1
 ip_tunnel_remote=10.0.0.2
