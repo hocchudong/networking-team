@@ -58,7 +58,7 @@ dir_openvpn=/etc/openvpn
 ```sh
 cd /root/
 wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/install_openvpn.sh
-chmod u+x 
+chmod u+x install_openvpn.sh
 ./install_openvpn.sh
 ```
 
@@ -69,7 +69,7 @@ chmod u+x
 ```sh
 cd /root/
 wget https://raw.githubusercontent.com/lethanhlinh247/networking-team/master/LinhLT/VPN/OpenVPN%20-%20scripts%20install/genkey.sh
-chmod u+x
+chmod u+x genkey.sh
 ./genkey.sh
 ```
 
