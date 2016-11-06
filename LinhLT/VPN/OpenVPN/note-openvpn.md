@@ -360,7 +360,6 @@ tap="tap0"
 eth="eth0"
 br_ip="192.168.122.1"
 br_netmask="255.255.255.0"
-[ 200 ]Chapter 6
 br_broadcast="192.168.122.255"
 # Create the tap adapter
 openvpn --mktun --dev $tap
@@ -436,3 +435,19 @@ Các vấn đề chốt lại là:
 - Sách **Mastering OpenVPN: Master building and integrating secure private networks using OpenVPN** bởi hai tác giả
 **Eric F Crist** và **Jan Just Keijser**.
 - Sách này được up trong thư mục này.
+
+
+### Các vấn đề cần làm rõ
+1 - Sự khác nhau giữa ptp và server-client? Được sử dụng trong trường hợp nào?
+2 - Sự khác nhau giữa tun device và tap device?
+3 - Sự khác nhau giữa route và iroute. (ccd)
+4 - Lab tất cả các trường hợp, cụ thể là:
+    - Point to point: 
+        - ptp dùng static key: Đã làm, lab lại.
+        - ptp dùng certificates: Đã làm, lab lại, viết báo cáo.
+        - ptp bridge.
+    - Server- client:
+        - server (+lan) to client: Đã làm.viết báo cáo thì tốt =))
+        - server (+lan) to client bridge: Đã làm.
+        - lan to lan.
+        - bridge lan to lan.
