@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "OPENVPN site to site scripts by L2T"
+echo "OPENVPN site to site using static key by L2T"
 source config.cfg
 ###########Cho phep chuyen tiep goi tin##########
 sed -i -e 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
@@ -30,8 +30,8 @@ fi
 cat <<EOF>> $dir_openvpn/server.conf
 local $ip_public_local
 remote $ip_public_remote
-float
 port $port
+proto udp
 dev tun
 ifconfig $ip_tunnel_local $ip_tunnel_remote
 persist-tun
@@ -39,7 +39,7 @@ persist-local-ip
 persist-remote-ip
 comp-lzo
 ping 15
-secret $dir_key
+secret $dir_key 0
 route $net_lan_remote $mask_lan_remote
 user nobody
 group nogroup

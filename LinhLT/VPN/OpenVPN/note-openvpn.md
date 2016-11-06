@@ -451,3 +451,4 @@ Các vấn đề chốt lại là:
         - server (+lan) to client bridge: Đã làm.
         - lan to lan.
         - bridge lan to lan.
+        - dat password.

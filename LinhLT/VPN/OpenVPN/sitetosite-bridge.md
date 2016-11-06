@@ -1,15 +1,18 @@
 #LAB point to point bridge
 #1. Mô hình
 
-network lan ------vpnserver -----internet--------vpnclietn --- network lan
+network lan ------vpnserver -----internet--------vpnclient --- network lan
 
 Tunnel-layer
+
 .............10.10.10.135 - br0 =============vpn==================br0 - 10.10.10.137.........
 
 Ip-adresses
+
 ....10.10.10.135/Eth1--Eth0/172.16.69.133----internet----172.16.69.136/Eth0--Eth1/10.10.10.137..
 
 Internal networks
+
 10.10.10.0.............................................................10.10.10.0
 
 #2. Các bước chuẩn bị 
@@ -21,8 +24,8 @@ net.ipv4.ip_forward = 1
 ```sh
 apt-get install bridge-utils openvpn easy-rsa
 ```
-#2. Tạo bridge
-##2.1 Trên server.
+#3. Tạo bridge
+##3.1 Trên server.
 - Tạo tap0
 ```sh
 openvpn --mktun --dev tap0
@@ -89,7 +92,8 @@ tap0      Link encap:Ethernet  HWaddr 7e:6a:71:b9:69:13
           collisions:0 txqueuelen:100 
           RX bytes:694303648 (694.3 MB)  TX bytes:781398651 (781.3 MB)
 ```
-- Trên client.
+
+##3.2 Trên client.
 - Tạo tap0
 ```sh
 openvpn --mktun --dev tap0
@@ -158,19 +162,22 @@ tap0      Link encap:Ethernet  HWaddr 42:e6:4a:3b:05:a9
 
 ```
 
-#3. Cấu hình server và client.
-##3.1 Dùng static key.
+#4. Cấu hình server và client.
+Chọn 1 trong 2 cách sau, dùng static key hoặc dung cert.
+##4.1 Dùng static key
+###4.1.1 Trên server
 - Gen key trên server.
 ```sh
+cd /etc/openvpn/
 openvpn --genkey --secret secret.key
 ```
 
 - Copy key sang client.
 ```sh
-scp secret.key root@172.16.69.136:/etc/openvpn/
+scp /etc/openvpn/secret.key root@172.16.69.136:/etc/openvpn/
 ```
 
-- File `server.conf`
+- File `/etc/openvpn/server.conf`
 ```sh
 local 172.16.69.133
 remote 172.16.69.136
@@ -185,7 +192,9 @@ persist-tun
 status openvpn-status.log
 verb 3
 ```
-- File `client.conf`
+
+###4.1.2 Trên client
+- File `/etc/openvpn/client.conf`
 ```sh
 local 172.16.69.136
 remote 172.16.69.133
@@ -200,7 +209,9 @@ persist-tun
 status openvpn-status.log
 verb 3
 ```
-##3.2 Dùng cer.
+##4.2 Dùng cer.
+###4.2.1 Trên server
+
 - copy thư mục easy-rsa vào /etc/openvpn/
 ```sh
 make-cadir /etc/openvpn/easy-rsa
@@ -246,7 +257,7 @@ cd /etc/openvpn/easy-rsa/keys/
 ca.crt  client.crt  client.key  dh2048.pem  ta.key
 ```
 
-- File `server.conf`
+- File `/etc/openvpn/server.conf`
 ```sh
 local 172.16.69.133
 remote 172.16.69.136
@@ -266,7 +277,9 @@ persist-tun
 status openvpn-status.log
 verb 3
 ```
-- File `client.conf`
+
+###4.2.2 Trên server
+- File `/etc/openvpn/client.conf`
 ```sh
 local 172.16.69.136
 remote 172.16.69.133
@@ -287,8 +300,8 @@ status openvpn-status.log
 verb 3
 ```
 
-##4. Kết quả.
-- point to point
+##5. Kết quả.
+- static key
 ![](http://image.prntscr.com/image/b2954ac34f9341efb04f6c0feaa8c40d.png)
 
 - cer

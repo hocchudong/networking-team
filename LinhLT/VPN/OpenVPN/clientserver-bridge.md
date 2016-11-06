@@ -118,7 +118,7 @@ gzip -d /etc/openvpn/server.conf.gz
 
 - Sửa file server.conf với các thông số sau:
 
-- 1. 
+- 1.
 
 ```sh
 ;dev tap

@@ -1,5 +1,5 @@
 #README
-Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site trên nền tảng ubuntu 14.04
+Hướng dẫn sử dụng scripts cài đặt OpenVPN mô hình site to site dùng static key trên nền tảng ubuntu 14.04
 #1. Mô hình:
 
 ![](https://camo.githubusercontent.com/57b1fbe2d551e35e857474590a1d827a10d5f25b/687474703a2f2f692e696d6775722e636f6d2f737a56726c35332e6a7067)
