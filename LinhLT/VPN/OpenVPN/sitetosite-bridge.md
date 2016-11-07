@@ -278,7 +278,7 @@ status openvpn-status.log
 verb 3
 ```
 
-###4.2.2 Trên server
+###4.2.2 Trên client
 - File `/etc/openvpn/client.conf`
 ```sh
 local 172.16.69.136

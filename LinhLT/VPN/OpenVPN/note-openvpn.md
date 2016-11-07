@@ -409,6 +409,26 @@ brctl delbr br0
 openvpn --rmtun --dev tap0
 ```
 
+## Đặt password xác thực.
+- Trong file cấu hình `server.conf`, thêm dòng sau:
+```sh
+# Add an extra username/password authentication for clients
+plugin /usr/lib/openvpn/openvpn-plugin-auth-pam.so login
+```
+- Tạo username và password để xác thực. Client sẽ nhập trước khi muốn kết nối.
+```sh
+# Create a user account with no home directory and shell access.
+sudo useradd 97228 -M -s /bin/false
+sudo passwd 97228
+```
+- Một số tuỳ chọn:
+```sh
+client-to-client    #Cho phép các client khi kết nối đến server sẽ nói chuyện được với nhau thông qua server.
+duplicate-cn        #Mặc định những user khác nhau sẽ phải dùng cert cho từng user. Khi tuỳ chọn này được bật, nó cho phép nhiều user chỉ dùng 1 cert cũng có thể nối được.
+```
+
+
+
 #5. Tổng kết.
 Các vấn đề chốt lại là:
 - OpenVPN sử dụng nền tảng SSL/TLS để đảm bảo toàn, mặc định dùng udp và port 1194.
@@ -435,20 +455,3 @@ Các vấn đề chốt lại là:
 - Sách **Mastering OpenVPN: Master building and integrating secure private networks using OpenVPN** bởi hai tác giả
 **Eric F Crist** và **Jan Just Keijser**.
 - Sách này được up trong thư mục này.
-
-
-### Các vấn đề cần làm rõ
-1 - Sự khác nhau giữa ptp và server-client? Được sử dụng trong trường hợp nào?
-2 - Sự khác nhau giữa tun device và tap device?
-3 - Sự khác nhau giữa route và iroute. (ccd)
-4 - Lab tất cả các trường hợp, cụ thể là:
-    - Point to point: 
-        - ptp dùng static key: Đã làm, lab lại.
-        - ptp dùng certificates: Đã làm, lab lại, viết báo cáo.
-        - ptp bridge.
-    - Server- client:
-        - server (+lan) to client: Đã làm.viết báo cáo thì tốt =))
-        - server (+lan) to client bridge: Đã làm.
-        - lan to lan.
-        - bridge lan to lan.
-        - dat password.
