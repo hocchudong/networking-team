@@ -1,17 +1,17 @@
 #!/bin/bash
 HOST_A='10.10.10.138'               #Keystone host to gen token (Ha Noi)
-HOST_B='10.10.10.139'               #Keystone host to validate token (HoChiMinh)
+HOST_B='10.10.10.138 10.10.10.139'               #Keystone host to validate token (HoChiMinh)
 result=/root/keystone/result.txt        #Ket qua kiem tra lan luot.
 ketqua=/root/keystone/ketqua.txt       #Ket qua trung gian de tinh trung binh.
 trungbinh=/root/keystone/trungbinh.txt      #Ket qua trung binh
 time_check_a_token=7200       #Total time to validate a token in sec
-time_sleep=1                   #Time sleep between each validation in sec
+time_sleep=60                   #Time sleep between each validation in sec
 username=admin             #user for gen token
 password=Welcome123   #password for gen token
 domain=default               #domain for gen token
 project=admin                 #project for gen token
-count_gen_token=3          #Tao bao nhieu token trong 1 lan chay?
-count_vali=10                   #1 token kiem tra 10 lan
+count_gen_token=1          #Tao bao nhieu token trong 1 lan chay?
+count_vali=13                   #1 token kiem tra 10 lan
 ###count
 count_token=0
 count_token_failed=0
@@ -27,18 +27,20 @@ s_vali=0
 gen_token(){
     echo ----------------------------------------------------------------------------------------- | tee -a $result
     start=`date +%s`
-    token=`python /root/check_keystone_v3 --username $username --password $password --domain $domain --project $project --auth_url http://$HOST_A:35357/v3`
-    ((count_token++))
-    if [ $token == "" ]
-    then
-        echo -e `date` "\t" 0 "\t\t\t" | tee -a $result
-        ((count_token_failed++))
-        gen_token
-    else
-        echo -e `date` "\t" 1 "\t\t\t" | tee -a $result
-        ((count_token_success++))
-        validate_token
-    fi
+    for host in $HOST_A; do
+        token=`python /root/keystone/check_keystone_v3.py --username $username --password $password --domain $domain --project $project --auth_url http://$host:35357/v3`
+        ((count_token++))
+        if [ $token == "" ]
+        then
+            echo -e `date` "\t" 0 "\t\t\t\t\t\t" $host | tee -a $result
+            ((count_token_failed++))
+            gen_token
+        else
+            echo -e `date` "\t" 1 "\t\t\t\t\t\t" $host | tee -a $result
+            ((count_token_success++))
+            validate_token
+        fi
+    done
 }
 validate_token(){
 for i in `seq 1 $count_vali`;
@@ -47,13 +49,13 @@ do
             end=`date +%s`
             if [[ $((end-start)) -le $time_check_a_token ]]
             then
-                python /root/validate_keystone_v3 --token $token --auth_url http://$host:35357/v3
+                python /root/keystone/validate_keystone_v3.py --token $token --auth_url http://$host:35357/v3
                 if [ $? -eq 2 ]
                 then
-                    echo -e `date` "\t"  "\t\t\t" 0 | tee -a $result
+                    echo -e `date` "\t"  "\t\t\t" 0 "\t\t\t" $host | tee -a $result
                     ((count_vali_failed++))
                 else
-                    echo -e `date` "\t"  "\t\t\t" 1 | tee -a $result
+                    echo -e `date` "\t"  "\t\t\t" 1 "\t\t\t" $host | tee -a $result
                     ((count_vali_success++))
                 fi
                 ((tong++))
@@ -63,7 +65,7 @@ do
 done
 }
 echo ----------------------------------------------------------------------------------------- | tee -a $result
-echo -e Thoi Gian "\t\t\t" gen thanh cong "\t" validate thanh cong | tee -a $result
+echo -e Thoi Gian "\t\t\t" gen thanh cong "\t" validate thanh cong "\t" host | tee -a $result
 while [[ $count_token -lt $count_gen_token ]]; do
     gen_token
 done
