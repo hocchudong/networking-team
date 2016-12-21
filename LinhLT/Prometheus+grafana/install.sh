@@ -1,6 +1,6 @@
 #!/bin/bash
 ip=192.168.116.129
-api_url=https://hooks.slack.com/services/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
+api_url=https://hooks.slack.com/services/xxxxxxxx/xxxxxxxxxxx
 user=root #user mysql
 password=Welcome123 #password mysql
 host=127.0.0.1      #host mysql
