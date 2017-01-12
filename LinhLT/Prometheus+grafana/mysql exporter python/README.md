@@ -31,10 +31,11 @@ pip3 install mysqlclient
 wget https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python/exporter.py
 python3 mysql.py
 ```
-Metrics will export where: http://ipaddress_server:4444/metrics
+Metrics will export where: **http://ipaddress_server:4444/metrics**
 
 Demo: 
-![](http://image.prntscr.com/image/ceed89b1730441b1bf5d6ab5e53d3490.png)
+
+![](http://image.prntscr.com/image/c3a75c2e82444d4caa0065a5793bdab1.png)
 
 #3. Config prometheus
 
