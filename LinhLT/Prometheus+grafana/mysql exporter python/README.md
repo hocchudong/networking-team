@@ -28,15 +28,25 @@ pip3 install mysqlclient
 
 #2. Run
 ```sh
-wget 
+wget https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python/exporter.py
 python3 mysql.py
 ```
 Metrics will export where: http://ipaddress_server:4444/metrics
 
+Demo: 
 ![](http://image.prntscr.com/image/ceed89b1730441b1bf5d6ab5e53d3490.png)
 
 #3. Config prometheus
 
+```sh
+job: {
+  name: "mysql-slave"
+  scrape_interval: "1s"
+  target_group: {
+    target: "http://xxx.xxx.xxx.xxx:4444/metrics"
+  }
+}
+```
 
 #4. Reference
 https://prometheus.io/docs/introduction/overview/
@@ -51,3 +61,4 @@ https://etl.svbtle.com/mysql-replication-slave-monitoring-script-for-zenoss
 
 https://kb.paessler.com/en/topic/39913-how-can-i-monitor-mysql-replication-on-a-linux-machine
 
+https://github.com/slok/prometheus-python

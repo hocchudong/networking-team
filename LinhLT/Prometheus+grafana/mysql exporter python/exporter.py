@@ -28,42 +28,38 @@ def gather_data(registry):
     host = socket.gethostname()
 
     # Create our collectors
-    mysql_metric = Gauge("MySQL_slave", "MySQL slave",
-                       {'host': host})
-    #cpu_metric = Gauge("cpu_usage_percent", "CPU usage percent.",
-                       #{'host': host})
+    mysql_seconds_behind_master = Gauge("mysql_slave_seconds_behind_master", "MySQL slave secons behind master",
+                                        {'host': host})
+    mysql_io_running = Gauge("mysql_slave_io_running", "MySQL slave IO Running",
+                                        {'host': host})
+    mysql_sql_running = Gauge("mysql_slave_sql_running", "MySQL slave SQL Running",
+                                        {'host': host})
 
     # register the metric collectors
-    registry.register(mysql_metric)
-    #registry.register(cpu_metric)
+    registry.register(mysql_seconds_behind_master)
+    registry.register(mysql_io_running)
+    registry.register(mysql_sql_running)
+
+    # Connect to mysql
+    con = mdb.connect(host=host, port=port, user=user, passwd=password);
+    cur = con.cursor(mdb.cursors.DictCursor)
 
     # Start gathering metrics every second
     while True:
         time.sleep(1)
 
-        # Add ram metrics
-        #ram = psutil.virtual_memory()
-        #swap = psutil.swap_memory()
-
-        #ram_metric.set({'type': "virtual", }, ram.used)
-        #ram_metric.set({'type': "virtual", 'status': "cached"}, ram.cached)
-        #ram_metric.set({'type': "swap"}, swap.used)
-
-        # Add cpu metrics
-        #for c, p in enumerate(psutil.cpu_percent(interval=1, percpu=True)):
-            #cpu_metric.set({'core': c}, p)
-        con = mdb.connect(host=host, port=port, user=user, passwd=password);
-        cur = con.cursor(mdb.cursors.DictCursor)
+        # Get replication infomation
         cur.execute('show slave status')
         slave_status = cur.fetchone()
         slave_file = slave_status["Seconds_Behind_Master"]
         slave_sql_running = "1" if slave_status["Slave_SQL_Running"] == "Yes" else "0"
         slave_io_running = "1" if slave_status["Slave_IO_Running"] == "Yes" else "0"
-        con.close()
-        #mysql_metric.set({},10)
-        mysql_metric.set({'type': "Seconds_Behind_Master"},str(slave_file))
-        mysql_metric.set({'type': "Slave_SQL_Running"},slave_sql_running)
-        mysql_metric.set({'type': "Slave_IO_Running"},slave_io_running)
+        #con.close()
+
+        #Add metrics
+        mysql_seconds_behind_master.set({},str(slave_file))
+        mysql_io_running.set({},slave_io_running)
+        mysql_sql_running.set({},slave_sql_running)
 
 if __name__ == "__main__":
 
