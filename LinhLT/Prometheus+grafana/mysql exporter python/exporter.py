@@ -52,12 +52,12 @@ def gather_data(registry):
         cur.execute('show slave status')
         slave_status = cur.fetchone()
         slave_file = slave_status["Seconds_Behind_Master"]
-        slave_sql_running = "1" if slave_status["Slave_SQL_Running"] == "Yes" else "0"
-        slave_io_running = "1" if slave_status["Slave_IO_Running"] == "Yes" else "0"
+        slave_sql_running = 1 if slave_status["Slave_SQL_Running"] == "Yes" else 0
+        slave_io_running = 1 if slave_status["Slave_IO_Running"] == "Yes" else 0
         #con.close()
 
         #Add metrics
-        mysql_seconds_behind_master.set({},str(slave_file))
+        mysql_seconds_behind_master.set({},slave_file)
         mysql_io_running.set({},slave_io_running)
         mysql_sql_running.set({},slave_sql_running)
 
