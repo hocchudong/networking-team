@@ -8,8 +8,8 @@ Prometheus là giải pháp mã nguồn mở dùng để theo dõi (monitoring) 
 - Haproxy
 
 #2. Bối cảnh giải pháp ra đời:
-- Prometheus được xây dựng bởi SoundCloud nhằm tạo ra hế thống monitoring cho soundcloud.com - một trang chia sẽ các bản thi âm trực tuyến.
-- Kể từ năm 2012, đã có nhiều công ty và tổ chức cùng nhiều developer trên thế giới tham gia vào dự án này.
+- Năm 2012, Prometheus được xây dựng bởi SoundCloud nhằm tạo ra hế thống monitoring cho soundcloud.com - một trang chia sẽ các bản thi âm trực tuyến.
+- Kể từ đấy, đã có nhiều công ty và tổ chức cùng nhiều developer trên thế giới tham gia vào dự án này.
 - Năm 2016, prometheus tham gia vào dự án **Cloud Native Computing Foundation**: là tổ chức phi lợi nhuận cho sự phát triển công nghệ, dịch vụ cho cloud.
 
 #3. So sánh với các giải pháp monitoring khác: zabbix.
@@ -41,7 +41,7 @@ Prometheus sử dụng các "exports" (ví dụ: node export, mysql export) đ�
 - Hệ thống cảnh bá alertmanager.
 
 #5. Cài đặt
-#5.1 Prometheus server: 
+##5.1 Prometheus server: 
 Là nơi sẽ "scrapes" và lưu trữ metrics.
 
 - Cài đặt từ file đã được biên dịch: https://prometheus.io/download/
@@ -49,25 +49,25 @@ Là nơi sẽ "scrapes" và lưu trữ metrics.
 Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment để cs thể hoạt động được.
 - Cài đặt từ docker: https://hub.docker.com/u/prom/
 
-#5.2 Exporter:
+##5.2 Exporter:
 - Là nơi sẽ thu thập metrics, thường được cài đặt trên máy cần monitor.
 - Nơi tổng hợp các Exporter chính chủ và bên thứ 3: https://prometheus.io/docs/instrumenting/exporters/
 - Các bạn có thể tự viết Exporter để monitor cho service của mình.
 
-#5.3 Alert manager:
+##5.3 Alert manager:
 - Là nơi sẽ bắn các cảnh báo đến email, slack....
 - https://github.com/prometheus/alertmanager
 
 #6. Demo:
-- Tôi có trình bày cách cài đặt "step by step" để monitor hệ thống mysql tại đây: 
-- Ngoài ra, tôi còn viết script tự động cài đặt theo các bước trên tại đây: 
+- Tôi có trình bày cách cài đặt "step by step" để monitor hệ thống mysql tại đây: https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/demo/Prometheus_grafana_alert%20to%20slack.md
+- Ngoài ra, tôi còn viết script tự động cài đặt theo các bước trên tại đây: https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/demo/install.sh
 
 #7. Viết exporters
 - Tôi sử dụng python để viết 1 exporter thu thập 3 thông số khi thực hiện replication mysql: 
     - Slave IO running.
     - Slave SQL running.
     - Seconds behind master.
-- Các bạn xem tại đây: 
+- Các bạn xem tại đây: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python
 
 
 
