@@ -25,11 +25,15 @@ pip3 install prometheus
 apt-get install python3-dev libmysqlclient-dev
 pip3 install mysqlclient
 ```
+- Install psutil
+```sh
+pip3 install psutil
+```
 
 #2. Run
 ```sh
 wget https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python/exporter.py
-python3 mysql.py
+python3 exporter.py
 ```
 Metrics will export where: **http://ipaddress_server:4444/metrics**
 
