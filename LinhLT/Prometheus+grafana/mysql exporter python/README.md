@@ -44,13 +44,12 @@ Demo:
 #3. Config prometheus
 
 ```sh
-job: {
-  name: "mysql-slave"
-  scrape_interval: "1s"
-  target_group: {
-    target: "http://xxx.xxx.xxx.xxx:4444/metrics"
-  }
-}
+- job_name: test
+    static_configs:
+    - targets: ['localhost:4444']
+      labels:
+        instance: test
+        alias: test
 ```
 
 #4. Reference
