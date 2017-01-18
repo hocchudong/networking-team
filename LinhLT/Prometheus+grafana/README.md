@@ -44,7 +44,7 @@ Prometheus sử dụng các "exports" (ví dụ: node export, mysql export) đ�
 Các thành phần có trong Prometheus: 
 - Prometheus server có nhiệm vụ: *scrapes* và lưu trữ dữ liệu.
 - Client libraries: Prometheus cung cấp các thư viện để áp dụng vào ứng dụng.
-- Push gateway phù hợp với các công việc short-lived. Các short-lived là những công việc không tồn tại lâu để mà prometheus có thể ***scraped** metrics. Vì vậy, các job này sẽ đẩy **push** các metrics này đến Pushgateway. Sau đó Prometheus sẽ **scrapes** Pushgateway để có được metrics.
+- Push gateway phù hợp với các công việc short-lived. Các short-lived là những công việc không tồn tại lâu để mà prometheus có thể **scraped** metrics. Vì vậy, các job này sẽ đẩy **push** các metrics này đến Pushgateway. Sau đó Prometheus sẽ **scrapes** Pushgateway để có được metrics.
 - Giao diện web GUI. 
 - Các exporters có nhiệm vụ thu thập metrics.
 - Hệ thống cảnh báo alertmanager.
@@ -104,6 +104,23 @@ Prometheus client libraries cung cấp 4 loại metrics cơ bản:
 - Summary:
 
 ##8.2 Querying:
+Prometheus cung cấp câu lệnh querying cho phép người dùng lựa chọn và tổng hợp dữ liệu chuỗi thời gian thèo thời gian thực.
+
+- Vi dụ: 
+
+  - Return all time series with the metric http_requests_total:
+```sh
+http_requests_total
+```
+  - Return all time series with the metric http_requests_total and the given job and handler labels:
+```sh
+http_requests_total{job="apiserver", handler="/api/comments"}
+```
+  - Return a whole range of time (in this case 5 minutes) for the same vector, making it a range vector:
+```sh
+http_requests_total{job="apiserver", handler="/api/comments"}[5m]
+```
+
 
 ##8.3 Configuration:
 ```sh
@@ -152,7 +169,7 @@ remote_write:
     [ - <relabel_config> ... ]
 ```
 
-- <scrape_config>
+- scrape_config
 
 ```sh
 # The job name assigned to scraped metrics by default.
@@ -273,11 +290,11 @@ Alerting có 2 thành phần:
 - Alerting rules sẽ được cấu hình trên Prometheus-server. Prometheus-server sẽ xử lý các rules này vày push alert đến Alertmanager.
 - Alertmanager quản lý cách mà các cảnh báo sẽ được xử lý như thế nào? Có được gửi notifications đến người dùng hay không?
 
-Grouping: Phân loại các cảnh báo theo group. Ví dụ ta cấu hình 100 server khi bị failed thì sẽ gửi cảnh báo đến sysadmin. Khi đó, sysadmin sẽ lập tức nhận 100 notification một lúc. Thay vì vậy, ta gom nhóm 100 server này vào 1 group, và sysadmin sẽ chỉ nhận được 1 notification mà thôi.
+**Grouping:** Phân loại các cảnh báo theo group. Ví dụ ta cấu hình 100 server khi bị failed thì sẽ gửi cảnh báo đến sysadmin. Khi đó, sysadmin sẽ lập tức nhận 100 notification một lúc. Thay vì vậy, ta gom nhóm 100 server này vào 1 group, và sysadmin sẽ chỉ nhận được 1 notification mà thôi.
 
-Inhibiton: Sẽ bỏ đi các cảnh báo nhất định nếu một số cảnh báo khác đã được bắn. Ví dự như ta có cụm 1 cụm cluster 100 server bị mất kết nối internet đột ngột. Trên các server này ta có đặt các báo về network, web-server, mysql,... Đo đó, khi mà mất kết nối internet thì tất các cách dịch vụ này đều gửi cảnh báo đến sysadmin. Sử dụng Inhibiton thì khi cảnh báo network được gửi đến sysadmin và các cảnh báo về web-server, mysql sẽ không gửi cần phải gửi đến sysadmin nữa vì sysadmin thừa hiểu là khi mất internet thì các service kia cũng bị failed.
+**Inhibiton:** Sẽ bỏ đi các cảnh báo nhất định nếu một số cảnh báo khác đã được bắn. Ví dự như ta có cụm 1 cụm cluster 100 server bị mất kết nối internet đột ngột. Trên các server này ta có đặt các báo về network, web-server, mysql,... Đo đó, khi mà mất kết nối internet thì tất các cách dịch vụ này đều gửi cảnh báo đến sysadmin. Sử dụng Inhibiton thì khi cảnh báo network được gửi đến sysadmin và các cảnh báo về web-server, mysql sẽ không gửi cần phải gửi đến sysadmin nữa vì sysadmin thừa hiểu là khi mất internet thì các service kia cũng bị failed.
 
-Silences: Tắt cảnh báo trong một thời gian nhất định.
+**Silences:** Tắt cảnh báo trong một thời gian nhất định.
 
 ###8.4.1 Alerts rules
 
