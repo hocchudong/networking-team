@@ -5,6 +5,13 @@ Trong lúc thực hiện các bài lab về pfSense thì hệ thống thường 
 tôi bắt đầu tìm hiểu xem nó là cái gì và phát hiện ra đây là một chức năng khá là hay
 ```
 
+**Mục Lục**
+
+[I. Thực hiện backup.] (#thuchien)
+
+****
+
+<a name="thuchien"></a>
 #I. Thực hiện backup.
 
 - Để phòng tránh các bản cấu hình bị sửa đổi sau đó muốn quay lại với cấu hình mà chúng ta cảm thấy đã hợp lý trước đây

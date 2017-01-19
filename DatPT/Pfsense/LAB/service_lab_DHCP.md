@@ -1,10 +1,20 @@
 #Bài lab về service DHCP trong pfSense.
 
-##Mô hình :
+**Mục Lục**
+
+[I. Mô hình.] (#mohinh)
+
+[II. Thực hiện.] (#thuchien)
+
+****
+
+<a name="mohinh"></a>
+##I. Mô hình :
 
 ![scr8](http://i.imgur.com/dp1bGV5.png)
 
-##Thực hiện.
+<a name="thuchien"></a>
+##II. Thực hiện.
 
 - Thực hiện cấu hình ở mục `Service` => `DHCP server`
 

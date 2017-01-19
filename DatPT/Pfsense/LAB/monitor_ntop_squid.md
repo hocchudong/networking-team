@@ -1,5 +1,14 @@
 #Monitor hệ thống mạng kết hợp giữa Ntop và Squid Report.
 
+**Mục Lục**
+
+[A. Mô hình triển khai.] (#mohinh)
+
+[B. Thực hiện.] (#thuchien)
+
+****
+
+<a name="mohinh"></a>
 ##A. Mô hình triển khai.
 
 ![scr14](http://i.imgur.com/tssDZCO.png)
@@ -7,6 +16,7 @@
 - Mô hình thực hiện gồm  máy chủ pfSense với 2 card mạng, 1 card NAT ra internet và 1 Card trong LAN `10.10.10.0/24` , và 2 client
 ubuntu server (10.10.10.132/24) , win-client (10.10.10.133/24) Cả 2 máy đều NAT chung ra một VIP.
 
+<a name="thuchien"></a>
 ##B. Thực hiện.
 
 - Đầu tiên chúng ta tiến hành tải và cấu hình `Squid report` như [sau](https://github.com/hocchudong/networking-team/blob/master/DatPT/Pfsense/LAB/Lab_repor_lightsquid.md)

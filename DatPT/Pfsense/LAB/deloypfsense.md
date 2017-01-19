@@ -1,5 +1,14 @@
 #Triển khai pfSense.
 
+**Mục Lục**
+
+[I.Thông số kỹ thuật] (#thongso)
+
+[II. Triển khai] (#trienkhai)
+
+****
+
+<a name="thongso"></a>
 ##I. Thông số kỹ thuật.
 
 - Các thiết lập cơ bản trước khi cài đặt.
@@ -28,6 +37,7 @@
 
 ![scr10](http://i.imgur.com/slE5DZzl.png)
 
+<a name="trienkhai"></a>
 ##II. Triển khai.
 
 https://youtu.be/oTMbcxMdvt4

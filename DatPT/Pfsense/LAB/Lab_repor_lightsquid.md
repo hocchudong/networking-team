@@ -1,5 +1,14 @@
 #Lab gửi report sử dụng Light Squid trên pfSense.
 
+**Mục lục**
+
+[A. Mô hình.] (#mohinh)
+
+[B. Thực hiện.] (#thuchien)
+
+****
+
+<a name=mohinh></a>
 ##A. Mô hình.
 
 ![scr10](http://i.imgur.com/CCMsXuD.png)
@@ -8,6 +17,7 @@
 có thể truy caahp ra ngoài internet. Trên máy chủ pfSense cài đặt `Lightsquid` để có thể gửi report về các hoạt động của máy
 Win client.
 
+<a name=thuchien></a>
 ##B.Thực hiện.
 
 - Để bắt đầu thực hiện chúng ta phải cài `Lightsquid` cho pfSesne.

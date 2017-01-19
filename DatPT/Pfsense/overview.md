@@ -2,6 +2,15 @@
 
 #Mục Lục:
 
+[I. Giới thiệu về pfsense.] (#gioithieu)
+
+[II. Những đặc điểm nổi trội và hạn chế.] (#loiichvahanche)
+
+[III. Các tính năng.] (#cactinhnang)
+
+****
+
+<a name="gioithieu"></a>
 ##I. Giới thiệu về Pfsense.
 
 - Để bảo vệ cho hệ thống mạng thì người ta có nhiều giải pháp như sử dụng router Cisco, dùng firewall cứng, firewall mềm của Microsoft
@@ -15,6 +24,7 @@ trên Pfsense cũng như thực hiện cân bằng tải hay failover trên các
 - Trong phân khúc tường lửa cho doanh nghiệp vừa và nhỏ , với khoảng 1000 người sử dụng , Pfsense được đánh giá là tường lửa mã nguồn
 mở tốt nhất hiện nay với khả năng đáp ứng lên tới hàng triệu khối kết nối đồng thời.
 
+<a name="loiichvahanche"></a>
 ##II. Những đặc điểm nổi trội của Pfsense và những hạn chế.
 
 **Đặc điểm nổi trội**
@@ -53,6 +63,7 @@ nghiệp có thể kết hợp các tính năng đa dạng trên pfSense để t
 
 - PfSense là sự kết hợp hoàn hảo và mạnh mẽ, đem lại sự hợp lý cho các nhà tà chính, sự tin tưởng của các nhà quản trị.
 
+<a name="cactinhnang"></a>
 ##III. Các tính năng.
 
 ###1. Aliass
