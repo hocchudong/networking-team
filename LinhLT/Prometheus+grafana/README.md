@@ -89,8 +89,8 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
 #7. Viết exporters
 Ý tưởng viết exporter: Exporter có nhiệm vụ thu thập các metrics và xuất các metrics ra dựa trên http server. Prometheus-server sẽ pull các mectrics này dựa trên giao thức http. Vì vậy, Exporter gồm 2 thành phần.
 
-- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry.
-  - Create collectors:
+- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry. Có các bước như sau: 
+  - **Create collectors:**
   ```sh
     ten_collector=kieu_metric("ten_metrics","Tên chi tiết metrics",{Các thông tin bổ sung cho metrics})
 
@@ -98,11 +98,11 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
     mysql_seconds_behind_master = Gauge("mysql_slave_seconds_behind_master", "MySQL slave secons behind master",{})
   ```
 
-  Kiểu metrics có 4 kiểu: Counter, Gauge, Histogram, Summary. Với từng use case khác nhau ta sẽ sử dụng một kiểu metrics khác nhau.
+    Kiểu metrics có 4 kiểu: Counter, Gauge, Histogram, Summary. Với từng use case khác nhau ta sẽ sử dụng một kiểu metrics khác nhau.
 
-  Chi tiết 4 kiểu metric được tôi trình bày trong mục 8.1
+    Chi tiết 4 kiểu metric được tôi trình bày trong mục **8.1**
   
-  - register the metric collectors
+  - **register the metric collectors**
 
   ```sh
     registry.register(ten_collector)
@@ -111,7 +111,7 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
     registry.register(mysql_seconds_behind_master)
   ```
 
-  - add metrics
+  - **add metrics**
   ```sh
   ten_collector.set({},values)
 
@@ -120,7 +120,8 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
   ```
   values là thông số monitor mà mình lấy được. 
 
-  => Các bạn có thể hình dung đơn giản quá trình này như sau: Mỗi thông tin cần monitor là 1 metrics. Để lưu tạm thời giá trị các metrics, các bạn cần phải có 1 thùng chứa. Thì ở đây registry đóng vai trò là thùng chứa. Ứng với mỗi metrics sẽ có 1 thùng chứa riêng nó. Thao tác **set** là đưa giá trị metrics vào thùng chứa. Sau đó ở thành phần 2, sẽ lấy giá trị trong thùng chứa này và hiển thị thông tin.
+
+  **=>** Các bạn có thể hình dung đơn giản quá trình này như sau: Mỗi thông tin cần monitor là 1 metrics. Để lưu tạm thời giá trị các metrics, các bạn cần phải có 1 thùng chứa. Thì ở đây registry đóng vai trò là thùng chứa. Ứng với mỗi metrics sẽ có 1 thùng chứa riêng nó. Thao tác **set** là đưa giá trị metrics vào thùng chứa. Sau đó ở thành phần 2, sẽ lấy giá trị trong thùng chứa này và hiển thị thông tin.
 
 - Thành phần 2: **Serve data**: Đẩy metrics lên http servers.
 
