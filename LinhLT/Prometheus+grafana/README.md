@@ -87,6 +87,68 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
 - Ngoài ra, tôi còn viết script tự động cài đặt theo các bước trên tại đây: https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/demo/install.sh
 
 #7. Viết exporters
+Ý tưởng viết exporter: Exporter có nhiệm vụ thu thập các metrics và xuất các metrics ra dựa trên http server. Prometheus-server sẽ pull các mectrics này dựa trên giao thức http. Vì vậy, Exporter gồm 2 thành phần.
+
+- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry.
+  - Create collectors:
+  ```sh
+    ten_collector=kieu_metric("ten_metrics","Tên chi tiết metrics",{Các thông tin bổ sung cho metrics})
+
+    #Ví dụ:
+    mysql_seconds_behind_master = Gauge("mysql_slave_seconds_behind_master", "MySQL slave secons behind master",{})
+  ```
+
+  Kiểu metrics có 4 kiểu: Counter, Gauge, Histogram, Summary. Với từng use case khác nhau ta sẽ sử dụng một kiểu metrics khác nhau.
+
+  Chi tiết 4 kiểu metric được tôi trình bày trong mục 8.1
+  
+  - register the metric collectors
+
+  ```sh
+    registry.register(ten_collector)
+
+    #Ví dụ
+    registry.register(mysql_seconds_behind_master)
+  ```
+
+  - add metrics
+  ```sh
+  ten_collector.set({},values)
+
+  #Ví dụ:
+  mysql_seconds_behind_master.set({},slave_file)
+  ```
+  values là thông số monitor mà mình lấy được. 
+
+  => Các bạn có thể hình dung đơn giản quá trình này như sau: Mỗi thông tin cần monitor là 1 metrics. Để lưu tạm thời giá trị các metrics, các bạn cần phải có 1 thùng chứa. Thì ở đây registry đóng vai trò là thùng chứa. Ứng với mỗi metrics sẽ có 1 thùng chứa riêng nó. Thao tác **set** là đưa giá trị metrics vào thùng chứa. Sau đó ở thành phần 2, sẽ lấy giá trị trong thùng chứa này và hiển thị thông tin.
+
+- Thành phần 2: **Serve data**: Đẩy metrics lên http servers.
+
+```sh
+from http.server import HTTPServer
+from prometheus.exporter import PrometheusMetricHandler
+from prometheus.registry import Registry
+
+
+# Create the registry
+registry = Registry()
+
+# Create the thread that gathers the data while we serve it
+thread = threading.Thread(target=gather_data, args=(registry, ))
+thread.start()
+
+# We make this to set the registry in the handler
+def handler(*args, **kwargs):
+    PrometheusMetricHandler(registry, *args, **kwargs)
+
+# Set a server to export (expose to prometheus) the data (in a thread)
+server = HTTPServer(('', 8888), handler)
+server.serve_forever()
+```
+
+Đoạn code trên sẽ tạo ra một http server với địa chỉ ip là máy đang chạy, port là 8888. Nội dung handler chính là nội dung của metrics đã được format theo chuẩn của prometheus. Hàm **MetricHandler** có nhiệm vụ **generating metric output**, dựa trên thông tin có trong registry.
+
+
 - Tôi sử dụng python để viết 1 exporter thu thập 3 thông số khi thực hiện replication mysql: 
     - Slave IO running.
     - Slave SQL running.
