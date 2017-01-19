@@ -7,7 +7,7 @@ Prometheus là giải pháp mã nguồn mở dùng để theo dõi (monitoring) 
 - Memcached
 - Haproxy
 
-Các tính năng của Prometheus: 
+Các tính năng của Prometheus:
 - Lưu trữ dữ liệu bằng time series: tên metrics và giá trị theo từng thời điểm.
 - Câu lệnh truy vấn thông tin linh hoạt.
 - Lấy metrics thông qua thao tác **pull** ở giao thức HTTP.
@@ -37,22 +37,22 @@ Prometheus sử dụng giao thức http. Các thông tin metrics được hiển
 
 Prometheus sử dụng các "exports" (ví dụ: node export, mysql export) để thu thập các metrics và hiển thị trên giao thức http. Người dùng có thể tự viết các export dựa trên các thư viện mà prometheus hỗ trợ (Có viết bằng go, python, java, php,...)
 
-#4. Thành phần - Kiến trúc: 
+#4. Thành phần - Kiến trúc:
 
 ![](https://prometheus.io/assets/architecture.svg)
 
-Các thành phần có trong Prometheus: 
+Các thành phần có trong Prometheus:
 - Prometheus server có nhiệm vụ: *scrapes* và lưu trữ dữ liệu.
 - Client libraries: Prometheus cung cấp các thư viện để áp dụng vào ứng dụng.
 - Push gateway phù hợp với các công việc short-lived. Các short-lived là những công việc không tồn tại lâu để mà prometheus có thể **scraped** metrics. Vì vậy, các job này sẽ đẩy **push** các metrics này đến Pushgateway. Sau đó Prometheus sẽ **scrapes** Pushgateway để có được metrics.
-- Giao diện web GUI. 
+- Giao diện web GUI.
 - Các exporters có nhiệm vụ thu thập metrics.
 - Hệ thống cảnh báo alertmanager.
 - Giao diện dòng lệnh command-line querying.
 
 
-Cách hoạt động: 
-- Các jobs được phân chia thành short-lived và long-lived jobs/Exporter. 
+Cách hoạt động:
+- Các jobs được phân chia thành short-lived và long-lived jobs/Exporter.
 
 Short-lived là những job sẽ tồn tại trong thời gian ngắn và prometheus-server sẽ không kịp scrapes metrics của các jobs này. Do đó, những short-lived jobs sẽ push (đẩy) các metrics đến một nơi gọi là Pushgateway. Pushgateway sẽ là nơi sẽ phơi bày metrics ra và prometheus-server sẽ lấy được metrics của short-lived thông qua Pushgateway.
 
@@ -65,7 +65,7 @@ Long-lived jobs/Exporter: Là những job sẽ tồn tại lâu dài. Các Expor
 - Alertmanager sẽ được cấu hình các thông tin cần thiết để có thể gửi cảnh bảo đến email, slack,.... Sau khi prometheus-server push alerts đến alertmanager, alertmanager sẽ gửi cảnh báo đến người dùng.
 
 #5. Cài đặt
-##5.1 Prometheus server: 
+##5.1 Prometheus server:
 Là nơi sẽ "scrapes" và lưu trữ metrics.
 
 - Cài đặt từ file đã được biên dịch: https://prometheus.io/download/
@@ -89,7 +89,7 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
 #7. Viết exporters
 Ý tưởng viết exporter: Exporter có nhiệm vụ thu thập các metrics và xuất các metrics ra dựa trên http server. Prometheus-server sẽ pull các mectrics này dựa trên giao thức http. Vì vậy, Exporter gồm 2 thành phần.
 
-- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry. Có các bước như sau: 
+- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry. Có các bước như sau:
   - **Create collectors:**
   ```sh
     ten_collector=kieu_metric("ten_metrics","Tên chi tiết metrics",{Các thông tin bổ sung cho metrics})
@@ -97,11 +97,10 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
     #Ví dụ:
     mysql_seconds_behind_master = Gauge("mysql_slave_seconds_behind_master", "MySQL slave secons behind master",{})
   ```
-
     Kiểu metrics có 4 kiểu: Counter, Gauge, Histogram, Summary. Với từng use case khác nhau ta sẽ sử dụng một kiểu metrics khác nhau.
 
     Chi tiết 4 kiểu metric được tôi trình bày trong mục **8.1**
-  
+
   - **register the metric collectors**
 
   ```sh
@@ -112,13 +111,14 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
   ```
 
   - **add metrics**
+
   ```sh
   ten_collector.set({},values)
 
   #Ví dụ:
   mysql_seconds_behind_master.set({},slave_file)
   ```
-  values là thông số monitor mà mình lấy được. 
+  values là thông số monitor mà mình lấy được. Chú ý là với mỗi loại metrics khác nhau, thì theo tác add metrics lại khác nhau.
 
 
   **=>** Các bạn có thể hình dung đơn giản quá trình này như sau: Mỗi thông tin cần monitor là 1 metrics. Để lưu tạm thời giá trị các metrics, các bạn cần phải có 1 thùng chứa. Thì ở đây registry đóng vai trò là thùng chứa. Ứng với mỗi metrics sẽ có 1 thùng chứa riêng nó. Thao tác **set** là đưa giá trị metrics vào thùng chứa. Sau đó ở thành phần 2, sẽ lấy giá trị trong thùng chứa này và hiển thị thông tin.
@@ -150,7 +150,7 @@ server.serve_forever()
 Đoạn code trên sẽ tạo ra một http server với địa chỉ ip là máy đang chạy, port là 8888. Nội dung handler chính là nội dung của metrics đã được format theo chuẩn của prometheus. Hàm **MetricHandler** có nhiệm vụ **generating metric output**, dựa trên thông tin có trong registry.
 
 
-- Tôi sử dụng python để viết 1 exporter thu thập 3 thông số khi thực hiện replication mysql: 
+- Tôi sử dụng python để viết 1 exporter thu thập 3 thông số khi thực hiện replication mysql:
     - Slave IO running.
     - Slave SQL running.
     - Seconds behind master.
@@ -163,13 +163,13 @@ server.serve_forever()
 Prometheus client libraries cung cấp 4 loại metrics cơ bản:
 - Counter: Được sử dụng trong các trường hợp như đếm số request, task complete, errors occurred,..
 - Gauge: Thường được sử dụng để đo các giá trị như giá trị nhiệt độ, hoặc giá trị bộ nhớ hiện tại đang sử dụng.
-- Histogram: 
+- Histogram:
 - Summary:
 
 ##8.2 Querying:
 Prometheus cung cấp câu lệnh querying cho phép người dùng lựa chọn và tổng hợp dữ liệu chuỗi thời gian thèo thời gian thực.
 
-- Vi dụ: 
+- Vi dụ:
 
   - Return all time series with the metric http_requests_total:
 ```sh
@@ -283,7 +283,7 @@ basic_auth:
 # the configured bearer token. It is mutually exclusive with `bearer_token_file`.
 [ bearer_token: <string> ]
 
-# Sets the `Authorization` header on every scrape request with the bearer token 
+# Sets the `Authorization` header on every scrape request with the bearer token
 # read from the configured file. It is mutually exclusive with `bearer_token`.
 [ bearer_token_file: /path/to/bearer/token/file ]
 
@@ -349,7 +349,7 @@ metric_relabel_configs:
 
 
 ##8.4 Alerting:
-Alerting có 2 thành phần: 
+Alerting có 2 thành phần:
 - Alerting rules sẽ được cấu hình trên Prometheus-server. Prometheus-server sẽ xử lý các rules này vày push alert đến Alertmanager.
 - Alertmanager quản lý cách mà các cảnh báo sẽ được xử lý như thế nào? Có được gửi notifications đến người dùng hay không?
 
