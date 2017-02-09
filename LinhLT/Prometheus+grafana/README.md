@@ -1,4 +1,23 @@
 #Prometheus
+#Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1. Prometheus là gì?](#promethes)
+- [2. Bối cảnh giải pháp ra đời:](#lichsu)
+- [3. So sánh với các giải pháp monitoring khác: zabbix.](#sosanh)
+- [4. Thành phần - Kiến trúc:](#kientruc)
+- [5. Cài đặt](#caidat)
+- [6. Demo:](#demo)
+- [7. Viết exporters](#exporter)
+- [8. Các thông tin chi tiết.](#chitiet)
+	- [8.1 Metrics types](#metrics_type)
+	- [8.2 Querying:](#querying)
+	- [8.3 Configuration:](#conf)
+	- [8.4 Alerting:](#alert)
+	- [8.5 Federation:](#federate)
+	- [8.6 Pushgateway](#pushgateway)
+
+<a name="promethes"></a>
 #1. Prometheus là gì?
 Prometheus là giải pháp mã nguồn mở dùng để theo dõi (monitoring) và cảnh báo (alert) cho hệ thống, dịch vụ như:
 - Linux OS
@@ -14,12 +33,13 @@ Các tính năng của Prometheus:
 - **push metrics** thông qua cổng trung gian.
 - Có hỗ trợ discovery: tự động tìm ra targets để monitor.
 
+<a name="lichsu"></a>
 #2. Bối cảnh giải pháp ra đời:
 - Năm 2012, Prometheus được xây dựng bởi SoundCloud nhằm tạo ra hế thống monitoring cho soundcloud.com - một trang chia sẽ các bản thi âm trực tuyến.
 - Kể từ đấy, đã có nhiều công ty và tổ chức cùng nhiều developer trên thế giới tham gia vào dự án này.
 - Năm 2016, prometheus tham gia vào dự án **Cloud Native Computing Foundation**: là tổ chức phi lợi nhuận cho sự phát triển công nghệ, dịch vụ cho cloud.
 
-
+<a name="sosanh"></a>
 #3. So sánh với các giải pháp monitoring khác: zabbix.
 
 Zabbix tích hợp sẵn các thành phần như biểu đồ, cảnh báo vào phần core của nó.
@@ -37,6 +57,7 @@ Prometheus sử dụng giao thức http. Các thông tin metrics được hiển
 
 Prometheus sử dụng các "exports" (ví dụ: node export, mysql export) để thu thập các metrics và hiển thị trên giao thức http. Người dùng có thể tự viết các export dựa trên các thư viện mà prometheus hỗ trợ (Có viết bằng go, python, java, php,...)
 
+<a name="kientruc"></a>
 #4. Thành phần - Kiến trúc:
 
 ![](https://prometheus.io/assets/architecture.svg)
@@ -64,6 +85,7 @@ Long-lived jobs/Exporter: Là những job sẽ tồn tại lâu dài. Các Expor
 
 - Alertmanager sẽ được cấu hình các thông tin cần thiết để có thể gửi cảnh bảo đến email, slack,.... Sau khi prometheus-server push alerts đến alertmanager, alertmanager sẽ gửi cảnh báo đến người dùng.
 
+<a name="caidat"></a>
 #5. Cài đặt
 ##5.1 Prometheus server:
 Là nơi sẽ "scrapes" và lưu trữ metrics.
@@ -86,6 +108,7 @@ Khi biên dịch từ source code, bạn phải cài đặt sẵn Go environment
 - Tôi có trình bày cách cài đặt "step by step" để monitor hệ thống mysql tại đây: https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/demo/Prometheus_grafana_alert%20to%20slack.md
 - Ngoài ra, tôi còn viết script tự động cài đặt theo các bước trên tại đây: https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/demo/install.sh
 
+<a name="exporter"></a>
 #7. Viết exporters
 Ý tưởng viết exporter: Exporter có nhiệm vụ thu thập các metrics và xuất các metrics ra dựa trên http server. Prometheus-server sẽ pull các mectrics này dựa trên giao thức http. Vì vậy, Exporter gồm 2 thành phần.
 
@@ -156,8 +179,10 @@ server.serve_forever()
     - Seconds behind master.
 - Các bạn xem tại đây: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python
 
+<a name="chitiet"></a>
 #8. Các thông tin chi tiết.
 
+<a name="metrics_type"></a>
 ##8.1 Metrics types
 
 Prometheus client libraries cung cấp 4 loại metrics cơ bản:
@@ -187,6 +212,7 @@ http_requests_total{job="apiserver", handler="/api/comments"}[5m]
 - Ngoài ra, Prometheus hỗ trợ các hàm tính toàn metrics như abs, day_of_month(),day_of_week(),... Các bạn xem chi tiết tại
 `https://prometheus.io/docs/querying/functions/``
 
+<a name="conf"></a>
 ##8.3 Configuration:
 ```sh
 global:
@@ -325,7 +351,7 @@ metric_relabel_configs:
   [ - <relabel_config> ... ]
 ```
 
-
+<a name="alert"></a>
 ##8.4 Alerting:
 Alerting có 2 thành phần:
 - Alerting rules sẽ được cấu hình trên Prometheus-server. Prometheus-server sẽ xử lý các rules này vày push alert đến Alertmanager.
@@ -391,6 +417,7 @@ inhibit_rules:
   [ - <inhibit_rule> ... ]
 ```
 
+<a name="federate"></a>
 ##8.5 Federation:
 Federation cho phép một Prometheus-server **scrape** metrics từ các Prometheus-server khác.
 
@@ -419,6 +446,7 @@ Lưu ý là phần `{job="prometheus"}` thì tên job phải trùng với job tr
 
 - Sau khi cấu hình xong, các bạn có thể vào địa chỉ: `http://ip:9090/targets` để kiểm tra
 
+<a name="pushgateway"></a>
 ##8.6 Pushgateway
 - Pushgateway được sử dụng trong trường hợp mà Promethes server không thể scrape metrics một cách trực tiếp. Có thể là các job chỉ tồn tại trontg thời gian ngắn mà Promethes server chưa kịp scrape metrics.
 
