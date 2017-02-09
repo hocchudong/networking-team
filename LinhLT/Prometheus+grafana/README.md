@@ -184,6 +184,8 @@ http_requests_total{job="apiserver", handler="/api/comments"}
 http_requests_total{job="apiserver", handler="/api/comments"}[5m]
 ```
 
+- Ngoài ra, Prometheus hỗ trợ các hàm tính toàn metrics như abs, day_of_month(),day_of_week(),... Các bạn xem chi tiết tại
+`https://prometheus.io/docs/querying/functions/``
 
 ##8.3 Configuration:
 ```sh
@@ -310,30 +312,6 @@ dns_sd_configs:
 ec2_sd_configs:
   [ - <ec2_sd_config> ... ]
 
-# List of file service discovery configurations.
-file_sd_configs:
-  [ - <file_sd_config> ... ]
-
-# List of GCE service discovery configurations.
-gce_sd_configs:
-  [ - <gce_sd_config> ... ]
-
-# List of Kubernetes service discovery configurations.
-kubernetes_sd_configs:
-  [ - <kubernetes_sd_config> ... ]
-
-# List of Marathon service discovery configurations.
-marathon_sd_configs:
-  [ - <marathon_sd_config> ... ]
-
-# List of AirBnB's Nerve service discovery configurations.
-nerve_sd_configs:
-  [ - <nerve_sd_config> ... ]
-
-# List of Zookeeper Serverset service discovery configurations.
-serverset_sd_configs:
-  [ - <serverset_sd_config> ... ]
-
 # List of labeled statically configured targets for this job.
 static_configs:
   [ - <static_config> ... ]
@@ -416,7 +394,7 @@ inhibit_rules:
 ##8.5 Federation:
 Federation cho phép một Prometheus-server **scrape** metrics từ các Prometheus-server khác.
 
-Cấu hình
+Cấu hình trên prometheus server scrape metrics từ các server khác.
 
 ```sh
 - job_name: 'federate'
@@ -435,4 +413,63 @@ Cấu hình
       - 'source-prometheus-1:9090'
       - 'source-prometheus-2:9090'
       - 'source-prometheus-3:9090'
+```
+
+Lưu ý là phần `{job="prometheus"}` thì tên job phải trùng với job trong các job đã cấu hình ở trên các promethes server khác.
+
+- Sau khi cấu hình xong, các bạn có thể vào địa chỉ: `http://ip:9090/targets` để kiểm tra
+
+##8.6 Pushgateway
+- Pushgateway được sử dụng trong trường hợp mà Promethes server không thể scrape metrics một cách trực tiếp. Có thể là các job chỉ tồn tại trontg thời gian ngắn mà Promethes server chưa kịp scrape metrics.
+
+- Để giải quyết vấn đề này, thì Pushgateway được ra đời. Pushgateway sẽ đóng vai trò trung gian giữa promethes server và targets
+cần monitor.
+
+- Trên targets sẽ được cấu hình để push metrics đến Pushgateway. Rồi từ đó, Prometheus server sẽ scrape (pull) metrics ở Pushgateway.
+
+- All pushes are done via HTTP. The interface is vaguely REST-like.
+
+- Để push metrics lên pushgateway, các bạn có thể sử dụng lệnh curl với các method sau:
+  - URL: `http://ip:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
+  - PUT method: Push metrics. All metrics with the grouping key specified in the URL are replaced by the metrics pushed with PUT.
+  - POST method: POST works exactly like the PUT method but only metrics with the same name as the newly pushed metrics are replaced (among those with the same grouping key).
+  - DELETE method: DELETE is used to delete metrics from the push gateway.
+
+###8.6.1 Cấu hình:
+- Tải gói Pushgateway:
+```sh
+wget https://github.com/prometheus/pushgateway/releases/download/v0.3.1/pushgateway-0.3.1.linux-amd64.tar.gz
+```
+- Giải nén và chạy:
+```sh
+tar -xvf pushgateway-0.3.1.linux-amd64.tar.gz
+cd /pushgateway-0.3.1.linux-amd64
+./pushgateway
+```
+- Ví dụ đơn giản để push metrics:
+```sh
+echo "some_metric 3.14" | curl --data-binary @- http://ip:9091/metrics/job/some_job
+```
+- Push metrics với nhiều thông tin hơn:
+```sh
+cat <<EOF | curl --data-binary @- http://pushgateway.example.org:9091/metrics/job/some_job/instance/some_instance
+# TYPE some_metric counter
+some_metric{label="val1"} 42
+# This one even has a timestamp (but beware, see below).
+some_metric{label="val2"} 34 1398355504000
+# TYPE another_metric gauge
+# HELP another_metric Just an example.
+another_metric 2398.283
+EOF
+```
+
+- Sau khi chạy, ta có thể xem thông tin các metrics đã được push tại địa chỉ: `http://ip:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
+
+- Xóa tất cả metrics cùng job và instance:
+```sh
+curl -X DELETE ip:9091/metrics/job/some_job/instance/some_instance
+```
+- Xóa metrics cùng jobs:
+```sh
+curl -X DELETE http://pushgateway.example.org:9091/metrics/job/some_job
 ```
