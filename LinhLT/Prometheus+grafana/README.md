@@ -1,5 +1,24 @@
 #Prometheus
 #Mục lục
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [1. Giới thiệu Prometheus](#gioithieu)
+- [2. Kiến trúc](#kientruc)
+- [3. Data model](#datamodel)
+	- [3.1 Metrics](#metrics)
+  - [3.2 Storage](#storage)
+- [4. Scrape metrics](#scrape)
+	- [4.1 Exporter](#exporter)
+	- [4.2 Pushgateway](#pushgateway)
+	- [4.3 Prometheus-server](#promethes-sv)
+	- [4.4 Client libraries](#client)
+- [5. Query Language và Visualization](#query-visualization)
+- [5.1 Query Language (PromQL)](#query)
+	- [5.2 Visualization](#visualization)
+- [6. Alert](#alert)
+	- [6.1 Alert manager](#alertmanager)
+	- [6.2 Alert rules](#alertrules)
+- [7. Demo](#demo)
 
 <a name="gioithieu"></a>
 #1. Giới thiệu Prometheus
@@ -76,6 +95,7 @@ Long-lived jobs/Exporter: Là những job sẽ tồn tại lâu dài. Các Expor
   - Gauge: Thường được sử dụng để đo các giá trị như giá trị nhiệt độ, hoặc giá trị bộ nhớ hiện tại đang sử dụng.
   - Histogram:
   - Summary:
+
 <a name="storage"></a>
 ##3.2 Storage
 - LevelDB, cơ sử dữ liệu nosql.
@@ -157,7 +177,7 @@ rate(http_requests_total[5m])
 sum(rate(http_requests_total[5m])) by (job)
 ```
 
-<a name="Visualization"></a>
+<a name="visualization"></a>
 ##5.2 Visualization
 - PromDash: Sản phẩm do chính Prometheus phát triển.
 - Grafana: Đang được sử dụng nhiều hiện nay.
