@@ -19,6 +19,7 @@
 	- [6.1 Alert manager](#alertmanager)
 	- [6.2 Alert rules](#alertrules)
 - [7. Demo](#demo)
+- [8. Tài liệu tham khảo](#thamkhao)
 
 <a name="gioithieu"></a>
 #1. Giới thiệu Prometheus
@@ -188,6 +189,9 @@ sum(rate(http_requests_total[5m])) by (job)
 <a name="alertmanager"></a>
 ##6.1 Alert manager
 - Alertmanager có nhiệm vụ là gửi các cảnh báo đến nơi đã cấu hình.
+
+![](http://image.prntscr.com/image/423fd44813fe49bab90857552a8d8673.png)
+
 - Cách hoạt động như sau:
   - 1. Prometheus-server sẽ xử lý các alert-rules.
   - 2. Nếu rules được match, Prometheus-server sẽ gửi thông tin đến Alertmanager.
@@ -279,3 +283,11 @@ ANNOTATIONS {
 
 <a name="demo"></a>
 #7. Demo
+- Monitoring mysql replication.
+- link: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/demo
+
+<a name="thamkhao"></a>
+#8. Tham khảo
+- https://promcon.io/2016-berlin/talks/welcome-and-introduction/
+- http://www.slideshare.net/brianbrazil/an-introduction-to-prometheus-grafanacon-2016
+- https://prometheus.io/docs/
