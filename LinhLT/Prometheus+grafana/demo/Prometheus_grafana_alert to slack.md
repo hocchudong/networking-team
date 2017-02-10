@@ -20,7 +20,7 @@ tar -xvf prometheus-1.4.1.linux-amd64.tar.gz
 cd /opt/prometheus-1.4.1.linux-amd64
 vi prometheus.yml
 ```
-- Nội dung file `prometheus.yml`: 
+- Nội dung file `prometheus.yml`:
 ```sh
 # my global config
 global:
@@ -78,7 +78,7 @@ port=3305
 ##4.1 CONFIG SLACK
 Truy cập `https://api.slack.com/custom-integrations` và enable webhook
 
-##4.2 Cấu hình prometheus: 
+##4.2 Cấu hình prometheus:
 ```sh
 cd /opt/prometheus-1.4.1.linux-amd64
 vi alert.rules
@@ -146,6 +146,19 @@ cd /opt/prometheus-1.4.1.linux-amd64
 ./prometheus -config.file=prometheus.yml -alertmanager.url=http://192.168.116.129:9093
 ```
 
+- Để gửi mail đến gmail:
+```sh
+receivers:
+- name: email-me
+  email_configs:
+  - to: $GMAIL_ACCOUNT
+    from: $GMAIL_ACCOUNT
+    smarthost: smtp.gmail.com:587
+    auth_username: "$GMAIL_ACCOUNT"
+    auth_identity: "$GMAIL_ACCOUNT"
+    auth_password: "$GMAIL_AUTH_TOKEN"
+```
+
 #5. Install grafana
 - Cài đặt
 ```sh
@@ -159,11 +172,11 @@ dpkg -i grafana_4.0.2-1481203731_amd64.deb
 grafana-cli plugins install percona-percona-app
 service grafana-server restart
 ```
-- Truy cập: 
+- Truy cập:
 ```sh
 http://192.168.116.129:3000
 ```
-Đăng nhập với tài khoản `admin/admin`. Thực hiện các bước sau: 
+Đăng nhập với tài khoản `admin/admin`. Thực hiện các bước sau:
 - enable plugin percona
 
 ![](http://image.prntscr.com/image/a1d67911a9274ce3b708e6d7edeb8da6.png)
@@ -172,7 +185,7 @@ http://192.168.116.129:3000
 
 ![](http://image.prntscr.com/image/4d7a1e5565874b9a8ebb0c0313573e9e.png)
 
-#6. Kết quả: 
+#6. Kết quả:
 ![](http://image.prntscr.com/image/187ed17f74634219b1c4510951a8ee1e.png)
 
 ![](http://image.prntscr.com/image/416e4a6b546b434b9c244fd58eb7e311.png)
