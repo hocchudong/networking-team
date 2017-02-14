@@ -87,20 +87,25 @@ Long-lived jobs/Exporter: Là những job sẽ tồn tại lâu dài. Các Expor
 
 - Giải thích:
   - `api_http_requests_total`: là tên metrics.
-  - `method="GET", endpoint="/api/posts", status="200"`: là các cặp key->values.
-  - `@1464623917237`: Giá trị timestamp, được tính bằng cách.
+  - `method="GET", endpoint="/api/posts", status="200"`: label - là các cặp key->values.
+  - `@1464623917237`: Giá trị timestamp, chính là giá trị unix timestamp.
   - `68856`: Giá trị của metrics tại thời điểm timestamp.
 
 - Có 4 loại metrics
-  - Counter: Được sử dụng trong các trường hợp như đếm số request, task complete, errors occurred,..
-  - Gauge: Thường được sử dụng để đo các giá trị như giá trị nhiệt độ, hoặc giá trị bộ nhớ hiện tại đang sử dụng.
-  - Histogram:
-  - Summary:
+  - Counter: Có giá trị là số, giá trị chỉ có thể được tăng lên chứ không thể giảm đi. Được sử dụng trong các trường hợp như đếm số request, task complete, errors occurred,..
+  - Gauge: Tương tự như Counter. Tuy nhiên giá trị có thể lên hoặc xuống. Thường được sử dụng để đo các giá trị như giá trị nhiệt độ, hoặc giá trị bộ nhớ hiện tại đang sử dụng.
+  - Histogram: Là metrics mà sẽ cung cấp nhiều time-series: 1 cho mỗi bucket, 1 cho tổng các giá trị và 1 cho đếm các events đã thấy. Ví dụ như thời gian response.
+  - Summary: Cũng tương tự Histogram. Tuy nhiên nó có hỗ trợ thêm khả năng tính toán quantiles.
 
 <a name="storage"></a>
 ##3.2 Storage
-- LevelDB, cơ sử dữ liệu nosql.
-- LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values.
+- Prometheus sử dụng storage backend dưới dạng custom.
+- Để indexed, Prometheus sử dụng LevelDB.
+- For the bulk sample data, it has its own custom storage layer.
+- Write Performance - Single Node: 800k metrics/s.
+- Lưu trữ tại thư mục /data.
+- Ngôn ngữ truy vấn: PromQL.
+
 
 <a name="scrape"></a>
 #4. Scrape metrics
@@ -291,3 +296,5 @@ ANNOTATIONS {
 - https://promcon.io/2016-berlin/talks/welcome-and-introduction/
 - http://www.slideshare.net/brianbrazil/an-introduction-to-prometheus-grafanacon-2016
 - https://prometheus.io/docs/
+- https://blog.dataloop.io/top10-open-source-time-series-databases
+- https://docs.google.com/spreadsheets/d/1sMQe9oOKhMhIVw9WmuCEWdPtAoccJ4a-IuZv4fXDHxM/pubhtml#
