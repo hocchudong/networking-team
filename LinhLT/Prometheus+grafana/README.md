@@ -13,7 +13,7 @@
 	- [4.3 Prometheus-server](#promethes-sv)
 	- [4.4 Client libraries](#client)
 - [5. Query Language và Visualization](#query-visualization)
-- [5.1 Query Language (PromQL)](#query)
+	- [5.1 Query Language (PromQL)](#query)
 	- [5.2 Visualization](#visualization)
 - [6. Alert](#alert)
 	- [6.1 Alert manager](#alertmanager)
@@ -171,17 +171,66 @@ Lưu ý là phần `{job="prometheus"}` thì tên job phải trùng với job tr
 <a name="query-visualization"></a>
 #5. Query Language và Visualization
 <a name="query"></a>
-#5.1 Query Language (PromQL)
+##5.1 Query Language (PromQL)
 - Là câu lệnh truy vấn cho phép ta lấy được thông tin của metrics, cho phép người dùng lựa chọn và tổng hợp dữ liệu chuỗi thời gian thèo thời gian thực.
-- PromQl hỗ trợ rất nhiều hàm, cho phép ta lấy metrics trong 1 khoảng thời gian nào đó, của 1 job nào đó, hỗ trợ các hàm tính toàn như rate, sum,,...
-- PromQL rất là ngon :v
-- Ví dụ:
+- Lấy values của metrics: tênmetrics
 ```sh
-http_requests_total{status="500"}
-http_requests_total[1h]
-rate(http_requests_total[5m])
-sum(rate(http_requests_total[5m])) by (job)
+http_requests_total
 ```
+```sh
+Element	| Value
+http_requests_total{alias="hanoi-slave",code="200",handler="prometheus",instance="mysql",job="mysql",method="get"}	1
+http_requests_total{alias="prometheus",code="200",handler="graph",instance="prometheus",job="prometheus",method="get"}	1
+http_requests_total{alias="prometheus",code="200",handler="prometheus",instance="prometheus",job="prometheus",method="get"}	1
+http_requests_total{alias="prometheus",code="200",handler="static",instance="prometheus",job="prometheus",method="get"}	1
+http_requests_total{alias="prometheus",code="200",handler="label_values",instance="prometheus",job="prometheus",method="get"}	1
+```
+- Lọc filter với các label `{lablel="value"}`:
+```sh
+http_requests_total{code="200", job="mysql"}
+```
+```sh
+Element |	Value
+http_requests_total{alias="hanoi-slave",code="200",handler="prometheus",instance="mysql",job="mysql",method="get"}	21
+```
+- Lấy tất cả giá trị trong khoảng thời gian đến hiện tại `[time]`:
+```sh
+http_requests_total{job="mysql"}[5m]
+```
+```sh
+Element	Value
+http_requests_total{alias="hanoi-slave",code="200",handler="prometheus",instance="mysql",job="mysql",method="get"}	22 @1487121093.351
+23 @1487121098.351
+24 @1487121103.353
+25 @1487121108.353
+26 @1487121113.351
+27 @1487121118.351
+28 @1487121123.351
+29 @1487121128.353
+30 @1487121133.352
+31 @1487121138.352
+32 @1487121143.351
+33 @1487121148.351
+```
+- Lấy giá trị vào thời điểm 5 phút trước:
+```sh
+http_requests_total{job="mysql"} offset 1m
+```
+```sh
+http_requests_total{alias="hanoi-slave",code="200",handler="prometheus",instance="mysql",job="mysql",method="get"}	31
+```
+
+- PromQL có hỗ trợ các phép toán `+ - * / mod  % ^`
+- Các phép so sánh: `= != > < >= <=`
+- Các mệnh đề:
+	- **and**: vector1 and vector2: Kết quả là tập chung có cả trong vector1 và vector2
+	- **or**: vector1 or vector2: Kết quả là có trong vector1 hoặc vector2.
+	- **unless**: vector1 unless vector2: Kết quả là có trong vector1 mà không có trong vector2.
+
+- Hỗ trợ nhiều hàm:
+	- **abs**: `abs(v instant-vector)`: Giá trị tuyệt đối.
+	- **day_of_month**, **day_of_week**: Trả về giá trị ngày.
+	- **rate** `rate(v range-vector)`: Trả về giá trị trung bình trong khoảng thời gian (range-vector).
 
 <a name="visualization"></a>
 ##5.2 Visualization
