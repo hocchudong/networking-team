@@ -271,10 +271,10 @@ Ví dụ ở trên: Nếu mà thông báo `critical` đã được gửi đi th�
 
   - **Silences:** Tắt cảnh báo trong một thời gian nhất định.
 - Alertmanager được cấu hình với các thông tin như:
-  - Routes: Định tuyến đường đi của notification. Có các route con với các match của nó. Nếu notification trùng với match của route nào đó, thì sẽ được gửi đi theo đường đó. Còn không match với route nào, nó sẽ được gửi theo đường đi mặc định.
-  - Receivers: Cấu hình thông tin các nơi nhận. Ví dụ như tên đăng nhập, mật khẩu, tên mail sẽ gửi đến,....
+  - **Routes:** Định tuyến đường đi của notification. Có các route con với các match của nó. Nếu notification trùng với match của route nào đó, thì sẽ được gửi đi theo đường đó. Còn không match với route nào, nó sẽ được gửi theo đường đi mặc định.
+  - **Receivers:** Cấu hình thông tin các nơi nhận. Ví dụ như tên đăng nhập, mật khẩu, tên mail sẽ gửi đến,....
 
-- Alertmanager cũng rất linh động trong việc cấu hình đường đi các notification đến với từng nhóm người cụ thể khác nhau. Ví dụ như đối với những cảnh báo có nhãn `critical` sẽ được gửi đến nhóm A. Đối với những nhãn `warning` sẽ gửi đến nhóm B. Các nhãn mình có thể tự định nghĩa (trong rules, trong config prometheus). Xét ví dụ dưới đây:
+- **Alertmanager** cũng rất linh động trong việc cấu hình đường đi các notification đến với từng nhóm người cụ thể khác nhau. Ví dụ như đối với những cảnh báo có nhãn `critical` sẽ được gửi đến nhóm A. Đối với những nhãn `warning` sẽ gửi đến nhóm B. Các nhãn mình có thể tự định nghĩa (trong rules, trong config prometheus). Xét ví dụ dưới đây:
 ```sh
 global:
   # The smarthost and SMTP sender used for mail notifications.
