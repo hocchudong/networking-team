@@ -251,46 +251,207 @@ http_requests_total{alias="hanoi-slave",code="200",handler="prometheus",instance
   - 2. Nếu rules được match, Prometheus-server sẽ gửi thông tin đến Alertmanager.
   - 3. Alertmanager sẽ bắn cảnh báo đến nơi đã cấu hình.
 - Một số tính năng hay ho khi gửi cảnh bảo:
-  - **Grouping:** Phân loại các cảnh báo theo group. Ví dụ ta cấu hình 100 server khi bị failed thì sẽ gửi cảnh báo đến sysadmin. Khi đó, sysadmin sẽ lập tức nhận 100 notification một lúc. Thay vì vậy, ta gom nhóm 100 server này vào 1 group, và sysadmin sẽ chỉ nhận được 1 notification mà thôi.
-  - **Inhibiton:** Sẽ bỏ đi các cảnh báo nhất định nếu một số cảnh báo khác đã được bắn. Ví dự như ta có cụm 1 cụm cluster 100 server bị mất kết nối internet đột ngột. Trên các server này ta có đặt các báo về network, web-server, mysql,... Đo đó, khi mà mất kết nối internet thì tất các cách dịch vụ này đều gửi cảnh báo đến sysadmin. Sử dụng Inhibiton thì khi cảnh báo network được gửi đến sysadmin và các cảnh báo về web-server, mysql sẽ không gửi cần phải gửi đến sysadmin nữa vì sysadmin thừa hiểu là khi mất internet thì các service kia cũng bị failed.
+  - **Grouping:** Phân loại các cảnh báo theo group. Ví dụ ta cấu hình 100 server khi bị failed thì sẽ gửi cảnh báo đến sysadmin. Khi đó, sysadmin sẽ lập tức nhận 100 notification một lúc. Thay vì vậy, ta gom nhóm 100 server này vào 1 group, và sysadmin sẽ chỉ nhận được 1 notification mà thôi. Notification này sẽ chứa đầy đủ thông báo của 100 server này.
+  ```sh
+  group_by: ['alertname', 'cluster', 'service']
+  ```
+Ví dụ ở trên, ta sẽ gộp nhóm theo các `label` mà ta đã cấu hình, cụ thể là alertname, cluster và service.
+
+  - **Inhibiton:** Sẽ bỏ đi các cảnh báo nhất định nếu một số cảnh báo khác đã được bắn. Ví dự như ta có cụm 1 cụm cluster 100 server bị mất kết nối internet đột ngột. Trên các server này ta có đặt các báo về network, web-server, mysql,... Đo đó, khi mà mất kết nối internet thì tất các cách dịch vụ này đều gửi cảnh báo đến sysadmin. Sử dụng Inhibiton thì khi cảnh báo network được gửi đến sysadmin và các cảnh báo về web-server, mysql sẽ không gửi cần phải gửi đến sysadmin nữa.
+```sh
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  # Apply inhibition if the alertname is the same.
+  equal: ['alertname', 'cluster', 'service']
+```
+Ví dụ ở trên: Nếu mà thông báo `critical` đã được gửi đi thì thông báo `warning` sẽ bị **mute**, không gửi đi nữa, áp dụng với các thông báo có cùng các `label` là: alertname, cluster và service.
+
   - **Silences:** Tắt cảnh báo trong một thời gian nhất định.
 - Alertmanager được cấu hình với các thông tin như:
   - Routes: Định tuyến đường đi của notification. Có các route con với các match của nó. Nếu notification trùng với match của route nào đó, thì sẽ được gửi đi theo đường đó. Còn không match với route nào, nó sẽ được gửi theo đường đi mặc định.
   - Receivers: Cấu hình thông tin các nơi nhận. Ví dụ như tên đăng nhập, mật khẩu, tên mail sẽ gửi đến,....
-- Ví dụ:
 
+- Alertmanager cũng rất linh động trong việc cấu hình đường đi các notification đến với từng nhóm người cụ thể khác nhau. Ví dụ như đối với những cảnh báo có nhãn `critical` sẽ được gửi đến nhóm A. Đối với những nhãn `warning` sẽ gửi đến nhóm B. Các nhãn mình có thể tự định nghĩa (trong rules, trong config prometheus). Xét ví dụ dưới đây:
 ```sh
+global:
+  # The smarthost and SMTP sender used for mail notifications.
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'sender@gmail.com'
+  smtp_auth_username: 'sender@gmail.com'
+  smtp_auth_password: 'abcxyz@123'
+#route default
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 30s 
+  repeat_interval: 2m 
+  receiver: default
+#route-child
+  routes:
+  - match:
+      severity: warning
+    receiver: gmail
+  - match:
+      severity: critical
+    receiver: slack
+#receiver default
+receivers:
+- name: 'default'
+  email_configs:
+  - to: 'sysadmin1@gmail.com, sysadmin2@gmail.com'
+  slack_configs:
+  - send_resolved: true
+    username: 'monitor'
+    channel: '#default'
+    api_url: 'https://hooks.slack.com/services/xxxxxxxxxxx/xxxxxxxxxxx/xxxxxxxxxx'
+#receiver gmail
+- name: ''
+  email_configs:
+  - to: 'man1@gmail.com'
+#receiver man2
+- name: 'slack'
+  slack_configs:
+    - send_resolved: true
+      username: 'monitor'
+      channel: '#general'
+      api_url: 'https://hooks.slack.com/services/xxxxxxxxxxx/xxxxxxxxxxx/xxxxxxxxxx'
+```
+
+Theo như cấu hình trên, nếu thông báo ở mức cảnh báo là `warning` thì sẽ gửi đến đường đi `gmail`. Đường này sẽ gửi cảnh báo đến địa chỉ `man1@gmail.com`.
+
+Nếu thông báo ở mức cảnh báo là `critical` thì sẽ gửi đến đường đi `slack`. Đường này sẽ gửi cảnh báo đến kênh `general`.
+
+Còn lại, đường đi mà các thông báo mặc định sẽ đi đến là `default`. Đường đi này sẽ thông báo đến 2 địa chỉ email là sysadmin1@gmail.com và sysadmin2@gmail.com, đồng thời gửi đến cả kênh slack `default`.
+
+- File cấu hình đầy đủ :
+```sh
+global:
+  # The smarthost and SMTP sender used for mail notifications.
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@example.org'
+  smtp_auth_username: 'alertmanager'
+  smtp_auth_password: 'password'
+  # The auth token for Hipchat.
+  hipchat_auth_token: '1234556789'
+  # Alternative host for Hipchat.
+  hipchat_url: 'https://hipchat.foobar.org/'
+
+# The directory from which notification templates are read.
+templates: 
+- '/etc/alertmanager/template/*.tmpl'
+
 # The root route on which each incoming alert enters.
 route:
-  # The default receiver
-  receiver: 'team-X'
+  # The labels by which incoming alerts are grouped together. For example,
+  # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+  # be batched into a single group.
+  group_by: ['alertname', 'cluster', 'service']
+
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification.
+  # This way ensures that you get multiple alerts for the same group that start
+  # firing shortly after another are batched together on the first 
+  # notification.
+  group_wait: 30s
+
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 5m
+
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 3h 
+
+  # A default receiver
+  receiver: team-X-mails
+
+  # All the above attributes are inherited by all child routes and can 
+  # overwritten on each.
+
   # The child route trees.
   routes:
-  # This is a regular expressiong based route
+  # This routes performs a regular expression match on alert labels to
+  # catch alerts that are related to a list of services.
   - match_re:
-      service: ^(foo|bar)$
-    receiver: team-foobar
-    # Another child route
+      service: ^(foo1|foo2|baz)$
+    receiver: team-X-mails
+    # The service has a sub-route for critical alerts, any alerts
+    # that do not match, i.e. severity != critical, fall-back to the
+    # parent node and are sent to 'team-X-mails'
     routes:
     - match:
         severity: critical
-      receiver: team-critical
+      receiver: team-X-pager
+  - match:
+      service: files
+    receiver: team-Y-mails
+
+    routes:
+    - match:
+        severity: critical
+      receiver: team-Y-pager
+
+  # This route handles all alerts coming from a database service. If there's
+  # no team to handle it, it defaults to the DB team.
+  - match:
+      service: database
+    receiver: team-DB-pager
+    # Also group alerts by affected database.
+    group_by: [alertname, cluster, database]
+    routes:
+    - match:
+        owner: team-X
+      receiver: team-X-pager
+    - match:
+        owner: team-Y
+      receiver: team-Y-pager
+
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+# We use this to mute any warning-level notifications if the same alert is 
+# already critical.
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  # Apply inhibition if the alertname is the same.
+  equal: ['alertname', 'cluster', 'service']
+
+
 receivers:
-# Email receiver
-- name: 'team-X'
+- name: 'team-X-mails'
   email_configs:
-  - to: 'alerts@team-x.com'
+  - to: 'team-X+alerts@example.org'
 
-# Slack receiver that sends alerts to the #general channel.
-- name: 'team-foobar'
-  slack_configs:
-    api_url: 'https://foobar.slack.com/services/hooks/incoming-webhook?token=<token>'
-    channel: 'general'
+- name: 'team-X-pager'
+  email_configs:
+  - to: 'team-X+alerts-critical@example.org'
+  pagerduty_configs:
+  - service_key: <team-X-key>
 
-# Webhook receiver with a custom endpoint
-- name: 'team-critical'
-  webhook_configs:
-    url: 'team.critical.com'
+- name: 'team-Y-mails'
+  email_configs:
+  - to: 'team-Y+alerts@example.org'
+
+- name: 'team-Y-pager'
+  pagerduty_configs:
+  - service_key: <team-Y-key>
+
+- name: 'team-DB-pager'
+  pagerduty_configs:
+  - service_key: <team-DB-key>
+- name: 'team-X-hipchat'
+  hipchat_configs:
+  - auth_token: <auth_token>
+    room_id: 85
+    message_format: html
+    notify: true
+
 ```
 
 <a name="alertrules"></a>
@@ -347,3 +508,4 @@ ANNOTATIONS {
 - https://prometheus.io/docs/
 - https://blog.dataloop.io/top10-open-source-time-series-databases
 - https://docs.google.com/spreadsheets/d/1sMQe9oOKhMhIVw9WmuCEWdPtAoccJ4a-IuZv4fXDHxM/pubhtml#
+- https://github.com/prometheus/alertmanager/issues/362
