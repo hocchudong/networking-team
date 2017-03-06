@@ -203,7 +203,7 @@ Chú ý trong phần cấu hình trên, tôi đặt nhãn của 2 cảnh bảo �
 
 **=> 1 cảnh báo được gửi đi với nội dung là 2 service bị stop.**
 
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015%3A00%3A50.png)
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015-00-50.png)
 
 ![](https://github.com/linhlt247/tmp/blob/master/Screenshot%20-%2003032017%20-%2015:20:57.png?raw=true)
 
@@ -215,9 +215,9 @@ Chú ý trong phần cấu hình trên, tôi đặt nhãn của 2 cảnh bảo �
 
 Giải thích: Bởi vì ở đây cấu hình Group_by theo alertname mà trong rules tôi cấu hình mỗi server có rules name khác nhau => 2 cảnh báo với 2 rules name khác nhau được gửi đi.
 
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2013%3A57%3A55.png)
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2013-57-55.png)
 
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015%3A21%3A04.png)
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015-21-04.png)
 
 ##3.3. Trường hợp 3: Cấu hình Group_by theo **severity**: `Group_by['severity']`
 - Hà Nội: Stop IO thread.
@@ -227,17 +227,18 @@ Giải thích: Bởi vì ở đây cấu hình Group_by theo alertname mà trong
 
 Giải thích: Bởi vì trong phần rules tôi cấu hình cảnh bảo 2 service đều có cùng mức cảnh báo là `severity = warning`: Do đó, nó gộp nhóm những cảnh báo có cùng mức cảnh báo và gửi vào 1 thông báo.
 
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2014%3A08%3A05.png)
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2014-08-05.png)
 
 
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015%3A21%3A16.png)
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2015-21-16.png)
 
 ##3.4. Trường hợp 4: Comment Group_by: `#Group_by`
 - Hà Nội: Stop IO thread.
 - Hồ Chí Minh: Stop SQL service.
 
 => 1 cảnh báo được gửi đi với nội dung là 2 server bị stop.
-![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2014%3A14%3A58.png)
+
+![](https://raw.githubusercontent.com/linhlt247/networking-team/master/LinhLT/Prometheus%2Bgrafana/images/Screenshot%20-%2003032017%20-%2014-14-58.png)
 
 
 ##3.4 Kết Luận
