@@ -9,6 +9,7 @@
   - [3.2 Storage](#storage)
 - [4. Scrape metrics](#scrape)
 	- [4.1 Exporter](#exporter)
+    - [4.1.1 Viết exporter](#viet_exporter)
 	- [4.2 Pushgateway](#pushgateway)
 	- [4.3 Prometheus-server](#promethes-sv)
 	- [4.4 Client libraries](#client)
@@ -118,6 +119,77 @@ Long-lived jobs/Exporter: Là những job sẽ tồn tại lâu dài. Các Expor
   - MySQL
   - Haproxy
 
+<a name="viet_exporter"></a>
+###4.1.1 Ví dụ viết exporter
+Ý tưởng viết exporter: Exporter có nhiệm vụ thu thập các metrics và xuất các metrics ra dựa trên http server. Prometheus-server sẽ pull các mectrics này dựa trên giao thức http. Vì vậy, Exporter gồm 2 thành phần.
+
+- Thành phần 1: Thu thập thông tin cần monitor vào đẩy registry. Có các bước như sau:
+  - **Create collectors:**
+  ```sh
+    ten_collector=kieu_metric("ten_metrics","Tên chi tiết metrics",{Các thông tin bổ sung cho metrics})
+
+    #Ví dụ:
+    mysql_seconds_behind_master = Gauge("mysql_slave_seconds_behind_master", "MySQL slave secons behind master",{})
+  ```
+    Kiểu metrics có 4 kiểu: Counter, Gauge, Histogram, Summary. Với từng use case khác nhau ta sẽ sử dụng một kiểu metrics khác nhau.
+
+    Chi tiết 4 kiểu metric được tôi trình bày trong mục **8.1**
+
+  - **register the metric collectors**
+
+  ```sh
+    registry.register(ten_collector)
+
+    #Ví dụ
+    registry.register(mysql_seconds_behind_master)
+  ```
+
+  - **add metrics**
+
+  ```sh
+  ten_collector.set({},values)
+
+  #Ví dụ:
+  mysql_seconds_behind_master.set({},slave_file)
+  ```
+  values là thông số monitor mà mình lấy được. Chú ý là với mỗi loại metrics khác nhau, thì theo tác add metrics lại khác nhau.
+
+
+  **=>** Các bạn có thể hình dung đơn giản quá trình này như sau: Mỗi thông tin cần monitor là 1 metrics. Để lưu tạm thời giá trị các metrics, các bạn cần phải có 1 thùng chứa. Thì ở đây registry đóng vai trò là thùng chứa. Ứng với mỗi metrics sẽ có 1 thùng chứa riêng nó. Thao tác **set** là đưa giá trị metrics vào thùng chứa. Sau đó ở thành phần 2, sẽ lấy giá trị trong thùng chứa này và hiển thị thông tin.
+
+- Thành phần 2: **Serve data**: Đẩy metrics lên http servers.
+
+```sh
+from http.server import HTTPServer
+from prometheus.exporter import PrometheusMetricHandler
+from prometheus.registry import Registry
+
+
+# Create the registry
+registry = Registry()
+
+# Create the thread that gathers the data while we serve it
+thread = threading.Thread(target=gather_data, args=(registry, ))
+thread.start()
+
+# We make this to set the registry in the handler
+def handler(*args, **kwargs):
+    PrometheusMetricHandler(registry, *args, **kwargs)
+
+# Set a server to export (expose to prometheus) the data (in a thread)
+server = HTTPServer(('', 8888), handler)
+server.serve_forever()
+```
+
+Đoạn code trên sẽ tạo ra một http server với địa chỉ ip là máy đang chạy, port là 8888. Nội dung handler chính là nội dung của metrics đã được format theo chuẩn của prometheus. Hàm **MetricHandler** có nhiệm vụ **generating metric output**, dựa trên thông tin có trong registry.
+
+
+- Tôi sử dụng python để viết 1 exporter thu thập 3 thông số khi thực hiện replication mysql:
+    - Slave IO running.
+    - Slave SQL running.
+    - Seconds behind master.
+- Các bạn xem tại đây: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python
+
 <a name="pushgateway"></a>
 ##4.2 Pushgateway
 - Pushgateway được sử dụng trong trường hợp mà Promethes server không thể scrape metrics một cách trực tiếp. Có thể là các job chỉ tồn tại trontg thời gian ngắn mà Promethes server chưa kịp scrape metrics.
@@ -159,9 +231,38 @@ cần monitor.
       - 'source-prometheus-3:9090'
 ```
 
+
 Lưu ý là phần `{job="prometheus"}` thì tên job phải trùng với job trong các job đã cấu hình ở trên các promethes server khác.
 
 - Sau khi cấu hình xong, các bạn có thể vào địa chỉ: `http://ip:9090/targets` để kiểm tra
+
+- Ví dụ đơn giản để push metrics:
+```sh
+echo "some_metric 3.14" | curl --data-binary @- http://ip:9091/metrics/job/some_job
+```
+- Push metrics với nhiều thông tin hơn:
+```sh
+cat <<EOF | curl --data-binary @- http://pushgateway.example.org:9091/metrics/job/some_job/instance/some_instance
+# TYPE some_metric counter
+some_metric{label="val1"} 42
+# This one even has a timestamp (but beware, see below).
+some_metric{label="val2"} 34 1398355504000
+# TYPE another_metric gauge
+# HELP another_metric Just an example.
+another_metric 2398.283
+EOF
+```
+
+- Sau khi chạy, ta có thể xem thông tin các metrics đã được push tại địa chỉ: `http://ip:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
+
+- Xóa tất cả metrics cùng job và instance:
+```sh
+curl -X DELETE ip:9091/metrics/job/some_job/instance/some_instance
+```
+- Xóa metrics cùng jobs:
+```sh
+curl -X DELETE http://pushgateway.example.org:9091/metrics/job/some_job
+```
 
 <a name="client"></a>
 ##4.4 Client libraries
@@ -269,7 +370,7 @@ inhibit_rules:
 ```
 Ví dụ ở trên: Nếu mà thông báo `critical` đã được gửi đi thì thông báo `warning` sẽ bị **mute**, không gửi đi nữa, áp dụng với các thông báo có cùng các `label` là: alertname, cluster và service.
 
-  - **Silences:** Tắt cảnh báo trong một thời gian nhất định.
+  - **Silences:** Tắt cảnh báo trong một thời gian nhất định, cấu hình trên giao diện alertmanager nền web.
 - Alertmanager được cấu hình với các thông tin như:
   - **Routes:** Định tuyến đường đi của notification. Có các route con với các match của nó. Nếu notification trùng với match của route nào đó, thì sẽ được gửi đi theo đường đó. Còn không match với route nào, nó sẽ được gửi theo đường đi mặc định.
   - **Receivers:** Cấu hình thông tin các nơi nhận. Ví dụ như tên đăng nhập, mật khẩu, tên mail sẽ gửi đến,....
@@ -308,7 +409,7 @@ receivers:
     channel: '#default'
     api_url: 'https://hooks.slack.com/services/xxxxxxxxxxx/xxxxxxxxxxx/xxxxxxxxxx'
 #receiver gmail
-- name: ''
+- name: 'gmail'
   email_configs:
   - to: 'man1@gmail.com'
 #receiver man2
@@ -326,133 +427,8 @@ Nếu thông báo ở mức cảnh báo là `critical` thì sẽ gửi đến đ
 
 Còn lại, đường đi mà các thông báo mặc định sẽ đi đến là `default`. Đường đi này sẽ thông báo đến 2 địa chỉ email là sysadmin1@gmail.com và sysadmin2@gmail.com, đồng thời gửi đến cả kênh slack `default`.
 
-- File cấu hình đầy đủ :
-```sh
-global:
-  # The smarthost and SMTP sender used for mail notifications.
-  smtp_smarthost: 'localhost:25'
-  smtp_from: 'alertmanager@example.org'
-  smtp_auth_username: 'alertmanager'
-  smtp_auth_password: 'password'
-  # The auth token for Hipchat.
-  hipchat_auth_token: '1234556789'
-  # Alternative host for Hipchat.
-  hipchat_url: 'https://hipchat.foobar.org/'
-
-# The directory from which notification templates are read.
-templates: 
-- '/etc/alertmanager/template/*.tmpl'
-
-# The root route on which each incoming alert enters.
-route:
-  # The labels by which incoming alerts are grouped together. For example,
-  # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
-  # be batched into a single group.
-  group_by: ['alertname', 'cluster', 'service']
-
-  # When a new group of alerts is created by an incoming alert, wait at
-  # least 'group_wait' to send the initial notification.
-  # This way ensures that you get multiple alerts for the same group that start
-  # firing shortly after another are batched together on the first 
-  # notification.
-  group_wait: 30s
-
-  # When the first notification was sent, wait 'group_interval' to send a batch
-  # of new alerts that started firing for that group.
-  group_interval: 5m
-
-  # If an alert has successfully been sent, wait 'repeat_interval' to
-  # resend them.
-  repeat_interval: 3h 
-
-  # A default receiver
-  receiver: team-X-mails
-
-  # All the above attributes are inherited by all child routes and can 
-  # overwritten on each.
-
-  # The child route trees.
-  routes:
-  # This routes performs a regular expression match on alert labels to
-  # catch alerts that are related to a list of services.
-  - match_re:
-      service: ^(foo1|foo2|baz)$
-    receiver: team-X-mails
-    # The service has a sub-route for critical alerts, any alerts
-    # that do not match, i.e. severity != critical, fall-back to the
-    # parent node and are sent to 'team-X-mails'
-    routes:
-    - match:
-        severity: critical
-      receiver: team-X-pager
-  - match:
-      service: files
-    receiver: team-Y-mails
-
-    routes:
-    - match:
-        severity: critical
-      receiver: team-Y-pager
-
-  # This route handles all alerts coming from a database service. If there's
-  # no team to handle it, it defaults to the DB team.
-  - match:
-      service: database
-    receiver: team-DB-pager
-    # Also group alerts by affected database.
-    group_by: [alertname, cluster, database]
-    routes:
-    - match:
-        owner: team-X
-      receiver: team-X-pager
-    - match:
-        owner: team-Y
-      receiver: team-Y-pager
-
-
-# Inhibition rules allow to mute a set of alerts given that another alert is
-# firing.
-# We use this to mute any warning-level notifications if the same alert is 
-# already critical.
-inhibit_rules:
-- source_match:
-    severity: 'critical'
-  target_match:
-    severity: 'warning'
-  # Apply inhibition if the alertname is the same.
-  equal: ['alertname', 'cluster', 'service']
-
-
-receivers:
-- name: 'team-X-mails'
-  email_configs:
-  - to: 'team-X+alerts@example.org'
-
-- name: 'team-X-pager'
-  email_configs:
-  - to: 'team-X+alerts-critical@example.org'
-  pagerduty_configs:
-  - service_key: <team-X-key>
-
-- name: 'team-Y-mails'
-  email_configs:
-  - to: 'team-Y+alerts@example.org'
-
-- name: 'team-Y-pager'
-  pagerduty_configs:
-  - service_key: <team-Y-key>
-
-- name: 'team-DB-pager'
-  pagerduty_configs:
-  - service_key: <team-DB-key>
-- name: 'team-X-hipchat'
-  hipchat_configs:
-  - auth_token: <auth_token>
-    room_id: 85
-    message_format: html
-    notify: true
-
-```
+- Để hiểu sâu hơn các vấn đề về cảnh báo trong prometheus, các bạn có thể xem thêm ở đây: 
+https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/alert.md
 
 <a name="alertrules"></a>
 ##6.2 Alert rules
