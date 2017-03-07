@@ -188,28 +188,59 @@ server.serve_forever()
     - Slave IO running.
     - Slave SQL running.
     - Seconds behind master.
-- Các bạn xem tại đây: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python
+- Các bạn xem tại đây: https://github.com/hocchudong/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/mysql%20exporter%20python
 
 <a name="pushgateway"></a>
 ##4.2 Pushgateway
 - Pushgateway được sử dụng trong trường hợp mà Promethes server không thể scrape metrics một cách trực tiếp. Có thể là các job chỉ tồn tại trontg thời gian ngắn mà Promethes server chưa kịp scrape metrics.
 
 - Để giải quyết vấn đề này, thì Pushgateway được ra đời. Pushgateway sẽ đóng vai trò trung gian giữa promethes server và targets
-cần monitor.
+cần monitor. Lúc này, metrics sẽ được phơi bay ở pushgateway, chứ không pải là ở targets nữa.
 
-- Trên targets sẽ được cấu hình để push metrics đến Pushgateway. Rồi từ đó, Prometheus server sẽ scrape (pull) metrics ở Pushgateway.
-
+- Trên targets, short-live job sẽ được cấu hình để push metrics đến Pushgateway (có thể sử dụng bằng lệnh curl để push metrics). Rồi từ đó, Prometheus server sẽ scrape (pull) metrics ở Pushgateway về và lưu trữ trên server.
+- Pushgateway sẽ không lưu trữ metrics lâu dài. Nó chỉ lưu trữ tạm thời mà thôi. Khi metrics có values mới, nó sẽ thay thế values cũ. Tôi có thử nghiệm
+là khi tôi stop container pushgateway (tôi chạy pushgateway trên docker) thì tất cả metrics sẽ bị mất.
 - All pushes are done via HTTP. The interface is vaguely REST-like.
 
 - Để push metrics lên pushgateway, các bạn có thể sử dụng lệnh curl với các method sau:
-  - URL: `http://ip:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
+  - URL: `http://pushgateway.example.org:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
   - PUT method: Push metrics. All metrics with the grouping key specified in the URL are replaced by the metrics pushed with PUT.
   - POST method: POST works exactly like the PUT method but only metrics with the same name as the newly pushed metrics are replaced (among those with the same grouping key).
   - DELETE method: DELETE is used to delete metrics from the push gateway.
 
+- Ví dụ đơn giản để push metrics:
+```sh
+echo "some_metric 3.14" | curl --data-binary @- http://http://pushgateway.example.org:9091/metrics/job/some_job
+```
+- Push metrics với nhiều thông tin hơn:
+```sh
+cat <<EOF | curl --data-binary @- http://pushgateway.example.org:9091/metrics/job/some_job/instance/some_instance
+# TYPE some_metric counter
+some_metric{label="val1"} 42
+# This one even has a timestamp (but beware, see below).
+some_metric{label="val2"} 34 1398355504000
+# TYPE another_metric gauge
+# HELP another_metric Just an example.
+another_metric 2398.283
+EOF
+```
+
+- Sau khi chạy, ta có thể xem thông tin các metrics đã được push tại địa chỉ: `http://http://pushgateway.example.org:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
+
+- Xóa tất cả metrics cùng job và instance:
+```sh
+curl -X DELETE http://pushgateway.example.org:9091/metrics/job/some_job/instance/some_instance
+```
+- Xóa metrics cùng jobs:
+```sh
+curl -X DELETE http://pushgateway.example.org:9091/metrics/job/some_job
+```
+
 <a name="promethes-sv"></a>
 ##4.3 Prometheus-server
-- Federation là tính năng cho phép một Prometheus-server **scrape** metrics từ các Prometheus-server khác.
+- Federation là tính năng cho phép một Prometheus-server **scrape** metrics từ các Prometheus-server khác về và lưu trữ metrics.
+- Phần cấu hình federation này cũng tương tự, được xem như là 1 jobs bình thường. Vì vậy, cách thực hoạt động tương tự với việc pull metrics
+từ exporter.
 - Cấu hình trên prometheus server scrape metrics từ các server khác.
 
 ```sh
@@ -235,34 +266,6 @@ cần monitor.
 Lưu ý là phần `{job="prometheus"}` thì tên job phải trùng với job trong các job đã cấu hình ở trên các promethes server khác.
 
 - Sau khi cấu hình xong, các bạn có thể vào địa chỉ: `http://ip:9090/targets` để kiểm tra
-
-- Ví dụ đơn giản để push metrics:
-```sh
-echo "some_metric 3.14" | curl --data-binary @- http://ip:9091/metrics/job/some_job
-```
-- Push metrics với nhiều thông tin hơn:
-```sh
-cat <<EOF | curl --data-binary @- http://pushgateway.example.org:9091/metrics/job/some_job/instance/some_instance
-# TYPE some_metric counter
-some_metric{label="val1"} 42
-# This one even has a timestamp (but beware, see below).
-some_metric{label="val2"} 34 1398355504000
-# TYPE another_metric gauge
-# HELP another_metric Just an example.
-another_metric 2398.283
-EOF
-```
-
-- Sau khi chạy, ta có thể xem thông tin các metrics đã được push tại địa chỉ: `http://ip:9091/metrics/job/<JOBNAME>{/<LABEL_NAME>/<LABEL_VALUE>}`
-
-- Xóa tất cả metrics cùng job và instance:
-```sh
-curl -X DELETE ip:9091/metrics/job/some_job/instance/some_instance
-```
-- Xóa metrics cùng jobs:
-```sh
-curl -X DELETE http://pushgateway.example.org:9091/metrics/job/some_job
-```
 
 <a name="client"></a>
 ##4.4 Client libraries
@@ -428,7 +431,7 @@ Nếu thông báo ở mức cảnh báo là `critical` thì sẽ gửi đến đ
 Còn lại, đường đi mà các thông báo mặc định sẽ đi đến là `default`. Đường đi này sẽ thông báo đến 2 địa chỉ email là sysadmin1@gmail.com và sysadmin2@gmail.com, đồng thời gửi đến cả kênh slack `default`.
 
 - Để hiểu sâu hơn các vấn đề về cảnh báo trong prometheus, các bạn có thể xem thêm ở đây: 
-https://github.com/linhlt247/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/alert.md
+https://github.com/hocchudong/networking-team/blob/master/LinhLT/Prometheus%2Bgrafana/alert.md
 
 <a name="alertrules"></a>
 ##6.2 Alert rules
@@ -475,7 +478,7 @@ ANNOTATIONS {
 <a name="demo"></a>
 #7. Demo
 - Monitoring mysql replication.
-- link: https://github.com/linhlt247/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/demo
+- link: https://github.com/hocchudong/networking-team/tree/master/LinhLT/Prometheus%2Bgrafana/demo
 
 <a name="thamkhao"></a>
 #8. Tham khảo
