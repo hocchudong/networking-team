@@ -1,7 +1,8 @@
 #1. Mô hình mạng
 
+![](https://github.com/linhlt247/networking-team/blob/master/LinhLT/ghichep-kolla/images/openstack-mitaka-network-layout.png?raw=true)
 
-#### Các yêu cầu về phiên bản phần mềm.
+### Các yêu cầu về phiên bản phần mềm.
 | Component | Min Version | Max Version | Comment |
 |:-------|:------:|-------:|-------:|
 | Ansible | 1.9.4 | <2.0.0 | On deployment host |
@@ -10,7 +11,7 @@
 | Python Jinja2 | 2.6.0 | none | On deployment host |
 
 #### Note: Thực hiện lần lượt các bước. Ở từng bước có chú thích là:
-  - **all** Tương ứng là thực hiện trên cả 2 node.
+  - **all**: Tương ứng là thực hiện trên cả 2 node.
   - **controller**: Thực hiện trên node controller.
   - **compute**: Thực hiện trên node compute.
 
