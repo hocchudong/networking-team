@@ -2,7 +2,9 @@
 
 ![](https://github.com/linhlt247/networking-team/blob/master/LinhLT/ghichep-kolla/images/openstack-mitaka-network-layout.png?raw=true)
 
-### Các yêu cầu về phiên bản phần mềm.
+- Cài đặt phiên bản openstack mitaka trên 2 node controller và compute.
+
+### Các yêu cầu về phiên bản phần mềm đối với openstack mitaka.
 | Component | Min Version | Max Version | Comment |
 |:-------|:------:|-------:|-------:|
 | Ansible | 1.9.4 | <2.0.0 | On deployment host |
@@ -86,7 +88,7 @@ pip install -U python-openstackclient python-neutronclient
 ```
 
 ##8. Installing the Kolla (controller)
-- Clone Kolla projects
+- Clone Kolla projects: Mitaka.
 ```sh
 git clone -b stable/mitaka https://github.com/openstack/kolla.git
 ```
@@ -120,7 +122,7 @@ docker run -d -p 4000:5000 --restart=always --name registry registry:2
 ###9.2. Modify the docker daemon default parameters (all)
 ```sh
 vi /etc/default/docker
-DOCKER_OPTS="--insecure-registry 172.16.69.239:4000"
+DOCKER_OPTS="--insecure-registry 10.10.10.10:4000"
 service docker restart
 ```
 
@@ -129,24 +131,25 @@ service docker restart
 vi /usr/local/share/kolla/ansible/inventory/multinode
 ```
 
+Cấu hình các thành phần sẽ được cài đặt trên các node. Ở đây, tôi cấu hình phần compute sẽ chạy trên node compute, các thành phần còn lại chạy trên node controller.
 ```sh
-[Control]
+[control]
 # These hostname must be resolvable from your deployment host
  controller
 # The network nodes are where your l3-agent and loadbalancers will run
 # This can be the same as a host in the control group
- [network]
+[network]
 controller
 [compute]
 compute
-[ Storage]
-Controller
+[storage]
+controller
 ...
 ```
 
 ##11. Compile openstack the docker image (controller)
 ```sh
-kolla-build --base ubuntu --type source --registry 172.16.69.239:4000 --push
+kolla-build --base ubuntu --type source --registry 10.10.10.10:4000 --push
 ```
 
 ##12. Deploy Kolla (controller)
@@ -154,6 +157,7 @@ kolla-build --base ubuntu --type source --registry 172.16.69.239:4000 --push
 vi /etc/kolla/globals.yml
 ```
 
+- Cấu hình các thông tin tương ứng.
 ```sh
 Kolla_base_distro:  "ubuntu"
 kolla_install_type:  "source"
@@ -164,10 +168,11 @@ docker_registry:  "10.10.10.10:4000"
 ...
 ```
 
+- Sau khi cấu hình, chạy các lệnh sau:
 ```sh
-kolla-genpwd
-kolla-ansible prechecks -i /usr/local/share/kolla/ansible/inventory/multinode
-kolla-ansible deploy -i /usr/local/share/kolla/ansible/inventory/multinode
+kolla-genpwd  #Gen password các services.
+kolla-ansible prechecks -i /usr/local/share/kolla/ansible/inventory/multinode   #Check before deploy.
+kolla-ansible deploy -i /usr/local/share/kolla/ansible/inventory/multinode      #Deploy.
 ```
 
 ##12. Generate an openrc file (controller)
@@ -175,18 +180,21 @@ kolla-ansible deploy -i /usr/local/share/kolla/ansible/inventory/multinode
 kolla-ansible post-deploy
 ```
 
-- uploading a glance image And create several virtual networks
-```sh
-source /etc/kolla/admin-openrc.sh
-kolla/tools/init-runonce
-```
-
-##13. Tools
-```sh
-docker logs $CONTAINER_NAME
-tools/cleanup-containers
-tools/cleanup-host
-```
+- Đến đây, quá trình cài đặt đã hoàn tất.
+- Ngoài ra, Openstack còn cung cấp cho ta các scripts tự động hóa thực hiện các công việc như:
+  - Upload cirros image và tạo một mảng ảo.
+  ```sh
+  source /etc/kolla/admin-openrc.sh
+  kolla/tools/init-runonce
+  ```
+  - Xóa các containers openstack:
+  ```sh
+  tools/cleanup-containers
+  ```
+  - Xóa các image openstack
+  ```sh
+  tools/cleanup-images
+  ```
 
 #Ref:
 http://cshuo.top/2016/05/26/kolla-mitaka-ubuntu-14-04/
