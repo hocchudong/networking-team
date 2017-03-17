@@ -1,4 +1,4 @@
-#1. Mô hình mạng
+# 1. Mô hình mạng
 
 ![](https://github.com/linhlt247/networking-team/blob/master/LinhLT/ghichep-kolla/images/openstack-mitaka-network-layout.png?raw=true)
 
@@ -17,12 +17,12 @@
   - **controller**: Thực hiện trên node controller.
   - **compute**: Thực hiện trên node compute.
 
-##1. Upgrade the kernel (all)
+## 1. Upgrade the kernel (all)
 ```sh
 apt-get update && apt-get -y install linux-image-generic-lts-wily
 ```
 
-##2. Modify the hosts
+## 2. Modify the hosts
 - On controller
 ```sh
 vi /etc/hostname
@@ -42,7 +42,7 @@ compute
 10.10.10.20     compute
 ```
 
-##3. Install Docker (all)
+## 3. Install Docker (all)
 ```sh
 curl -sSL https://get.docker.io | bash
 usermod -aG docker root
@@ -52,18 +52,18 @@ apt-get install -y python-pip
 pip install -U docker-py
 ```
 
-##4. Install NTP (all)
+## 4. Install NTP (all)
 ```sh
 apt-get install ntp -y
 ```
 
-##5. Install Ansible (controller)
+## 5. Install Ansible (controller)
 ```sh
 apt-get install -y software-properties-common
 pip install ansible==1.9.6
 ```
 
-##6. Install the ssh key (all)
+## 6. Install the ssh key (all)
 - Cho phép login với user root
 ```sh
 $ vi /etc/ssh/sshd_config
@@ -81,13 +81,13 @@ $ sudo service ssh restart
 [root@controller .ssh]# scp authorized_keys root@compute:~/.ssh/authorized_keys
 ```
 
-##7. Install the openstack client Install the Openstack client (controller)
+## 7. Install the openstack client Install the Openstack client (controller)
 ```sh
 apt-get install -y python-dev libffi-dev libssl-dev gcc
 pip install -U python-openstackclient python-neutronclient
 ```
 
-##8. Installing the Kolla (controller)
+## 8. Installing the Kolla (controller)
 - Clone Kolla projects: Mitaka.
 ```sh
 git clone -b stable/mitaka https://github.com/openstack/kolla.git
@@ -112,21 +112,21 @@ $ sudo cd kolla
 $ sudo cp -r etc/kolla /etc/
 ```
 
-##9. Configure the local Docker repository
+## 9. Configure the local Docker repository
 
-###9.1. Start the Registry (controller)
+### 9.1. Start the Registry (controller)
 ```sh
 docker run -d -p 4000:5000 --restart=always --name registry registry:2
 ```
 
-###9.2. Modify the docker daemon default parameters (all)
+### 9.2. Modify the docker daemon default parameters (all)
 ```sh
 vi /etc/default/docker
 DOCKER_OPTS="--insecure-registry 10.10.10.10:4000"
 service docker restart
 ```
 
-##10. Modify the configuration of Kolla (controller)
+## 10. Modify the configuration of Kolla (controller)
 ```sh
 vi /usr/local/share/kolla/ansible/inventory/multinode
 ```
@@ -147,12 +147,12 @@ controller
 ...
 ```
 
-##11. Compile openstack the docker image (controller)
+## 11. Compile openstack the docker image (controller)
 ```sh
 kolla-build --base ubuntu --type source --registry 10.10.10.10:4000 --push
 ```
 
-##12. Deploy Kolla (controller)
+## 12. Deploy Kolla (controller)
 ```sh
 vi /etc/kolla/globals.yml
 ```
@@ -175,7 +175,7 @@ kolla-ansible prechecks -i /usr/local/share/kolla/ansible/inventory/multinode   
 kolla-ansible deploy -i /usr/local/share/kolla/ansible/inventory/multinode      #Deploy.
 ```
 
-##12. Generate an openrc file (controller)
+## 13. Generate an openrc file (controller)
 ```sh
 kolla-ansible post-deploy
 ```
@@ -196,7 +196,7 @@ kolla-ansible post-deploy
   tools/cleanup-images
   ```
 
-#Ref:
+# Ref:
 http://cshuo.top/2016/05/26/kolla-mitaka-ubuntu-14-04/
 https://greatbsky.github.io/kolla-for-openstack-in-docker/en.html
 http://egonzalez.org/openstack-kolla-deployment-from-rdo-packages/
