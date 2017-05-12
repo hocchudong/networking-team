@@ -372,5 +372,5 @@ $ tacker vnf-list
 
 ## <a name="ref"></a>4. Tham khảo
 [1] - <a href="http://docs.openstack.org/developer/tacker/install/manual_installation.html">http://docs.openstack.org/developer/tacker/install/manual_installation.html</a>
-<br>
+
 [2] - <a href="http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/">http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/</a>
