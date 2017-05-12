@@ -4,9 +4,7 @@
 ### [2. Cài đặt và cấu hình](#cfg)
 ### [3. Kiểm tra kết quả cài đặt](#check)
 ### [4. Tham khảo](#ref)
-
 ---
-
 _**Chú ý**: Bài lab này cài đặt Tacker trên OpenStack <code>CONTROLLER NODE_ 
 
 ## <a name="req"></a>1. Yêu cầu
