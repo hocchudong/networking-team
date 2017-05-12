@@ -5,7 +5,6 @@
 ### [3. Kiểm tra kết quả cài đặt](#check)
 ### [4. Tham khảo](#ref)
 ---
-_**Chú ý**: Bài lab này cài đặt Tacker trên OpenStack <code>CONTROLLER NODE_ 
 
 ## <a name="req"></a>1. Yêu cầu
 - Cài đặt OpenStack Mitaka với các component: Keystone, Glance, Nova, Neutron, Heat, Horizon theo mô hình <a href="http://docs.openstack.org/liberty/networking-guide/scenario-classic-ovs.html">classic openvswitch.</a> Mô hình sử dụng 2 node: 
