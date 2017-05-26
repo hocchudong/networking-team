@@ -36,7 +36,7 @@
 	./karaf
 	```
 	
-	- Trên OpenDaylight shell(<code>opendaylight-user@root></code>), cài đặt các features cần thiết:
+	- Trên OpenDaylight shell(`opendaylight-user@root>`), cài đặt các features cần thiết:
 	```sh
 	feature:install odl-ovsdb-openstack
 	feature:install odl-dlux-core
@@ -54,7 +54,7 @@
 
 - Bước 2: Xóa toàn bộ các máy ảo và các network trong OpenStack
 	- Bước này yêu cầu xóa toàn bộ các máy ảo và các network, router, subnet, floating IP đã tạo sử dụng Horizon hoặc commandline.
-	- Sau đó trên OpenStack Controller ngắt dịch vụ <code>neutron-server</code>
+	- Sau đó trên OpenStack Controller ngắt dịch vụ `neutron-server`
 	```sh
 	sudo service neutron-server stop
 	```
@@ -70,15 +70,13 @@
 	sudo service openvswitch-switch start
 	sudo ovs-vsctl show
 	```
-	
     	- Sau khi khởi động lại OVS, kết quả tương tự như sau:
 	```sh
 	root@controller:~# ovs-vsctl show
 	265911e9-7cdc-4f0a-8965-fdff0b804eb6
 		ovs_version: "2.5.0"
 	```	
-	
-	- Tiếp đó, với mỗi OpenStack node, lấy địa chỉ IP tunnel network bổ sung vào cấu hình của OpenvSwitch. Ví dụ thực hiện trên OpenStack Controller node, lấy ID của OpenvSwitch từ lệnh <code>ovs-vsctl show</code> ta được: <code>265911e9-7cdc-4f0a-8965-fdff0b804eb6</code>. Địa chỉ của tunnel interface với OpenStack Controller node là: <code>10.10.20.193</code>. Có được 2 số liệu này, thực hiện cấu hình cho OpenvSwitch như sau:
+	- Tiếp đó, với mỗi OpenStack node, lấy địa chỉ IP tunnel network bổ sung vào cấu hình của OpenvSwitch. Ví dụ thực hiện trên OpenStack Controller node, lấy ID của OpenvSwitch từ lệnh `ovs-vsctl show` ta được: `265911e9-7cdc-4f0a-8965-fdff0b804eb6`. Địa chỉ của tunnel interface với OpenStack Controller node là: `10.10.20.193`. Có được 2 số liệu này, thực hiện cấu hình cho OpenvSwitch như sau:
 	```sh
 	sudo ovs-vsctl set Open_vSwitch 265911e9-7cdc-4f0a-8965-fdff0b804eb6 other_config={'local_ip'='10.10.20.193'}
 	```	
@@ -102,8 +100,7 @@
 				Interface br-int
 					type: internal
 		ovs_version: "2.5.0"
-	```
-	
+	```	
         - Chú ý nếu kết nối thành công sẽ có thông báo `is_connected: true` như trên, và đảm bảo OpenDaylight tự động tạo ra __integration bridge__ `br-int` như trên. Thực hiện tương tự với Compute node.
 
 - Bước 4: Cấu hình external network trên OpenStack Network node
