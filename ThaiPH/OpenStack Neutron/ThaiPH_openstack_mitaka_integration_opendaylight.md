@@ -104,9 +104,7 @@
 		ovs_version: "2.5.0"
 	```
 	
-        Chú ý nếu kết nối thành công sẽ có thông báo `is_connected: true` như trên, và đảm bảo OpenDaylight tự động tạo ra __integration bridge__ `br-int` như trên.
-        
-		Thực hiện tương tự với Compute node.
+        - Chú ý nếu kết nối thành công sẽ có thông báo `is_connected: true` như trên, và đảm bảo OpenDaylight tự động tạo ra __integration bridge__ `br-int` như trên. Thực hiện tương tự với Compute node.
 
 - Bước 4: Cấu hình external network trên OpenStack Network node
 	- Bước này với mô hình OpenStack 3 node (Controller, Network, Compute) thực hiện trên Network node, với bài lab này cũng chính là cấu hình Controller node. Thực hiện tạo external bridge:
