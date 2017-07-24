@@ -1,23 +1,18 @@
 # Cài đặt Tacker trên OpenStack Mitaka
 # Mục lục
-<h3><a href="#req">1. Yêu cầu</a></h3>
-<h3><a href="#cfg">2. Cài đặt và cấu hình</a></h3>
-<h3><a href="#check">3. Kiểm tra kết quả cài đặt</a></h3>
-<h3><a href="#ref">3. Tham khảo</a></h3>
-
+### [1. Yêu cầu](#req)
+### [2. Cài đặt và cấu hình](#cfg)
+### [3. Kiểm tra kết quả cài đặt](#check)
+### [4. Tham khảo](#ref)
 ---
-<i><b>Chú ý: </b>Bài lab này cài đặt Tacker trên OpenStack <code>CONTROLLER NODE</code>.</i>
-<h2><a name="req">1. Yêu cầu</a></h2>
-<div>
-    <ol>
-        <li>Cài đặt OpenStack Mitaka với các component: Keystone, Glance, Nova, Neutron, Heat, Horizon theo mô hình <a href="http://docs.openstack.org/liberty/networking-guide/scenario-classic-ovs.html">classic openvswitch.</a> Mô hình sử dụng 2 node: 
-            <ul>
-                <li>CONTROLLER + NETWORK</li>
-                <li>COMPUTE</li>
-            </ul>
-        </li>
-        <li>Tạo script thiết lập biến môi trường cho client trong file <code>admin-openrc</code> với nội dung tương tự như sau:
-<pre><code>
+
+## <a name="req"></a>1. Yêu cầu
+- Cài đặt OpenStack Mitaka với các component: Keystone, Glance, Nova, Neutron, Heat, Horizon theo mô hình <a href="http://docs.openstack.org/liberty/networking-guide/scenario-classic-ovs.html">classic openvswitch.</a> Mô hình sử dụng 2 node: 
+    - CONTROLLER + NETWORK
+    - COMPUTE
+
+- Tạo script thiết lập biến môi trường cho client trong file `admin-openrc` với nội dung tương tự như sau:
+```sh
 export OS_PROJECT_DOMAIN_NAME=default
 export OS_USER_DOMAIN_NAME=default
 export OS_PROJECT_NAME=$1
@@ -26,105 +21,90 @@ export OS_PASSWORD=Welcome123
 export OS_AUTH_URL=http://controller:35357/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
-</code></pre>
-        </li>
-        <li>Cài đặt thêm các gói cần thiết:
-<pre><code>sudo apt-get install python-pip git</code></pre>
-        </li>
-        <li>Chỉnh sửa trong file <code>/etc/neutron/plugins/ml2/ml2_conf.ini</code> như sau:
-<pre><code>
+```
+
+- Cài đặt thêm các gói cần thiết: `sudo apt-get install python-pip git`
+
+- Chỉnh sửa trong file `/etc/neutron/plugins/ml2/ml2_conf.ini` như sau:
+```sh
 [ml2]
 extension_drivers = port_security
-</code></pre>
-        </li>
-    </ol>
-</div>
+```
 
-<h2><a name="cfg">2. Cài đặt và cấu hình</a></h2>
-<div>
-    <h3>Cài đặt Tacker server</h3>
-    <ol>
-        <li>Tạo <code>tacker</code> database và user
-<pre><code>
+## <a name="cfg"></a>2. Cài đặt và cấu hình
+### Cài đặt Tacker server
+- Tạo `tacker` database và user
+```sh
 mysql -uroot -p
 CREATE DATABASE tacker;
 GRANT ALL PRIVILEGES ON tacker.* TO 'tacker'@'localhost' \
     IDENTIFIED BY 'Welcome123';
 GRANT ALL PRIVILEGES ON tacker.* TO 'tacker'@'%' \
     IDENTIFIED BY 'Welcome123';
-</code></pre>
-        Thay <code>Welcome123</code> bằng password tương ứng để thiết lập permission cho database <code>tacker</code>.
-        </li>
-        <li>Tạo users, roles và endpoints:
-            <ul>
-                <li>Thiết lập biến môi trường:
-<pre><code>
-source admin-openrc admin
-</code></pre>
-                </li>
-                 <li>Tạo project <code>nfv</code>
-<pre><code>
-openstack project create --domain default --description "NFV Project" nfv
-</code></pre>
-        </li>
-        <li>Tạo các user <code>tacker</code> và <code>nfv_user</code>
-<pre><code>
-openstack user create --domain default --password "Welcome123" tacker
-openstack user create --domain default --password "Welcome123" nfv_user
-</code></pre>
-        Thay đổi giá trị password cho phù hợp.
-        </li>
-        <li>Tạo role <code>advsvc</code> và <code>_member_</code>, gán role cho các user <code>tacker</code>, <code>nfv_user</code>, <code>admin</code> trên các project <code>service</code> và <code>nfv</code>:
-<pre><code>
-# create role
-openstack role create advsvc
-openstack role create _member_
+```
+    Thay `Welcome123` bằng password tương ứng để thiết lập permission cho database `tacker`.
+    
+- Tạo users, roles và endpoints:
+    - Thiết lập biến môi trường:
+    ```sh
+    source admin-openrc admin
+    ```
+    - Tạo project `nfv`
+    ```sh
+    openstack project create --domain default --description "NFV Project" nfv
+    ```
+    - Tạo các user `tacker` và `nfv_user`:
+    ```sh
+    openstack user create --domain default --password "Welcome123" tacker
+    openstack user create --domain default --password "Welcome123" nfv_user
+    ```
+    Thay đổi giá trị password cho phù hợp.
 
-# role assignment
-openstack role add --project service --user tacker admin
-openstack role add --project service --user tacker advsvc
-openstack role add --project nfv --user nfv_user admin
-openstack role add --project nfv --user nfv_user advsvc
-openstack role add --project nfv --user admin _member_
-</code></pre>
-        </li>
-        <li>Tạo tacker service
-<pre><code>
-openstack service create --name tacker --description "Tacker Project" nfv-orchestration
-</code></pre>
-        </li>
-        <li>Tạo các endpoints truy cập tacker service
-<pre><code>
-openstack endpoint create --region RegionOne nfv-orchestration public http://controller:8888/
-openstack endpoint create --region RegionOne nfv-orchestration internal http://controller:8888/
-openstack endpoint create --region RegionOne nfv-orchestration admin http://controller:8888/
-</code></pre>
-        </li>
-            </ul>
-        </li>
+    - Tạo role `advsvc` và `_member_`, gán role cho các user `tacker`, `nfv_user`, `admin` trên các project `service` và `nfv`:
+    ```sh
+    # create role
+    openstack role create advsvc
+    openstack role create _member_  
 
-        <li>Clone tacker repo và chỉnh sửa file <code>requirements.txt</code>
-<pre><code>
+    # role assignment
+    openstack role add --project service --user tacker admin
+    openstack role add --project service --user tacker advsvc
+    openstack role add --project nfv --user nfv_user admin
+    openstack role add --project nfv --user nfv_user advsvc
+    openstack role add --project nfv --user admin _member_
+    ```
+    - Tạo tacker service:
+    ```sh
+    openstack service create --name tacker --description "Tacker Project" nfv-orchestration
+    - Tạo các endpoints truy cập tacker service
+    ```sh
+    openstack endpoint create --region RegionOne nfv-orchestration public http://controller:8888/
+    openstack endpoint create --region RegionOne nfv-orchestration internal http://controller:8888/
+    openstack endpoint create --region RegionOne nfv-orchestration admin http://controller:8888/
+    ```
+
+- Clone tacker repo và chỉnh sửa file <code>requirements.txt</code>
+```sh
 git clone -b stable/mitaka https://github.com/openstack/tacker
 cd tacker
 sed -i 's/Routes!=2.0,!=2.3.0,>=1.12.3;python_version!='2.7'/#Routes!=2.0,!=2.3.0,>=1.12.3;python_version!='2.7'/g' requirements.txt
-</code></pre>
-        </li>
-        <li>Cài đặt tacker server
-<pre><code>
+```
+
+- Cài đặt tacker server
+```sh
 pip install -r requirements.txt
 pip install tosca-parser
 python setup.py install
-</code></pre>
-        </li>
-        <li>Tạo file log và cache cho <code>tacker</code>:
-<pre><code>
+```
+
+- Tạo file log và cache cho <code>tacker</code>:
+```sh
 mkdir -p /var/log/tacker
 mkdir -p /var/cache/tacker
-</code></pre>
-        </li>
-        <li>Chỉnh sửa file cấu hình <code>/usr/local/etc/tacker/tacker.conf</code>:
-<pre><code>
+```
+
+- Chỉnh sửa file cấu hình <code>/usr/local/etc/tacker/tacker.conf</code>:
+```sh
 cfg=/usr/local/etc/tacker/tacker.conf
 DEFAULT_PASS=Welcome123
 
@@ -201,52 +181,42 @@ heat_uri = http://controller:8004/v1
 #stack_retries = 60
 #stack_retry_wait = 5
 EOF
-</code></pre>
-        Chú ý chỉnh sửa giá trị <code>DEFAULT_PASS</code> cho phù hợp.
-        </li>
-        <li>Cập nhật cấu hình vào <code>tacker</code> database:
-<pre><code>
-/usr/local/bin/tacker-db-manage --config-file /usr/local/etc/tacker/tacker.conf upgrade head
-</code></pre>
-        </li>
-    </ol>
+```
+Chú ý chỉnh sửa giá trị `DEFAULT_PASS` cho phù hợp.
 
-    <h3>Cài đặt Tacker client</h3>
-    <div>
-<pre><code>
+- Cập nhật cấu hình vào <code>tacker</code> database:
+```sh
+/usr/local/bin/tacker-db-manage --config-file /usr/local/etc/tacker/tacker.conf upgrade head
+```
+
+### Cài đặt Tacker client
+```sh
 cd ~/
 git clone -b stable/mitaka https://github.com/openstack/python-tackerclient
 cd python-tackerclient
 python setup.py install
-</code></pre>
-    </div>
+```
 
-    <h3>Cài đặt Tacker horizon</h3>
-    <ol>
-    <li>Clone tacker horizon repo và cài đặt:
-<pre><code>
+### Cài đặt Tacker horizon
+- Clone tacker horizon repo và cài đặt:
+```sh
 cd ~/
 git clone -b stable/mitaka https://github.com/openstack/tacker-horizon
 cd tacker-horizon
 python setup.py install
-</code></pre>
-    </li>
-    <li>Kích hoạt tacker horizon trên dashboard:
-<pre><code>
+```
+- Kích hoạt tacker horizon trên dashboard:
+```sh
 cp openstack_dashboard_extensions/* /usr/share/openstack-dashboard/openstack_dashboard/enabled/
-</code></pre>
-    </li>
-    <li>Restart Apache server
-<pre><code>
+```
+- Restart Apache server
+```sh
 sudo service apache2 restart
-</code></pre>
-    </li>
-    </ol>
+```
 
-     <h3>Kích hoạt tacker-server khi reboot</h3>
-     <ol>
-         <li>Tạo file cấu hình kích hoạt tacker-server khi reboot:
-<pre><code>
+### Kích hoạt tacker-server khi reboot
+- Tạo file cấu hình kích hoạt tacker-server khi reboot:
+```sh
 cd ~/
 cfg=/etc/init/tacker-server.conf
 
@@ -275,17 +245,17 @@ script
   --config-file=/usr/local/etc/tacker/tacker.conf \${DAEMON_ARGS}
 end script
 EOF
-</code></pre>
-         </li>
-         <li>Áp dụng cấu hình, kích hoạt tacker-server khi khởi động:
-<pre><code>
+```
+
+- Áp dụng cấu hình, kích hoạt tacker-server khi khởi động:
+```sh
 ln -sf /lib/init/upstart-job /etc/init.d/tacker-server
 update-rc.d -f tacker-server remove
 update-rc.d tacker-server defaults
-</code></pre>
-         </li>
-         <li>Khởi động lại các dịch vụ neutron và tacker-server
-<pre><code>
+```
+
+- Khởi động lại các dịch vụ neutron và tacker-server
+```sh
 # neutron services
 service neutron-server restart
 service neutron-l3-agent restart
@@ -295,17 +265,12 @@ service neutron-openvswitch-agent restart
 
 #tacker services
 service tacker-server restart
-</code></pre>
-         </li>
-     </ol>
-</div>
+```
 
-<h2><a name="check">3. Kiểm tra kết quả cài đặt</a></h2>
-<div>
-    <h3>Tạo các network</h3>
-    <div>
-        Chú ý bài lab này sử dụng dải mạng ngoài là: <code>172.16.69.0/24</code> và <code>physical_network</code> alias là <code>provider</code>. Chú ý chỉnh sửa cho phù hợp với cấu hình <code>ml2_conf.ini</code>.
-<pre><code>
+## <a name="check"></a>3. Kiểm tra kết quả cài đặt
+### Tạo các network
+_Chú ý bài lab này sử dụng dải mạng ngoài là: `172.16.69.0/24` và `physical_network` alias là `provider`. Chỉnh sửa cho phù hợp với cấu hình `ml2_conf.ini`._
+```sh
 # external network
 source ~/admin-openrc admin
 
@@ -326,12 +291,10 @@ neutron subnet-create --name net1_sub \
 --gateway 10.10.12.1 \
 --dns-nameserver 8.8.8.8 \
 net1 10.10.12.0/24
-</code></pre>
-    </div>
+```
 
-    <h3>Đăng ký default VIM - Virtualized Infrastructure Manager</h3>
-    <div>
-<pre><code>
+### Đăng ký default VIM - Virtualized Infrastructure Manager
+```sh
 # parameters
 MGMT_IP=10.10.10.193
 DEFAULT_PASS=Welcome123
@@ -350,14 +313,11 @@ EOF
 source ~/admin-openrc nfv
 tacker vim-register --config-file config.yaml --name VIM0 \
 --description "Default VIM"
-</code></pre>
-    </div>
+```
 
-    <h3>Tạo sample VNFD - Virtualized Network Function Descriptor</h3>
-    <div>
-        <ol>
-            <li>Tạo VNFD
-<pre><code>
+### Tạo sample VNFD - Virtualized Network Function Descriptor</h3>
+- Tạo VNFD
+```sh
 source ~/admin-openrc nfv
 
 cat << EOF > sample-vnfd.yaml
@@ -390,30 +350,26 @@ vdus:
       param1: key1
 EOF
 tacker vnfd-create --name sample-vnfd --vnfd-file sample-vnfd.yaml
-</code></pre>
-        Chú ý chỉnh các tham số cho phù hợp.
-            </li>
-            <li>Deploy VNF
-<pre><code>
+```
+Chú ý chỉnh các tham số cho phù hợp.
+
+- Deploy VNF
+```sh
 tacker vnf-create --name simple-vnf --vnfd-id <vnfd-id>
-</code></pre>
-            Chú ý tham số <code><vnfd-id></code> thu được sau khi tạo VNFD ở trên.
-            </li>
-            Chờ khoảng 1 phút để VNF tạo xong, kiểm tra lại:
-<pre><code>
+```
+Chú ý tham số <code><vnfd-id></code> thu được sau khi tạo VNFD ở trên.
+
+Chờ khoảng 1 phút để VNF tạo xong, kiểm tra lại:
+```sh
 $ tacker vnf-list
 +--------------------------------------+------------+--------------+------------------------+--------+--------------------------------------+------------------------+
 | id                                   | name       | description  | mgmt_url               | status | vim_id                               | placement_attr         |
 +--------------------------------------+------------+--------------+------------------------+--------+--------------------------------------+------------------------+
 | a9f6bc08-bc2e-467a-8671-cf5b80b9a3df | simple-vnf | demo-example | {"vdu1": "10.10.11.5"} | ACTIVE | 2d734ad9-89e6-4fe4-92b8-925cb65fd08e | {u'vim_name': u'VIM0'} |
 +--------------------------------------+------------+--------------+------------------------+--------+--------------------------------------+------------------------+
-</code></pre>
-        </ol>
-    </div>
-</div>
+```
 
-<h2><a name="ref">4. Tham khảo</a></h2>
+## <a name="ref"></a>4. Tham khảo
 [1] - <a href="http://docs.openstack.org/developer/tacker/install/manual_installation.html">http://docs.openstack.org/developer/tacker/install/manual_installation.html</a>
-<br>
-[2] - <a href="http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/">http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/</a>
 
+[2] - <a href="http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/">http://www.opnfv-tech.com/2016/07/05/vnfd-template-para/</a>
